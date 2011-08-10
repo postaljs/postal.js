@@ -1,4 +1,4 @@
-if(!Object.prototype.forEach) {
+/*if(!Object.prototype.forEach) {
     Object.prototype.forEach = function (callback) {
         var self = this;
         for(var x in self) {
@@ -18,7 +18,7 @@ if(!Object.prototype.forEachKeyValue) {
             }
         }
     };
-};
+};*/
 
 var isArray = function(value) {
     var s = typeof value;

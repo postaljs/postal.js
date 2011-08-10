@@ -1,2 +1,5 @@
 src/languageExtensions.js
-src/broker.js
+src/CapturedMessageBatch.js
+src/MessageCaptor.js
+src/ReplayContext.js
+src/Postal.js

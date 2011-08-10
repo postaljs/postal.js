@@ -1,3 +1,4 @@
+/*
 var MessageBroker = function() {
     var subscriptions = {},
         regexify = function(topic) {
@@ -66,4 +67,4 @@ var MessageBroker = function() {
             }
         }
     };
-};
+};*/
