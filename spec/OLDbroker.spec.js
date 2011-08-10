@@ -1,8 +1,9 @@
+/*
 QUnit.specify("postal.js", function(){
     describe("broker", function(){
         describe("When publishing a message to a specific one level topic", function() {
             describe("with one recipient", function() {
-                var broker = new Broker(),
+                var broker = new MessageBroker(),
                     objA = {
                         messageReceived: false
                     };
@@ -15,7 +16,7 @@ QUnit.specify("postal.js", function(){
                 });
             });
             describe("with two recipients", function() {
-                var broker = new Broker(),
+                var broker = new MessageBroker(),
                     ObjA = function() {
                         this.messageReceived = false;
 
@@ -46,7 +47,7 @@ QUnit.specify("postal.js", function(){
         });
         describe("When publishing a message to a specific multi-level topic", function() {
             describe("with one recipient", function() {
-                var broker = new Broker(),
+                var broker = new MessageBroker(),
                     objA = {
                         messageReceived: false
                     };
@@ -59,7 +60,7 @@ QUnit.specify("postal.js", function(){
                 });
             });
             describe("with two recipients", function() {
-                var broker = new Broker(),
+                var broker = new MessageBroker(),
                     ObjA = function() {
                         this.messageReceived = false;
 
@@ -90,7 +91,7 @@ QUnit.specify("postal.js", function(){
         });
         describe("When publishing a wildcard message to a multi-level topic", function() {
             describe("with one recipient", function() {
-                var broker = new Broker(),
+                var broker = new MessageBroker(),
                     objA = {
                         messageReceived: false
                     };
@@ -103,7 +104,7 @@ QUnit.specify("postal.js", function(){
                 });
             });
             describe("with two recipients", function() {
-                var broker = new Broker(),
+                var broker = new MessageBroker(),
                     ObjA = function() {
                         this.messageReceived = false;
 
@@ -134,7 +135,7 @@ QUnit.specify("postal.js", function(){
         });
         describe("When unsubscribing using provided callback", function() {
             describe("with one callback", function() {
-                var broker = new Broker(),
+                var broker = new MessageBroker(),
                     objA = {
                         messageCount: 0
                     };
@@ -149,7 +150,7 @@ QUnit.specify("postal.js", function(){
                 });
             });
             describe("with two callbacks", function() {
-                var broker = new Broker(),
+                var broker = new MessageBroker(),
                     ObjA = function() {
                         var _unsubscribe;
                         
@@ -182,9 +183,9 @@ QUnit.specify("postal.js", function(){
                     };
                 var a = new ObjA(),
                     b = new ObjB();
-                broker.publish("TwoRecipients.Listening.Something", {});
+                broker.publish("TwoRecipients.Listening", {});
                 a.unsubscribe();
-                broker.publish("TwoRecipients.Listening.Something", {});
+                broker.publish("TwoRecipients.Listening", {});
 
                 it("First object message count should be 1", function(){
                     assert(a.messageCount).equals(1);
@@ -195,23 +196,5 @@ QUnit.specify("postal.js", function(){
                 });
             });
         });
-
-        describe("When publishing a message on a specific exchange", function(){
-            describe("With a valid exchange", function() {
-                var broker = new Broker(),
-                    objA = {
-                        messageCount: 0
-                    };
-
-                var unsubscribe = broker.subscribe("MyExchange", "Test.*", function() { objA.messageCount++; });
-                broker.publish("MyExchange", "Test.Topic", {});
-                unsubscribe();
-                broker.publish("MyExchange", "Test.Topic", {});
-
-                it("the subscription callback should be invoked", function(){
-                    assert(objA.messageCount).equals(1);
-                });
-            })
-        });
     });
-});
+});*/
