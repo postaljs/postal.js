@@ -16,7 +16,11 @@ var MessageCaptor = function(plugUp, unPlug) {
         if(!captureStore) {
             captureStore = {};
         }
-        captureStore[batchId] = new CapturedMessageBatch(batchId, description, this.messages);
+        captureStore[batchId] = {
+                                    batchId: batchId,
+                                    description: description,
+                                    messages: this.messages
+                                };
         amplify.store(POSTAL_MSG_STORE_KEY, captureStore);
     };
 
@@ -25,3 +29,4 @@ var MessageCaptor = function(plugUp, unPlug) {
                   data.description || "Captured Message Batch");
     }.bind(this));
 };
+

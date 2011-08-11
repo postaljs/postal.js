@@ -1,5 +1,4 @@
-src/languageExtensions.js
-src/CapturedMessageBatch.js
+src/misc.js
 src/MessageCaptor.js
 src/ReplayContext.js
 src/Postal.js

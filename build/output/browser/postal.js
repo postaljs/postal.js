@@ -1,3 +1,137 @@
+/*
+    postal.js
+    Author: Jim Cowart
+    License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
+    Version 0.0.1
+*/
+
+(function(global, undefined) {
+
+var isArray = function(value) {
+        var s = typeof value;
+        if (s === 'object') {
+            if (value) {
+                if (typeof value.length === 'number' &&
+                        !(value.propertyIsEnumerable('length')) &&
+                        typeof value.splice === 'function') {
+                    s = 'array';
+                }
+            }
+        }
+        return s === 'array';
+    },
+    slice = [].slice,
+    DEFAULT_EXCHANGE = "/",
+    SYSTEM_EXCHANGE = "postal",
+    NORMAL_MODE = "Normal",
+    CAPTURE_MODE = "Capture",
+    REPLAY_MODE = "Replay",
+    POSTAL_MSG_STORE_KEY = "postal.captured",
+    _forEachKeyValue = function(object, callback) {
+        for(var x in object) {
+            if(object.hasOwnProperty(x)) {
+                callback(x, object[x]);
+            }
+        }
+    };
+
+var MessageCaptor = function(plugUp, unPlug) {
+    var _grabMsg = function(data) {
+            // We need to ignore system messages, since they could involve captures, replays, etc.
+            if(data.exchange !== SYSTEM_EXCHANGE) {
+                this.messages.push(data);
+            }
+        }.bind(this);
+
+    plugUp(_grabMsg);
+
+    this.messages = [];
+
+    this.save = function(batchId, description) {
+        unPlug(_grabMsg);
+        var captureStore = amplify.store(POSTAL_MSG_STORE_KEY);
+        if(!captureStore) {
+            captureStore = {};
+        }
+        captureStore[batchId] = {
+                                    batchId: batchId,
+                                    description: description,
+                                    messages: this.messages
+                                };
+        amplify.store(POSTAL_MSG_STORE_KEY, captureStore);
+    };
+
+    postal.subscribe(SYSTEM_EXCHANGE, "captor.save", function(data) {
+        this.save(data.batchId     || new Date().toString(),
+                  data.description || "Captured Message Batch");
+    }.bind(this));
+};
+
+var ReplayContext = function (publish, subscribe) {
+    var _batch,
+        _continue = true,
+        _loadMessages = function(batchId) {
+            var msgStore = amplify.store(POSTAL_MSG_STORE_KEY),
+                targetBatch = msgStore[batchId];
+            if(targetBatch) {
+                targetBatch.messages.forEach(function(msg) {
+                    msg.timeStamp = new Date(msg.timeStamp);
+                });
+                _batch = targetBatch;
+            }
+        },
+        _replayImmediate = function() {
+            while(_batch.messages.length > 0) {
+                if(_continue) {
+                    _advanceNext();
+                }
+                else {
+                    break;
+                }
+            }
+        },
+        _advanceNext = function() {
+            var msg = _batch.messages.shift();
+            publish(msg.exchange, msg.topic, msg.data);
+        },
+        _replayRealTime = function() {
+            if(_continue && _batch.messages.length > 0) {
+               if(_batch.messages.length > 1) {
+                   var span = _batch.messages[1].timeStamp - _batch.messages[0].timeStamp;
+                   _advanceNext();
+                   setTimeout(_replayRealTime, span);
+               }
+               else {
+                   _advanceNext();
+               }
+            }
+        };
+
+    postal.subscribe(SYSTEM_EXCHANGE, "replay.load", function(data) {
+        _continue = false;
+        _loadMessages(data);
+    });
+
+    postal.subscribe(SYSTEM_EXCHANGE, "replay.immediate", function() {
+        _continue = true;
+        _replayImmediate();
+    });
+
+    postal.subscribe(SYSTEM_EXCHANGE, "replay.advanceNext", function() {
+        _continue = true;
+        _advanceNext();
+    });
+
+    postal.subscribe(SYSTEM_EXCHANGE, "replay.realTime", function() {
+        _continue = true;
+        _replayRealTime();
+    });
+
+    postal.subscribe(SYSTEM_EXCHANGE, "replay.stop", function() {
+        _continue = false;
+    });
+};
+
 var Postal = function() {
     var _regexify = function(topic) {
             if(!this.cache[topic]) {
@@ -228,3 +362,14 @@ var Postal = function() {
     }.bind(this));
 };
 
+
+var postal = global.postal = new Postal();
+
+postal.DEFAULT_EXCHANGE = DEFAULT_EXCHANGE;
+postal.SYSTEM_EXCHANGE = SYSTEM_EXCHANGE;
+postal.NORMAL_MODE = NORMAL_MODE;
+postal.CAPTURE_MODE = CAPTURE_MODE;
+postal.REPLAY_MODE = REPLAY_MODE;
+postal.POSTAL_MSG_STORE_KEY = POSTAL_MSG_STORE_KEY;
+
+})(window);

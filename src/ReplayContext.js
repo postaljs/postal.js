@@ -5,6 +5,9 @@ var ReplayContext = function (publish, subscribe) {
             var msgStore = amplify.store(POSTAL_MSG_STORE_KEY),
                 targetBatch = msgStore[batchId];
             if(targetBatch) {
+                targetBatch.messages.forEach(function(msg) {
+                    msg.timeStamp = new Date(msg.timeStamp);
+                });
                 _batch = targetBatch;
             }
         },
@@ -23,39 +26,40 @@ var ReplayContext = function (publish, subscribe) {
             publish(msg.exchange, msg.topic, msg.data);
         },
         _replayRealTime = function() {
-            var lastTime = _batch.messages[0].timeStamp;
-            while(_batch.messages.length > 0) {
-                if(_continue) {
-                    _advanceNext();
-                    setTimeout(publish(SYSTEM_EXCHANGE, "replay.realTime"), _batch.messages[0].timeStamp - lastTime);
-                }
-                else {
-                    break;
-                }
+            if(_continue && _batch.messages.length > 0) {
+               if(_batch.messages.length > 1) {
+                   var span = _batch.messages[1].timeStamp - _batch.messages[0].timeStamp;
+                   _advanceNext();
+                   setTimeout(_replayRealTime, span);
+               }
+               else {
+                   _advanceNext();
+               }
             }
         };
 
-    subscribe(SYSTEM_EXCHANGE, "replay.load", function(data) {
+    postal.subscribe(SYSTEM_EXCHANGE, "replay.load", function(data) {
         _continue = false;
         _loadMessages(data);
     });
 
-    subscribe(SYSTEM_EXCHANGE, "replay.immediate", function() {
+    postal.subscribe(SYSTEM_EXCHANGE, "replay.immediate", function() {
         _continue = true;
         _replayImmediate();
     });
 
-    subscribe(SYSTEM_EXCHANGE, "replay.advanceNext", function() {
+    postal.subscribe(SYSTEM_EXCHANGE, "replay.advanceNext", function() {
         _continue = true;
         _advanceNext();
     });
 
-    subscribe(SYSTEM_EXCHANGE, "replay.realTime", function() {
+    postal.subscribe(SYSTEM_EXCHANGE, "replay.realTime", function() {
         _continue = true;
         _replayRealTime();
     });
 
-    subscribe(SYSTEM_EXCHANGE, "replay.stop", function() {
+    postal.subscribe(SYSTEM_EXCHANGE, "replay.stop", function() {
         _continue = false;
     });
 };
+
