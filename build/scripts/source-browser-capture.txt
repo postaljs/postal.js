@@ -1,0 +1,2 @@
+src/capture/MessageCaptor.js
+src/capture/CaptorPanel.js

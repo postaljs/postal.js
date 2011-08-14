@@ -28,14 +28,19 @@ var ReplayContext = function (bus) {
         _batchListCache = [],
         _remoteConfigured = false,
         _replayImmediate = function() {
+            var skipComplete = false;
             if(_batch) {
                 while(_batch.messages.length > 0) {
                     if(_continue) {
                         _advanceNext();
                     }
                     else {
+                        skipComplete = true;
                         break;
                     }
+                }
+                if(!skipComplete) {
+                    postal.publish(postal.SYSTEM_EXCHANGE, "replay.complete");
                 }
             }
         },
@@ -43,6 +48,9 @@ var ReplayContext = function (bus) {
             if(_batch && _batch.messages.length > 0) {
                 var msg = _batch.messages.shift();
                 bus.publish(msg.exchange, msg.topic, msg.data);
+            }
+            else if(_batch && _batch.messages.length === 0) {
+                postal.publish(postal.SYSTEM_EXCHANGE, "replay.complete");
             }
         },
         _replayRealTime = function() {
@@ -53,7 +61,8 @@ var ReplayContext = function (bus) {
                    setTimeout(_replayRealTime, span);
                }
                else {
-                   _advanceNext();
+                    _advanceNext();
+                    postal.publish(postal.SYSTEM_EXCHANGE, "replay.complete");
                }
             }
         };
@@ -68,6 +77,7 @@ var ReplayContext = function (bus) {
         _subscriptions.push(postal.subscribe(postal.SYSTEM_EXCHANGE, "replay.advanceNext", function() {
             _continue = true;
             _advanceNext();
+            postal.publish(postal.SYSTEM_EXCHANGE, "replay.readyForNext");
         }));
 
         _subscriptions.push(postal.subscribe(postal.SYSTEM_EXCHANGE, "replay.realTime", function() {

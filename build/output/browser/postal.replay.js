@@ -37,14 +37,19 @@ var ReplayContext = function (bus) {
         _batchListCache = [],
         _remoteConfigured = false,
         _replayImmediate = function() {
+            var skipComplete = false;
             if(_batch) {
                 while(_batch.messages.length > 0) {
                     if(_continue) {
                         _advanceNext();
                     }
                     else {
+                        skipComplete = true;
                         break;
                     }
+                }
+                if(!skipComplete) {
+                    postal.publish(postal.SYSTEM_EXCHANGE, "replay.complete");
                 }
             }
         },
@@ -52,6 +57,9 @@ var ReplayContext = function (bus) {
             if(_batch && _batch.messages.length > 0) {
                 var msg = _batch.messages.shift();
                 bus.publish(msg.exchange, msg.topic, msg.data);
+            }
+            else if(_batch && _batch.messages.length === 0) {
+                postal.publish(postal.SYSTEM_EXCHANGE, "replay.complete");
             }
         },
         _replayRealTime = function() {
@@ -62,7 +70,8 @@ var ReplayContext = function (bus) {
                    setTimeout(_replayRealTime, span);
                }
                else {
-                   _advanceNext();
+                    _advanceNext();
+                    postal.publish(postal.SYSTEM_EXCHANGE, "replay.complete");
                }
             }
         };
@@ -77,6 +86,7 @@ var ReplayContext = function (bus) {
         _subscriptions.push(postal.subscribe(postal.SYSTEM_EXCHANGE, "replay.advanceNext", function() {
             _continue = true;
             _advanceNext();
+            postal.publish(postal.SYSTEM_EXCHANGE, "replay.readyForNext");
         }));
 
         _subscriptions.push(postal.subscribe(postal.SYSTEM_EXCHANGE, "replay.realTime", function() {
@@ -162,8 +172,8 @@ postal.addBusBehavior(postal.REPLAY_MODE,
 
 var ReplayPanel = function() {
     var _rendered = false,
-        _style = '.postal-replay-wrapper { font-family: Tahoma, Arial; font-size: 10pt; float: left; vertical-align: middle; margin: 0px; padding: 0px; position: fixed; left: 0px; top: 0px; width: 100%; background-color: steelblue; color: white; } .postal-replay-title { float: left; margin-top: 4px; margin-left: 5px; margin-right: 15px; font-weight: bold; font-size: 11pt; height: 100%; } .postal-replay-button { float: left; } .postal-replay-dropdown { width: 150px; } .postal-replay-load { float: right; } .postal-replay-load select { float: left; margin-right: 10px; } #currentBatch { margin-top: 4px; margin-left: 20px; font-size: 10pt; font-weight: bold; float: left; } .postal-replay-exit { margin-left:35px; }',
-        _html = '<div class="postal-replay-title">Postal Replay</div> <input class="postal-replay-button" type="button" id="btnRealTime" value="Play" alt="Real Time Playback" onclick="postal.replay.replayRealTime()"> <input class="postal-replay-button" type="button" id="btnStop" value="Stop" onclick="postal.replay.replayStop()"> <input class="postal-replay-button" type="button" id="btnAdvance" value="Step" alt="Advances to Next Msg (manual progression)" onclick="postal.replay.replayAdvance()"> <input class="postal-replay-button" type="button" id="btnImmediate" value="Immediate" alt="Replays all Messages Immediately" onclick="postal.replay.replayImmediate()"> <div id="currentBatch"></div> <div class="postal-replay-load"> <select class="postal-replay-dropdown" id="drpBatches"></select> <input class="postal-replay-button" type="button" id="btnLoad" value="Load Batch" onclick="postal.replay.loadBatch()"> <input class="postal-replay-button postal-replay-exit" type="button" id="btnExitReplay" value="Exit Replay Mode" onclick="postal.replay.exitReplay()"></div>';
+        _style = '.postal-replay-wrapper { font-family: Tahoma, Arial, sans-serif; font-size: 10pt; float: right; margin: 0px; padding: 0px; background-color: steelblue; color: white; text-align: center; border-radius: 3px; width: 300px; margin-top:40px; } .postal-replay-title { margin-top:3px; font-weight: bold; font-size: 11pt; } .postal-replay-dropdown { width: 150px; } #currentBatch { margin-top: 10px; margin-bottom: 10px; font-size: 10pt; font-weight: bold; display: none; } .postal-replay-label { width: 75px; float: left; text-align: right; margin-left: 5px; margin-right: 10px; } .postal-replay-value { text-align: left; } .info-msg { font-weight: bold; font-size: 11pt; line-height: 15pt; background-color: #191970; color: white; padding-left: 5px; padding-right: 5px; margin-left:5px; margin-right:5px;} .postal-replay-exit { margin-bottom:3px; }',
+        _html = '<div class="postal-replay-title">Postal Message Replay</div> <input disabled class="postal-replay-button" type="button" id="btnRealTime" value="Play" onclick="postal.replay.replayRealTime()"> <input disabled class="postal-replay-button" type="button" id="btnStop" value="Stop" onclick="postal.replay.replayStop()"> <input disabled class="postal-replay-button" type="button" id="btnAdvance" value="Step" onclick="postal.replay.replayAdvance()"> <input disabled class="postal-replay-button" type="button" id="btnImmediate" value="Immediate" onclick="postal.replay.replayImmediate()"> <div class="postal-replay-load"> <select class="postal-replay-dropdown" id="drpBatches"></select> <input class="postal-replay-button" type="button" id="btnLoad" value="Load Batch" onclick="postal.replay.loadBatch()"> <div class="info-msg" id="info-msg"></div> </div> <div id="currentBatch"> <div class="postal-replay-row"> <div class="postal-replay-label">Batch ID:</div> <div class="postal-replay-value" id="batchId"></div> </div> <div class="postal-replay-row"> <div class="postal-replay-label">Description:</div> <div class="postal-replay-value" id="description"></div> </div> <div class="postal-replay-row"> <div class="postal-replay-label">Msg Count:</div> <div class="postal-replay-value" id="messageCount"></div> </div> </div> <input class="postal-replay-button postal-replay-exit" type="button" id="btnExitReplay" value="Exit Replay Mode" onclick="postal.replay.exitReplay()">';
 
     this.exitReplay = function() {
         postal.publish(postal.SYSTEM_EXCHANGE, "mode.set", { mode: postal.NORMAL_MODE });
@@ -187,27 +197,15 @@ var ReplayPanel = function() {
 
     this.loadBatch = function() {
         var batchId = document.getElementById("drpBatches").value;
-        postal.publish(postal.SYSTEM_EXCHANGE, "replay.store.loadBatch", { batchId: batchId });
-    };
-
-    postal.subscribe(postal.SYSTEM_EXCHANGE, "replay.store.batchLoaded", function(data) {
-        var text = "Replaying: " + data.batchId + " (" + data.description + ") " + data.msgCount + " message(s)";
-        document.getElementById("currentBatch").innerText = text;
-    });
-
-    postal.subscribe(postal.SYSTEM_EXCHANGE, "replay.store.batchList", function(data) {
-        var dropDown = document.getElementById("drpBatches"),
-            optElem;
-        dropDown.options.remove();
-        if(data) {
-            data.forEach(function(item) {
-                optElem = document.createElement("option");
-                optElem.value = item.batchId;
-                optElem.text = item.batchId
-                dropDown.options.add(optElem);
-            });
+        document.getElementById("currentBatch").style.display = "none";
+        if(batchId) {
+            postal.publish(postal.SYSTEM_EXCHANGE, "replay.store.loadBatch", { batchId: batchId });
+            document.getElementById("info-msg").innerText = "";
         }
-    });
+        else {
+            document.getElementById("info-msg").innerText = "You must select a batch first";
+        }
+    };
 
     this.render = function() {
         if(!_rendered){
@@ -230,6 +228,80 @@ var ReplayPanel = function() {
     this.hide = function() {
         document.getElementById("replay-wrapper").hidden = true;
     };
+
+    postal.subscribe(postal.SYSTEM_EXCHANGE, "replay.store.batchLoaded", function(data) {
+        document.getElementById("batchId").innerText = data.batchId;
+        document.getElementById("description").innerText = data.description;
+        document.getElementById("messageCount").innerText = data.msgCount;
+        document.getElementById("currentBatch").style.display = "block";
+        document.getElementById("btnRealTime").disabled = false;
+        document.getElementById("btnStop").disabled = true;
+        document.getElementById("btnAdvance").disabled = false;
+        document.getElementById("btnImmediate").disabled = false;
+        document.getElementById("info-msg").innerText = "";
+    });
+
+    postal.subscribe(postal.SYSTEM_EXCHANGE, "replay.store.batchList", function(data) {
+        var dropDown = document.getElementById("drpBatches"),
+            optElem;
+        dropDown.options.remove();
+        if(data) {
+            data.forEach(function(item) {
+                optElem = document.createElement("option");
+                optElem.value = item.batchId;
+                optElem.text = item.batchId
+                dropDown.options.add(optElem);
+            });
+        }
+    });
+
+    postal.subscribe(postal.SYSTEM_EXCHANGE, "replay.immediate", function() {
+        document.getElementById("btnRealTime").disabled = true;
+        document.getElementById("btnStop").disabled = false;
+        document.getElementById("btnAdvance").disabled = true;
+        document.getElementById("btnImmediate").disabled = true;
+        document.getElementById("btnLoad").disabled = true;
+    });
+
+    postal.subscribe(postal.SYSTEM_EXCHANGE, "replay.realTime", function() {
+        document.getElementById("btnRealTime").disabled = true;
+        document.getElementById("btnStop").disabled = false;
+        document.getElementById("btnAdvance").disabled = true;
+        document.getElementById("btnImmediate").disabled = true;
+        document.getElementById("btnLoad").disabled = true;
+    });
+
+    postal.subscribe(postal.SYSTEM_EXCHANGE, "replay.stop", function() {
+        document.getElementById("btnRealTime").disabled = false;
+        document.getElementById("btnStop").disabled = true;
+        document.getElementById("btnAdvance").disabled = false;
+        document.getElementById("btnImmediate").disabled = false;
+        document.getElementById("btnLoad").disabled = false;
+    });
+
+    postal.subscribe(postal.SYSTEM_EXCHANGE, "replay.advanceNext", function() {
+        document.getElementById("btnRealTime").disabled = true;
+        document.getElementById("btnStop").disabled = false;
+        document.getElementById("btnAdvance").disabled = true;
+        document.getElementById("btnImmediate").disabled = true;
+        document.getElementById("btnLoad").disabled = true;
+    });
+
+    postal.subscribe(postal.SYSTEM_EXCHANGE, "replay.readyForNext", function() {
+        document.getElementById("btnRealTime").disabled = false;
+        document.getElementById("btnStop").disabled = true;
+        document.getElementById("btnAdvance").disabled = false;
+        document.getElementById("btnImmediate").disabled = false;
+        document.getElementById("btnLoad").disabled = false;
+    });
+
+    postal.subscribe(postal.SYSTEM_EXCHANGE, "replay.complete", function() {
+        document.getElementById("btnRealTime").disabled = true;
+        document.getElementById("btnStop").disabled = true;
+        document.getElementById("btnAdvance").disabled = true;
+        document.getElementById("btnImmediate").disabled = true;
+        document.getElementById("btnLoad").disabled = false;
+    });
 };
 
 postal.replay = new ReplayPanel();
