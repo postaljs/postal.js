@@ -9,6 +9,6 @@ cat ./boilerplate/browser_header.txt  >> $OutFile
 # Combine the source files
 while read line; do
     cat ../$line >> $OutFile
-done < SourceManifest-browser.txt
+done < source-browser-postal.txt
 
 cat ./boilerplate/browser_footer.txt  >> $OutFile

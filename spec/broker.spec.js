@@ -4,7 +4,7 @@ QUnit.specify("postal.js", function(){
     describe("broker", function(){
         describe("When publishing a message to a specific one level topic", function() {
             describe("with one recipient", function() {
-                postal = new Postal();
+                postal.reset();
                 var objA = {
                         messageReceived: false
                     };
@@ -17,7 +17,7 @@ QUnit.specify("postal.js", function(){
                 });
             });
             describe("with two recipients", function() {
-                postal = new Postal();
+                postal.reset();
                 var ObjA = function() {
                         this.messageReceived = false;
 
@@ -48,7 +48,7 @@ QUnit.specify("postal.js", function(){
         });
         describe("When publishing a message to a specific multi-level topic", function() {
             describe("with one recipient", function() {
-                postal = new Postal();
+                postal.reset();
                 var objA = {
                         messageReceived: false
                     };
@@ -61,7 +61,7 @@ QUnit.specify("postal.js", function(){
                 });
             });
             describe("with two recipients", function() {
-                postal = new Postal();
+                postal.reset();
                 var ObjA = function() {
                         this.messageReceived = false;
 
@@ -92,7 +92,7 @@ QUnit.specify("postal.js", function(){
         });
         describe("When publishing a wildcard message to a multi-level topic", function() {
             describe("with one recipient", function() {
-                postal = new Postal();
+                postal.reset();
                 var objA = {
                         messageReceived: false
                     };
@@ -105,7 +105,7 @@ QUnit.specify("postal.js", function(){
                 });
             });
             describe("with two recipients", function() {
-                postal = new Postal();
+                postal.reset();
                 var ObjA = function() {
                         this.messageReceived = false;
 
@@ -136,7 +136,7 @@ QUnit.specify("postal.js", function(){
         });
         describe("When unsubscribing using provided callback", function() {
             describe("with one callback", function() {
-                postal = new Postal();
+                postal.reset();
                 var objA = {
                         messageCount: 0
                     };
@@ -151,7 +151,7 @@ QUnit.specify("postal.js", function(){
                 });
             });
             describe("with two callbacks", function() {
-                postal = new Postal();
+                postal.reset();
                 var ObjA = function() {
                         var _unsubscribe;
                         
@@ -197,10 +197,9 @@ QUnit.specify("postal.js", function(){
                 });
             });
         });
-
         describe("When publishing a message on a specific exchange", function(){
             describe("With a valid exchange", function() {
-                postal = new Postal();
+                postal.reset();
                 var objA = {
                         messageCount: 0
                     };
@@ -215,7 +214,7 @@ QUnit.specify("postal.js", function(){
                 });
             });
             describe("With an invalid exchange", function() {
-                postal = new Postal();
+                postal.reset();
                 var objA = {
                         messageCount: 0
                     };
@@ -231,7 +230,7 @@ QUnit.specify("postal.js", function(){
             });
             describe("With multiple active exchanges", function() {
                 describe("Publishing only to one exchange", function(){
-                    postal = new Postal();
+                    postal.reset();
                     var objA = {
                         messageCount: 0
                     };
@@ -255,7 +254,7 @@ QUnit.specify("postal.js", function(){
                     });
                 });
                 describe("Publishing to multiple exchanges", function(){
-                    postal = new Postal();
+                    postal.reset();
                     var objA = {
                         messageCount: 0
                     };
@@ -280,155 +279,6 @@ QUnit.specify("postal.js", function(){
                     it("the subscription callback for objB should be invoked", function(){
                         assert(objB.messageCount).equals(3);
                     });
-                });
-            });
-        });
-        describe("With Mode Change Messages", function(){
-            describe("Change To Replay", function() {
-                postal = new Postal();
-                    var objA = {
-                            messageCount: 0
-                        },
-                        mode;
-                    var unsubscribeA = postal.subscribe("MyExchangeA", "Test.*", function() { objA.messageCount++; });
-                    postal.publish("MyExchangeA", "Test.Topic", {});
-                    postal.publish(SYSTEM_EXCHANGE, "mode.set", { mode: REPLAY_MODE });
-                    mode = postal.getMode();
-                    postal.publish("MyExchangeA", "Test.Topic", {});
-                    unsubscribeA();
-
-                it("the subscription callback for objA should be invoked only once", function(){
-                    assert(objA.messageCount).equals(1);
-                });
-
-                it("broker should report replay mode", function() {
-                    assert(mode).equals(REPLAY_MODE);
-                });
-            });
-            describe("Change To Replay & Back to Normal", function() {
-                postal = new Postal();
-                var mode,
-                    objA = {
-                        messageCount: 0
-                    },
-                    mode2;
-                    var unsubscribeA = postal.subscribe("MyExchangeA", "Test.*", function() { objA.messageCount++; });
-                    postal.publish("MyExchangeA", "Test.Topic", {});
-                    postal.publish(SYSTEM_EXCHANGE, "mode.set", { mode: REPLAY_MODE });
-                    postal.publish("MyExchangeA", "Test.Topic", {});
-                    mode = postal.getMode();
-                    postal.publish(SYSTEM_EXCHANGE, "mode.set", { mode: NORMAL_MODE });
-                    mode2 = postal.getMode();
-                    postal.publish("MyExchangeA", "Test.Topic", {});
-                    unsubscribeA();
-
-                it("the subscription callback for objA should be invoked only twice", function(){
-                    assert(objA.messageCount).equals(2);
-                });
-
-                it("broker should report replay mode", function() {
-                    assert(mode).equals(REPLAY_MODE);
-                });
-
-                it("broker should report normal mode", function() {
-                    assert(mode2).equals(NORMAL_MODE);
-                });
-            });
-            describe("Change To Replay & Then to Capture", function() {
-                postal = new Postal();
-                var mode,
-                    objA = {
-                        messageCount: 0
-                    },
-                    mode2;
-                    var unsubscribeA = postal.subscribe("MyExchangeA", "Test.*", function() { objA.messageCount++; });
-                    postal.publish("MyExchangeA", "Test.Topic", {});
-                    postal.publish(SYSTEM_EXCHANGE, "mode.set", { mode: REPLAY_MODE });
-                    postal.publish("MyExchangeA", "Test.Topic", {});
-                    mode = postal.getMode();
-                    postal.publish(SYSTEM_EXCHANGE, "mode.set", { mode: CAPTURE_MODE });
-                    mode2 = postal.getMode();
-                    postal.publish("MyExchangeA", "Test.Topic", {});
-                    unsubscribeA();
-
-                it("the subscription callback for objA should be invoked only twice", function(){
-                    assert(objA.messageCount).equals(2);
-                });
-
-                it("broker should report replay mode", function() {
-                    assert(mode).equals(REPLAY_MODE);
-                });
-
-                it("broker should report capture mode", function() {
-                    assert(mode2).equals(CAPTURE_MODE);
-                });
-            });
-            describe("Change To Capture & Then to Normal", function() {
-                postal = new Postal();
-                var mode,
-                    mode2,
-                    objA = {
-                        messageCount: 0
-                    };
-                    var unsubscribeA = postal.subscribe("MyExchangeA", "Test.*", function() { objA.messageCount++; });
-                    postal.publish("MyExchangeA", "Test.Topic", {});
-                    postal.publish(SYSTEM_EXCHANGE, "mode.set", { mode: CAPTURE_MODE });
-                    postal.publish("MyExchangeA", "Test.Topic", {});
-                    mode = postal.getMode();
-                    postal.publish(SYSTEM_EXCHANGE, "mode.set", { mode: NORMAL_MODE });
-                    mode2 = postal.getMode();
-                    postal.publish("MyExchangeA", "Test.Topic", {});
-                    unsubscribeA();
-
-                it("the subscription callback for objA should be invoked only 3x", function(){
-                    assert(objA.messageCount).equals(3);
-                });
-
-                it("broker should report replay mode", function() {
-                    assert(mode).equals(CAPTURE_MODE);
-                });
-
-                it("broker should report capture mode", function() {
-                    assert(mode2).equals(NORMAL_MODE);
-                });
-            });
-            describe("Change To Capture", function() {
-                postal = new Postal();
-                var mode,
-                    savedBatch,
-                    objA = {
-                        messageCount: 0
-                    },
-                    objB = {
-                        messageCount: 0
-                    };
-                var unsubscribeA = postal.subscribe("MyExchangeA", "Test.*", function() { objA.messageCount++; });
-                var unsubscribeB = postal.subscribe("MyExchangeB", "Test.*", function() { objB.messageCount++; });
-                postal.publish(SYSTEM_EXCHANGE, "mode.set", { mode: CAPTURE_MODE });
-                mode = postal.getMode();
-                postal.publish("MyExchangeA", "Test.Topic", {});
-                postal.publish("MyExchangeA", "Test.Topic", {});
-                postal.publish("MyExchangeB", "Test.Topic", {});
-                postal.publish("MyExchangeB", "Test.Topic", {});
-                unsubscribeA();
-                unsubscribeB();
-                postal.publish(SYSTEM_EXCHANGE, "captor.save", { batchId: "MyMsgBatch", description: "Just a Test" });
-                savedBatch = amplify.store(POSTAL_MSG_STORE_KEY)["MyMsgBatch"];
-
-                it("the subscription callback for objA should be invoked only twice", function(){
-                    assert(objA.messageCount).equals(2);
-                });
-
-                it("broker should report replay mode", function() {
-                    assert(mode).equals(CAPTURE_MODE);
-                });
-
-                it("captured message batch should exist", function() {
-                    assert(savedBatch !== undefined).isTrue();
-                })
-
-                it("captured message batch should have 4 messages", function() {
-
                 });
             });
         });

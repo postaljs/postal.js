@@ -1,6 +1,4 @@
 
-var postal = new Postal();
-
 postal.DEFAULT_EXCHANGE = DEFAULT_EXCHANGE;
 postal.SYSTEM_EXCHANGE = SYSTEM_EXCHANGE;
 postal.NORMAL_MODE = NORMAL_MODE;

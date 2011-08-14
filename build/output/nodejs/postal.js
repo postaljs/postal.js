@@ -33,104 +33,7 @@ var isArray = function(value) {
         }
     };
 
-var MessageCaptor = function(plugUp, unPlug) {
-    var _grabMsg = function(data) {
-            // We need to ignore system messages, since they could involve captures, replays, etc.
-            if(data.exchange !== SYSTEM_EXCHANGE) {
-                this.messages.push(data);
-            }
-        }.bind(this);
-
-    plugUp(_grabMsg);
-
-    this.messages = [];
-
-    this.save = function(batchId, description) {
-        unPlug(_grabMsg);
-        var captureStore = amplify.store(POSTAL_MSG_STORE_KEY);
-        if(!captureStore) {
-            captureStore = {};
-        }
-        captureStore[batchId] = {
-                                    batchId: batchId,
-                                    description: description,
-                                    messages: this.messages
-                                };
-        amplify.store(POSTAL_MSG_STORE_KEY, captureStore);
-    };
-
-    postal.subscribe(SYSTEM_EXCHANGE, "captor.save", function(data) {
-        this.save(data.batchId     || new Date().toString(),
-                  data.description || "Captured Message Batch");
-    }.bind(this));
-};
-
-var ReplayContext = function (publish, subscribe) {
-    var _batch,
-        _continue = true,
-        _loadMessages = function(batchId) {
-            var msgStore = amplify.store(POSTAL_MSG_STORE_KEY),
-                targetBatch = msgStore[batchId];
-            if(targetBatch) {
-                targetBatch.messages.forEach(function(msg) {
-                    msg.timeStamp = new Date(msg.timeStamp);
-                });
-                _batch = targetBatch;
-            }
-        },
-        _replayImmediate = function() {
-            while(_batch.messages.length > 0) {
-                if(_continue) {
-                    _advanceNext();
-                }
-                else {
-                    break;
-                }
-            }
-        },
-        _advanceNext = function() {
-            var msg = _batch.messages.shift();
-            publish(msg.exchange, msg.topic, msg.data);
-        },
-        _replayRealTime = function() {
-            if(_continue && _batch.messages.length > 0) {
-               if(_batch.messages.length > 1) {
-                   var span = _batch.messages[1].timeStamp - _batch.messages[0].timeStamp;
-                   _advanceNext();
-                   setTimeout(_replayRealTime, span);
-               }
-               else {
-                   _advanceNext();
-               }
-            }
-        };
-
-    postal.subscribe(SYSTEM_EXCHANGE, "replay.load", function(data) {
-        _continue = false;
-        _loadMessages(data);
-    });
-
-    postal.subscribe(SYSTEM_EXCHANGE, "replay.immediate", function() {
-        _continue = true;
-        _replayImmediate();
-    });
-
-    postal.subscribe(SYSTEM_EXCHANGE, "replay.advanceNext", function() {
-        _continue = true;
-        _advanceNext();
-    });
-
-    postal.subscribe(SYSTEM_EXCHANGE, "replay.realTime", function() {
-        _continue = true;
-        _replayRealTime();
-    });
-
-    postal.subscribe(SYSTEM_EXCHANGE, "replay.stop", function() {
-        _continue = false;
-    });
-};
-
-var Postal = function() {
+var Bus = function() {
     var _regexify = function(topic) {
             if(!this.cache[topic]) {
                 this.cache[topic] = topic.replace(".", "\.").replace("*", ".*");
@@ -144,41 +47,68 @@ var Postal = function() {
                     (topic.indexOf("*") !== -1 && comparison.search(_regexify(topic)) !== -1);
             }
             return this.cache[topic + '_' + comparison];
-        }.bind(this),
-        _publish = function(exchange, topic, data) {
-            this.wireTaps.forEach(function(tap) {
-                tap({
-                    exchange:   exchange,
-                    topic:      topic,
-                    data:       data,
-                    timeStamp:  new Date()
-                });
-            });
+        }.bind(this);
 
-            _forEachKeyValue(this.subscriptions[exchange],function(subTpc, subs) {
-                if(_isTopicMatch(topic, subTpc)) {
-                    subs.forEach(function(sub) {
-                            if(typeof sub.callback === 'function') {
-                                sub.callback(data);
-                                sub.onFired();
-                            }
-                        });
-                }
-            });
-        }.bind(this),
-        _mode = NORMAL_MODE,
-        _replayContext,
-        _captor;
+    this.context = undefined;
 
     this.cache = {};
-
-    this.getMode = function() { return _mode; };
 
     this.wireTaps = [];
 
     this.subscriptions = {};
 
     this.subscriptions[DEFAULT_EXCHANGE] = {};
+
+    this.publish = function(exchange, topic, data) {
+        this.wireTaps.forEach(function(tap) {
+            tap({
+                exchange:   exchange,
+                topic:      topic,
+                data:       data,
+                timeStamp:  new Date()
+            });
+        });
+
+        _forEachKeyValue(this.subscriptions[exchange],function(subTpc, subs) {
+            if(_isTopicMatch(topic, subTpc)) {
+                subs.forEach(function(sub) {
+                        if(typeof sub.callback === 'function') {
+                            sub.callback.apply(sub.context, [data]);
+                            sub.onFired();
+                        }
+                    });
+            }
+        });
+    };
+
+    this.mode = NORMAL_MODE;
+
+    this[NORMAL_MODE] = {
+                            setup: function() {
+                                this.mode = NORMAL_MODE;
+                                this.context = undefined;
+                            },
+                            teardown: function() {
+                                // no-op
+                            }
+                        };
+
+    this.init = function() {
+        this[NORMAL_MODE]();
+        var systemEx = this.subscriptions[SYSTEM_EXCHANGE] || {};
+        this.subscriptions = {};
+        this.subscriptions[DEFAULT_EXCHANGE] = {};
+        this.subscriptions[SYSTEM_EXCHANGE] = systemEx;
+        this.cache = {};
+        this.wireTaps = [];
+    };
+};
+
+var bus = new Bus();
+
+var Postal = function() {
+
+    this.getMode = function() { return bus.mode; };
 
     /*
         options object has the following optional members:
@@ -194,10 +124,10 @@ var Postal = function() {
             _topicList, // we allow multiple topics to be subscribed in one call.,
             _once = false,
             _subData =  {
-                            callback: function() { /* placeholder noop */ },
+                            callback: function() { /* placeholder no-op */ },
                             priority: 50,
                             context: null,
-                            onFired: function() { /* noop */ }
+                            onFired: function() { /* placeholder no-op */ }
                         },
             _idx,
             _found;
@@ -235,26 +165,26 @@ var Postal = function() {
             }.bind(this);
         }
 
-        if(!this.subscriptions[_exchange]) {
-            this.subscriptions[_exchange] = {};
+        if(!bus.subscriptions[_exchange]) {
+            bus.subscriptions[_exchange] = {};
         }
 
         _topicList.forEach(function(tpc) {
-            if(!this.subscriptions[_exchange][tpc]) {
-                this.subscriptions[_exchange][tpc] = [_subData];
+            if(!bus.subscriptions[_exchange][tpc]) {
+                bus.subscriptions[_exchange][tpc] = [_subData];
             }
             else {
-                _idx = this.subscriptions[_exchange][tpc].length - 1;
-                if(this.subscriptions[_exchange][tpc].filter(function(sub) { return sub === callback; }).length === 0) {
+                _idx = bus.subscriptions[_exchange][tpc].length - 1;
+                if(bus.subscriptions[_exchange][tpc].filter(function(sub) { return sub === callback; }).length === 0) {
                     for(; _idx >= 0; _idx--) {
-                        if(this.subscriptions[_exchange][tpc][_idx].priority <= _subData.priority) {
-                            this.subscriptions[_exchange][tpc].splice(_idx + 1, 0, _subData);
+                        if(bus.subscriptions[_exchange][tpc][_idx].priority <= _subData.priority) {
+                            bus.subscriptions[_exchange][tpc].splice(_idx + 1, 0, _subData);
                             _found = true;
                             break;
                         }
                     }
                     if(!_found) {
-                        this.subscriptions[_exchange][tpc].unshift(_subData);
+                        bus.subscriptions[_exchange][tpc].unshift(_subData);
                     }
                 }
             }
@@ -284,12 +214,12 @@ var Postal = function() {
         }
 
         _topicList.forEach(function(tpc) {
-            if(this.subscriptions[_exchange][tpc]) {
-                var _len = this.subscriptions[_exchange][tpc].length,
+            if(bus.subscriptions[_exchange][tpc]) {
+                var _len = bus.subscriptions[_exchange][tpc].length,
                     _idx = 0;
                 for ( ; _idx < _len; _idx++ ) {
-                    if (this.subscriptions[_exchange][tpc][_idx].callback === callback) {
-                        this.subscriptions[_exchange][tpc].splice( _idx, 1 );
+                    if (bus.subscriptions[_exchange][tpc][_idx].callback === callback) {
+                        bus.subscriptions[_exchange][tpc].splice( _idx, 1 );
                         break;
                     }
                 }
@@ -322,47 +252,53 @@ var Postal = function() {
             _topicList = topic.split(/\s/);
             _data = data || {};
         }
-        if(_mode !== REPLAY_MODE || (_mode === REPLAY_MODE && _exchange === SYSTEM_EXCHANGE)) {
+        if(bus.mode !== REPLAY_MODE || (bus.mode === REPLAY_MODE && _exchange === SYSTEM_EXCHANGE)) {
 
             _topicList.forEach(function(tpc){
-                _publish(_exchange, tpc, _data);
+                bus.publish(_exchange, tpc, _data);
             });
         }
     };
 
+    this.reset = function() {
+        bus.init();
+    };
+
+    this.addBusBehavior = function(behaviorName, setup, teardown) {
+        if(!bus[behaviorName]) {
+            bus[behaviorName] = {};
+        }
+        bus[behaviorName].setup = function() {
+            bus.mode = behaviorName;
+            setup(bus);
+        };
+        if(teardown) {
+            bus[behaviorName].teardown = function() { teardown(bus); }
+        }
+        else {
+            bus[behaviorName].teardown = function() { /* no-op */ }
+        }
+    };
+
     this.subscribe(SYSTEM_EXCHANGE, "mode.set", function(data) {
-        if(data.mode) {
-            switch(data.mode) {
-                case REPLAY_MODE:
-                    _mode = REPLAY_MODE;
-                    _replayContext = new ReplayContext(_publish.bind(this), this.subscribe.bind(this));
-                    _captor = undefined;
-                break;
-                case CAPTURE_MODE:
-                    _mode = CAPTURE_MODE;
-                    _captor = new MessageCaptor(function(callback){
-                            this.wireTaps.push(callback);
-                        }.bind(this),
-                        function(callback) {
-                            var idx = this.wireTaps.indexOf(callback);
-                            if(idx !== -1) {
-                                this.wireTaps.splice(idx,1);
-                            }
-                        }.bind(this));
-                break;
-                default:
-                    _mode = NORMAL_MODE;
-                    _replayContext = undefined;
-                    _captor = undefined;
-                break;
-            }
+        if(data.mode && bus[data.mode]) {
+            bus[bus.mode].teardown();
+            bus[data.mode].setup(data);
         }
     }.bind(this));
+
+    this.addWireTap = function(callback) {
+        bus.wireTaps.push(callback);
+        return function() {
+            var idx = bus.wireTaps.indexOf(callback);
+            if(idx !== -1) {
+                bus.wireTaps.splice(idx,1);
+            }
+        };
+    };
 };
 
-
 var postal = new Postal();
-
 postal.DEFAULT_EXCHANGE = DEFAULT_EXCHANGE;
 postal.SYSTEM_EXCHANGE = SYSTEM_EXCHANGE;
 postal.NORMAL_MODE = NORMAL_MODE;

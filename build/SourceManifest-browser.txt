@@ -1,4 +1,0 @@
-src/misc.js
-src/MessageCaptor.js
-src/ReplayContext.js
-src/Postal.js

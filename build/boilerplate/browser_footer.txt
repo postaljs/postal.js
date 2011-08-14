@@ -1,5 +1,5 @@
 
-var postal = global.postal = new Postal();
+global.postal = postal;
 
 postal.DEFAULT_EXCHANGE = DEFAULT_EXCHANGE;
 postal.SYSTEM_EXCHANGE = SYSTEM_EXCHANGE;
