@@ -104,7 +104,22 @@ var Bus = function() {
     };
 };
 
-var bus = new Bus();
+var bus = new Bus(),
+    hashCheck = function() {
+        var regex = /postalmode=(\w+)&*/i,
+            match = regex.exec(window.location.hash),
+            mode;
+        if(match && match.length >= 2) {
+            mode = match[1];
+        }
+        if(mode) {
+            postal.publish(postal.SYSTEM_EXCHANGE, "mode.set", {mode: mode });
+        };
+    };
+$(function(){
+    hashCheck();
+    window.addEventListener("hashchange", hashCheck)
+});
 
 var Postal = function() {
 

@@ -7,7 +7,10 @@
 
 (function(global, undefined) {
 
-var _subscriptions = [];
+var _subscriptions = [],
+    _hashCheck = function() {
+        var hash = window.location.hash
+    };
 
 var MessageCaptor = function(bus) {
     var _grabMsg = function(data) {
@@ -76,21 +79,20 @@ var MessageCaptor = function(bus) {
     }.bind(this)));
 
     _subscriptions.push(postal.subscribe(postal.SYSTEM_EXCHANGE, "captor.remote.config", function(data) {
-            if(amplify) {
-                amplify.request.define("saveRemoteCapture", "ajax", {
-                    "url": data.url,
-                    "dataType": "json",
-                    "type": data.method,
-                    "contentType" : "application/json"
-                });
-                _remoteConfigured = true;
-            }
-            else {
-                throw "Amplify.js is required in order to save captured batches to a remote location."
-            }
-        }));
+        if(amplify) {
+            amplify.request.define("saveRemoteCapture", "ajax", {
+                "url": data.url,
+                "dataType": "json",
+                "type": data.method,
+                "contentType" : "application/json"
+            });
+            _remoteConfigured = true;
+        }
+        else {
+            throw "Amplify.js is required in order to save captured batches to a remote location."
+        }
+    }));
 };
-
 
 // Adding capture functionality to the bus.....
 postal.addBusBehavior(postal.CAPTURE_MODE,
@@ -113,7 +115,7 @@ var CaptorPanel = function() {
         _html = '<div class="postal-capture-title">Postal Message Capture</div> <div> <input class="postal-capture-button" type="button" id="btnStart" value="Start" onclick="postal.capture.start()"> <input class="postal-capture-button" type="button" id="btnStop" value="Stop" onclick="postal.capture.stop()" disabled> <input class="postal-capture-button" type="button" id="btnReset" value="Reset/Clear" onclick="postal.capture.reset()" disabled> </div> <div class="" id="currentBatch"> <div class="postal-batch-row"> <div class="postal-capture-label">BatchId:</div><input class="text-input" type="text" id="batchId"> </div> <div class="postal-batch-row"> <div class="postal-capture-label">Description:</div><input class="text-input" type="description" id="description"> </div> <div class="postal-batch-row"> <div class="postal-capture-label">Location:</div><select id="location"><option value="local" selected="true">Local Storage</option></select> <input class="postal-capture-button" type="button" id="btnSave" value="Save" onclick="postal.capture.save()"> </div> <div class="info-msg" id="info-msg"></div> </div> <div class="postal-capture-exit-controls"> <input class="postal-capture-button postal-capture-exit" type="button" id="btnExitCapture" value="Exit Capture Mode" onclick="postal.capture.exitCapture()"> </div>';
 
     _subscriptions.push(postal.subscribe(postal.SYSTEM_EXCHANGE, "captor.batch.saved", function(batch) {
-        document.getElementById("info-msg").innerText = "Saved Batch ID: " + batch.batchId + "<br>" + batch.msgCount + " message(s)" ;
+        document.getElementById("info-msg").innerHTML = "Saved Batch ID: " + batch.batchId + "<br>" + batch.msgCount + " message(s)" ;
         document.getElementById("info-msg").style.display = "block";
     }));
 
@@ -135,7 +137,7 @@ var CaptorPanel = function() {
 
     _subscriptions.push(postal.subscribe(postal.SYSTEM_EXCHANGE, "captor.start", function(){
         document.getElementById("btnStart").disabled = true;
-        document.getElementById("btnExitCapture").disabled = true;
+        document.getElementById("btnExitCapture").disabled = false;
         document.getElementById("btnStop").disabled = false;
         document.getElementById("btnReset").disabled = true;
         document.getElementById("info-msg").innerText = "";
@@ -171,7 +173,14 @@ var CaptorPanel = function() {
     };
 
     this.exitCapture = function() {
-        postal.publish(postal.SYSTEM_EXCHANGE, "mode.set", { mode: postal.NORMAL_MODE });
+        var regex = /(postalmode=\w+)&*/i,
+            match = regex.exec(window.location.hash);
+        if(match && match.length >= 2) {
+            window.location.hash = window.location.hash.replace(match[1], "postalmode=Normal");
+        }
+        else {
+            postal.publish(postal.SYSTEM_EXCHANGE, "mode.set", { mode: postal.NORMAL_MODE });
+        }
     };
 
     this.render = function() {

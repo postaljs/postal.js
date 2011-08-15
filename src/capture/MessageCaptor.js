@@ -1,4 +1,7 @@
-var _subscriptions = [];
+var _subscriptions = [],
+    _hashCheck = function() {
+        var hash = window.location.hash
+    };
 
 var MessageCaptor = function(bus) {
     var _grabMsg = function(data) {
@@ -67,21 +70,20 @@ var MessageCaptor = function(bus) {
     }.bind(this)));
 
     _subscriptions.push(postal.subscribe(postal.SYSTEM_EXCHANGE, "captor.remote.config", function(data) {
-            if(amplify) {
-                amplify.request.define("saveRemoteCapture", "ajax", {
-                    "url": data.url,
-                    "dataType": "json",
-                    "type": data.method,
-                    "contentType" : "application/json"
-                });
-                _remoteConfigured = true;
-            }
-            else {
-                throw "Amplify.js is required in order to save captured batches to a remote location."
-            }
-        }));
+        if(amplify) {
+            amplify.request.define("saveRemoteCapture", "ajax", {
+                "url": data.url,
+                "dataType": "json",
+                "type": data.method,
+                "contentType" : "application/json"
+            });
+            _remoteConfigured = true;
+        }
+        else {
+            throw "Amplify.js is required in order to save captured batches to a remote location."
+        }
+    }));
 };
-
 
 // Adding capture functionality to the bus.....
 postal.addBusBehavior(postal.CAPTURE_MODE,
