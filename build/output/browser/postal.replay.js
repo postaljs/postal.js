@@ -176,7 +176,14 @@ var ReplayPanel = function() {
         _html = '<div class="postal-replay-title">Postal Message Replay</div> <input disabled class="postal-replay-button" type="button" id="btnRealTime" value="Play" onclick="postal.replay.replayRealTime()"> <input disabled class="postal-replay-button" type="button" id="btnStop" value="Stop" onclick="postal.replay.replayStop()"> <input disabled class="postal-replay-button" type="button" id="btnAdvance" value="Step" onclick="postal.replay.replayAdvance()"> <input disabled class="postal-replay-button" type="button" id="btnImmediate" value="Immediate" onclick="postal.replay.replayImmediate()"> <div class="postal-replay-load"> <select class="postal-replay-dropdown" id="drpBatches"></select> <input class="postal-replay-button" type="button" id="btnLoad" value="Load Batch" onclick="postal.replay.loadBatch()"> <div class="info-msg" id="info-msg"></div> </div> <div id="currentBatch"> <div class="postal-replay-row"> <div class="postal-replay-label">Batch ID:</div> <div class="postal-replay-value" id="batchId"></div> </div> <div class="postal-replay-row"> <div class="postal-replay-label">Description:</div> <div class="postal-replay-value" id="description"></div> </div> <div class="postal-replay-row"> <div class="postal-replay-label">Msg Count:</div> <div class="postal-replay-value" id="messageCount"></div> </div> </div> <input class="postal-replay-button postal-replay-exit" type="button" id="btnExitReplay" value="Exit Replay Mode" onclick="postal.replay.exitReplay()">';
 
     this.exitReplay = function() {
-        postal.publish(postal.SYSTEM_EXCHANGE, "mode.set", { mode: postal.NORMAL_MODE });
+        var regex = /(postalmode=\w+)&*/i,
+            match = regex.exec(window.location.hash);
+        if(match && match.length >= 2) {
+            window.location.hash = window.location.hash.replace(match[1], "postalmode=Normal");
+        }
+        else {
+            postal.publish(postal.SYSTEM_EXCHANGE, "mode.set", { mode: postal.NORMAL_MODE });
+        }   
     };
 
     this.replayRealTime = function() {

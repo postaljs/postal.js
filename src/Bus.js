@@ -52,10 +52,10 @@ var Bus = function() {
                             setup: function() {
                                 this.mode = NORMAL_MODE;
                                 this.context = undefined;
-                            },
+                            }.bind(this),
                             teardown: function() {
                                 // no-op
-                            }
+                            }.bind(this)
                         };
 
     this.init = function() {
