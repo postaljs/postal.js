@@ -61,7 +61,7 @@ var Postal = function() {
             bus.subscriptions[_exchange] = {};
         }
 
-        _topicList.forEach(function(tpc) {
+        _.each(_topicList, function(tpc) {
             if(!bus.subscriptions[_exchange][tpc]) {
                 bus.subscriptions[_exchange][tpc] = [_subData];
             }
@@ -105,7 +105,7 @@ var Postal = function() {
             _callback = callback;
         }
 
-        _topicList.forEach(function(tpc) {
+        _.each(_topicList, function(tpc) {
             if(bus.subscriptions[_exchange][tpc]) {
                 var _len = bus.subscriptions[_exchange][tpc].length,
                     _idx = 0;
@@ -146,7 +146,7 @@ var Postal = function() {
         }
         if(bus.mode !== REPLAY_MODE || (bus.mode === REPLAY_MODE && _exchange === SYSTEM_EXCHANGE)) {
 
-            _topicList.forEach(function(tpc){
+            _.each(_topicList, function(tpc){
                 bus.publish(_exchange, tpc, _data);
             });
         }
@@ -176,6 +176,7 @@ var Postal = function() {
         if(data.mode && bus[data.mode]) {
             bus[bus.mode].teardown();
             bus[data.mode].setup(data);
+            bus.mode = data.mode;
         }
     }.bind(this));
 

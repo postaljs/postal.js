@@ -1,11 +1,4 @@
-var _forEachKeyValue = function(object, callback) {
-        for(var x in object) {
-            if(object.hasOwnProperty(x)) {
-                callback(x, object[x]);
-            }
-        }
-    },
-    _subscriptions = [];
+var _subscriptions = [];
 
 var ReplayContext = function (bus) {
     var _batch,
@@ -16,13 +9,13 @@ var ReplayContext = function (bus) {
 
             if(msgStore[window.location.pathname] && msgStore[window.location.pathname][batchId]) {
                 targetBatch = msgStore[window.location.pathname][batchId];
-                targetBatch.messages.forEach(function(msg) {
+                _.each(targetBatch.messages, function(msg) {
                     msg.timeStamp = new Date(msg.timeStamp);
                 });
                 _batch = msgStore[window.location.pathname][batchId];
                 postal.publish(postal.SYSTEM_EXCHANGE, "replay.store.batchLoaded", { batchId: batchId,
-                                                                              description: targetBatch.description,
-                                                                              msgCount: targetBatch.messages.length });
+                                                                                     description: targetBatch.description,
+                                                                                     msgCount: targetBatch.messages.length });
             }
         },
         _batchListCache = [],
@@ -100,7 +93,7 @@ var ReplayContext = function (bus) {
             var local = amplify.store(postal.POSTAL_MSG_STORE_KEY) || {},
                 batches = [];
             if(local && local[window.location.pathname]) {
-                _forEachKeyValue(local[window.location.pathname], function(k, v) {
+                _.each(local[window.location.pathname], function(v, k) {
                     batches.push({  batchId: v.batchId,
                                     description: v.description,
                                     messageCount: v.messages.length,
@@ -153,11 +146,15 @@ var ReplayContext = function (bus) {
 // Adding replay functionality to the bus.....
 postal.addBusBehavior(postal.REPLAY_MODE,
                       function(bus) {
-                        postal.replay.render();
+                        if(postal.replay) {
+                            postal.replay.render();
+                        }
                         return new ReplayContext(bus);
                       },
                       function(bus) {
-                        postal.replay.hide();
-                        _subscriptions.forEach(function(remove) { remove(); });
+                        if(postal.replay) {
+                            postal.replay.hide();
+                        }
+                        _.each(_subscriptions, function(remove) { remove(); });
                       });
 

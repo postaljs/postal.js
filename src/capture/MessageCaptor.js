@@ -88,13 +88,18 @@ var MessageCaptor = function(bus) {
 // Adding capture functionality to the bus.....
 postal.addBusBehavior(postal.CAPTURE_MODE,
                       function(bus) {
-                        postal.capture.render();
+                        if(postal.capture) {
+                          postal.capture.render();
+                        }
+
                         var captor = new MessageCaptor(bus);
                         postal.publish(postal.SYSTEM_EXCHANGE, "captor.start");
                         return captor;
                       },
                       function(bus) {
-                        postal.capture.hide();
-                        _subscriptions.forEach(function(remove) { remove(); });
+                        if(postal.capture) {
+                            postal.capture.hide();
+                        }
+                        _.each(_subscriptions, function(remove) { remove(); });
                       });
 

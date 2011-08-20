@@ -7,11 +7,14 @@ QUnit.specify("postal.js", function(){
                             messageCount: 0
                         },
                         mode;
-                    var unsubscribeA = postal.subscribe("MyExchangeA", "Test.*", function() { objA.messageCount++; });
-                    postal.publish("MyExchangeA", "Test.Topic", {});
+                    var unsubscribeA = postal.subscribe("MyExchangeA", "Test.*", function(d) {
+                        console.log(d.fake);
+                        objA.messageCount++;
+                    });
+                    postal.publish("MyExchangeA", "Test.Topic", { fake: 1});
                     postal.publish(SYSTEM_EXCHANGE, "mode.set", { mode: REPLAY_MODE });
                     mode = postal.getMode();
-                    postal.publish("MyExchangeA", "Test.Topic", {});
+                    postal.publish("MyExchangeA", "Test.Topic", { fake: 2});
                     unsubscribeA();
 
                 it("the subscription callback for objA should be invoked only once", function(){

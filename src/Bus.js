@@ -25,7 +25,7 @@ var Bus = function() {
     this.subscriptions[DEFAULT_EXCHANGE] = {};
 
     this.publish = function(exchange, topic, data) {
-        this.wireTaps.forEach(function(tap) {
+        _.each(this.wireTaps,function(tap) {
             tap({
                     exchange:   exchange,
                     topic:      topic,
@@ -60,7 +60,7 @@ var Bus = function() {
                         };
 
     this.init = function() {
-        this[NORMAL_MODE]();
+        this[NORMAL_MODE].setup();
         var systemEx = this.subscriptions[SYSTEM_EXCHANGE] || {};
         this.subscriptions = {};
         this.subscriptions[DEFAULT_EXCHANGE] = {};
