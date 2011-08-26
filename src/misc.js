@@ -17,12 +17,5 @@ var isArray = function(value) {
     NORMAL_MODE = "Normal",
     CAPTURE_MODE = "Capture",
     REPLAY_MODE = "Replay",
-    POSTAL_MSG_STORE_KEY = "postal.captured",
-    _forEachKeyValue = function(object, callback) {
-        for(var x in object) {
-            if(object.hasOwnProperty(x)) {
-                callback(x, object[x]);
-            }
-        }
-    };
+    POSTAL_MSG_STORE_KEY = "postal.captured";
 

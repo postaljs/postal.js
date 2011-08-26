@@ -27,21 +27,22 @@ var Bus = function() {
     this.publish = function(exchange, topic, data) {
         this.wireTaps.forEach(function(tap) {
             tap({
-                exchange:   exchange,
-                topic:      topic,
-                data:       data,
-                timeStamp:  new Date()
-            });
+                    exchange:   exchange,
+                    topic:      topic,
+                    data:       data,
+                    timeStamp:  new Date()
+                });
         });
 
-        _forEachKeyValue(this.subscriptions[exchange],function(subTpc, subs) {
+
+        _.each(this.subscriptions[exchange], function(subs, subTpc){
             if(_isTopicMatch(topic, subTpc)) {
-                subs.forEach(function(sub) {
-                        if(typeof sub.callback === 'function') {
-                            sub.callback.apply(sub.context, [data]);
-                            sub.onFired();
-                        }
-                    });
+                _.each(subs, function(sub) {
+                    if(typeof sub.callback === 'function') {
+                        sub.callback.apply(sub.context, [data]);
+                        sub.onFired();
+                    }
+                });
             }
         });
     };
