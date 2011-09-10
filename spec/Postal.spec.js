@@ -250,5 +250,78 @@ QUnit.specify("postal.js", function(){
                 assert(count).equals(1);
             });
         });
+        describe("When subscribing with a hierarchical binding, no wildcards", function(){
+            var count = 0;
+            before(function(){
+                subToken = postal.exchange("MyExchange")
+                                 .topic("MyTopic.MiddleTopic.SubTopic")
+                                 .subscribe(function(data) { count++; });
+                postal.publish({exchange: "MyExchange", topic: "MyTopic.MiddleTopic.SubTopic", data: "Testing123"});
+                postal.publish({exchange: "MyExchange", topic: "MyTopic.MiddleTopic", data: "Testing123"});
+                postal.publish({exchange: "MyExchange", topic: "MyTopic.MiddleTopic.SubTopic.YetAnother", data: "Testing123"});
+            });
+            after(function(){
+                postal.configuration.bus.subscriptions = {};
+                count = 0;
+            });
+            it("should have invoked subscription callback only once", function() {
+                assert(count).equals(1);
+            });
+        });
+        describe("When subscribing with a hierarchical binding, using #", function(){
+            var count = 0;
+            before(function(){
+                subToken = postal.exchange("MyExchange")
+                                 .topic("MyTopic.#.SubTopic")
+                                 .subscribe(function(data) { count++; });
+                postal.publish({exchange: "MyExchange", topic: "MyTopic.MiddleTopic.SubTopic", data: "Testing123"});
+                postal.publish({exchange: "MyExchange", topic: "MyTopic.MiddleTopic", data: "Testing123"});
+                postal.publish({exchange: "MyExchange", topic: "MyTopic.MiddleTopic.SubTopic.YetAnother", data: "Testing123"});
+            });
+            after(function(){
+                postal.configuration.bus.subscriptions = {};
+                count = 0;
+            });
+            it("should have invoked subscription callback only once", function() {
+                assert(count).equals(1);
+            });
+        });
+        describe("When subscribing with a hierarchical binding, using *", function(){
+            var count = 0;
+            before(function(){
+                subToken = postal.exchange("MyExchange")
+                                 .topic("MyTopic.MiddleTopic.*")
+                                 .subscribe(function(data) { count++; });
+                postal.publish({exchange: "MyExchange", topic: "MyTopic.MiddleTopic.SubTopic", data: "Testing123"});
+                postal.publish({exchange: "MyExchange", topic: "MyTopic.MiddleTopic", data: "Testing123"});
+                postal.publish({exchange: "MyExchange", topic: "MyTopic.MiddleTopic.SubTopic.YetAnother", data: "Testing123"});
+            });
+            after(function(){
+                postal.configuration.bus.subscriptions = {};
+                count = 0;
+            });
+            it("should have invoked subscription callback twice", function() {
+                assert(count).equals(2);
+            });
+        });
+        describe("When subscribing with a hierarchical binding, using # and *", function(){
+            var count = 0;
+            before(function(){
+                subToken = postal.exchange("MyExchange")
+                                 .topic("MyTopic.#.*")
+                                 .subscribe(function(data) { count++; });
+                postal.publish({exchange: "MyExchange", topic: "MyTopic.MiddleTopic.SubTopic", data: "Testing123"});
+                postal.publish({exchange: "MyExchange", topic: "MyTopic.MiddleTopic", data: "Testing123"});
+                postal.publish({exchange: "MyExchange", topic: "MyTopic.MiddleTopic.SubTopic.YetAnother", data: "Testing123"});
+                postal.publish({exchange: "MyExchange", topic: "OtherTopic.MiddleTopic.SubTopic.YetAnother", data: "Testing123"});
+            });
+            after(function(){
+                postal.configuration.bus.subscriptions = {};
+                count = 0;
+            });
+            it("should have invoked subscription callback twice", function() {
+                assert(count).equals(2);
+            });
+        });
     });
 });
