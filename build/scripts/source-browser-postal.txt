@@ -1,3 +1,5 @@
-src/misc.js
+src/DistinctPredicate.js
+src/ChannelDefinition.js
+src/BindingsResolver.js
 src/Bus.js
 src/Postal.js
