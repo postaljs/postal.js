@@ -12,7 +12,8 @@ var ChannelDefinition = function(exchange, topic) {
         constraints: [],
         disposeAfter: DEFAULT_DISPOSEAFTER,
         onHandled: NO_OP,
-        context: null
+        context: null,
+        modifiers: []
     };
 } ;
 
@@ -28,7 +29,7 @@ ChannelDefinition.prototype = {
     },
 
     defer: function() {
-        this.configuration.defer = true;
+        this.configuration.modifiers.push({type: "defer"});
         return this;
     },
 
@@ -78,7 +79,7 @@ ChannelDefinition.prototype = {
         if(_.isNaN(milliseconds)) {
             throw "Milliseconds must be a number";
         }
-        this.configuration.debounce = milliseconds;
+        this.configuration.modifiers.push({type: "debounce", milliseconds: milliseconds});
         return this;
     },
 
@@ -86,7 +87,7 @@ ChannelDefinition.prototype = {
         if(_.isNaN(milliseconds)) {
             throw "Milliseconds must be a number";
         }
-        this.configuration.delay = milliseconds;
+        this.configuration.modifiers.push({type: "delay", milliseconds: milliseconds});
         return this;
     },
 
@@ -102,7 +103,7 @@ ChannelDefinition.prototype = {
         if(_.isNaN(milliseconds)) {
             throw "Milliseconds must be a number";
         }
-        this.configuration.throttle = milliseconds;
+        this.configuration.modifiers.push({type: "throttle", milliseconds: milliseconds});
         return this;
     },
 

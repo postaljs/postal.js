@@ -34,7 +34,8 @@ var ChannelDefinition = function(exchange, topic) {
         constraints: [],
         disposeAfter: DEFAULT_DISPOSEAFTER,
         onHandled: NO_OP,
-        context: null
+        context: null,
+        modifiers: []
     };
 } ;
 
@@ -50,7 +51,7 @@ ChannelDefinition.prototype = {
     },
 
     defer: function() {
-        this.configuration.defer = true;
+        this.configuration.modifiers.push({type: "defer"});
         return this;
     },
 
@@ -100,7 +101,7 @@ ChannelDefinition.prototype = {
         if(_.isNaN(milliseconds)) {
             throw "Milliseconds must be a number";
         }
-        this.configuration.debounce = milliseconds;
+        this.configuration.modifiers.push({type: "debounce", milliseconds: milliseconds});
         return this;
     },
 
@@ -108,7 +109,7 @@ ChannelDefinition.prototype = {
         if(_.isNaN(milliseconds)) {
             throw "Milliseconds must be a number";
         }
-        this.configuration.delay = milliseconds;
+        this.configuration.modifiers.push({type: "delay", milliseconds: milliseconds});
         return this;
     },
 
@@ -124,7 +125,7 @@ ChannelDefinition.prototype = {
         if(_.isNaN(milliseconds)) {
             throw "Milliseconds must be a number";
         }
-        this.configuration.throttle = milliseconds;
+        this.configuration.modifiers.push({type: "throttle", milliseconds: milliseconds});
         return this;
     },
 
@@ -155,6 +156,23 @@ var bindingsResolver = {
                       .replace(/#/g, "[A-Z,a-z,0-9]*"); // hash matches any alpha-numeric 'word'
     }
 };
+var wrapWithDelay = function(callback, config) {
+        return function(data) {
+            setTimeout(callback, config.milliseconds, data);
+        };
+    },
+    wrapWithDefer = function(callback) {
+        return function(data) {
+            setTimeout(callback,0,data);
+        }
+    },
+    wrapWithThrottle = function(callback, config) {
+        return _.throttle(callback, config.throttle);
+    },
+    wrapWithDebounce = function(callback, config) {
+        return _.debounce(callback, config.debounce);
+    };
+
 var localBus = {
     
     subscriptions: {},
@@ -200,29 +218,23 @@ var localBus = {
             }
         }
 
-        if(config.delay) {
+        _.each(config.modifiers, function(modifier) {
             fn = config.callback;
-            config.callback = function(data) {
-                setTimeout(fn, config.delay, data);
-            };
-        }
-
-        if(config.defer) {
-            fn = config.callback;
-            config.callback = function(data) {
-                setTimeout(fn,0,data);
+            switch(modifier.type) {
+                case 'delay':
+                    wrapWithDelay(fn, modifier);
+                break;
+                case 'defer':
+                    wrapWithDefer(fn);
+                break;
+                case 'throttle':
+                    wrapWithThrottle(fn,modifier);
+                break;
+                case 'debounce':
+                    wrapWithDebounce(fn, modifier);
+                break;
             }
-        }
-
-        if(config.throttle) {
-            fn = config.callback;
-            config.callback = _.throttle(fn, config.throttle);
-        }
-
-        if(config.debounce) {
-            fn = config.callback;
-            config.callback = _.debounce(fn, config.debounce);
-        }
+        });
 
         if(!this.subscriptions[config.exchange]) {
             this.subscriptions[config.exchange] = {};
