@@ -9,10 +9,10 @@ var wrapWithDelay = function(callback, config) {
         }
     },
     wrapWithThrottle = function(callback, config) {
-        return _.throttle(callback, config.throttle);
+        return _.throttle(callback, config.milliseconds);
     },
     wrapWithDebounce = function(callback, config) {
-        return _.debounce(callback, config.debounce);
+        return _.debounce(callback, config.milliseconds);
     };
 
 var localBus = {
