@@ -224,16 +224,16 @@ var localBus = {
             fn = config.callback;
             switch(modifier.type) {
                 case 'delay':
-                    wrapWithDelay(fn, modifier);
+                    config.callback = wrapWithDelay(fn, modifier);
                 break;
                 case 'defer':
-                    wrapWithDefer(fn);
+                    config.callback = wrapWithDefer(fn);
                 break;
                 case 'throttle':
-                    wrapWithThrottle(fn,modifier);
+                    config.callback = wrapWithThrottle(fn,modifier);
                 break;
                 case 'debounce':
-                    wrapWithDebounce(fn, modifier);
+                    config.callback = wrapWithDebounce(fn, modifier);
                 break;
             }
         });
