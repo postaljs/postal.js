@@ -51,9 +51,8 @@ QUnit.specify("postal.js", function(){
         describe("When setting the definition to defer", function(){
             var chDefd = new ChannelDefinition();
             chDefd.defer();
-
             it("Should set defer to true", function() {
-                assert(chDefd.configuration.defer).isTrue();
+                assert(_.any(chDefd.configuration.modifiers, function(item) { return item.type === "defer";})).isTrue();
             });
         });
 
@@ -117,16 +116,20 @@ QUnit.specify("postal.js", function(){
             chDefdb.withDebounce(1000);
 
             it("Should set debounce", function() {
-                assert(chDefdb.configuration.debounce).equals(1000);
+                assert(_.any(chDefdb.configuration.modifiers, function(item) {
+                    return item.type === "debounce" && item.milliseconds === 1000;
+                })).isTrue();
             });
         });
 
         describe("When setting delay", function(){
-            var chDefdb = new ChannelDefinition();
-            chDefdb.withDelay(1000);
+            var chDefdl = new ChannelDefinition();
+            chDefdl.withDelay(1000);
 
             it("Should set delay", function() {
-                assert(chDefdb.configuration.delay).equals(1000);
+                assert(_.any(chDefdl.configuration.modifiers, function(item) {
+                    return item.type === "delay" && item.milliseconds === 1000;
+                })).isTrue();
             });
         });
 
@@ -144,7 +147,9 @@ QUnit.specify("postal.js", function(){
             chDefth.withThrottle(1000);
 
             it("Should set throttle", function() {
-                assert(chDefth.configuration.throttle).equals(1000);
+                assert(_.any(chDefth.configuration.modifiers, function(item) {
+                    return item.type === "throttle" && item.milliseconds === 1000;
+                })).isTrue();
             });
         });
     });

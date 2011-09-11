@@ -2,8 +2,18 @@ var bindingsResolver = {
     cache: { },
     
     compare: function(binding, topic) {
-        var rgx = new RegExp("^" + this.regexify(binding) + "$"); // match from start to end of string
-        return rgx.test(topic);
+        if(this.cache[topic] && this.cache[topic][binding]) {
+            return true;
+        }
+        var rgx = new RegExp("^" + this.regexify(binding) + "$"), // match from start to end of string
+            result = rgx.test(topic);
+        if(result) {
+            if(!this.cache[topic]) {
+                this.cache[topic] = {};
+            }
+            this.cache[topic][binding] = true;
+        }
+        return result;
     },
     
     regexify: function(binding) {
