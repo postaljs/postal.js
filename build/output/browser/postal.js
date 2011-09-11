@@ -21,7 +21,8 @@ var DistinctPredicate = function() {
         }
         return !eq;
     };
-};var DEFAULT_EXCHANGE = "/",
+};
+var DEFAULT_EXCHANGE = "/",
     DEFAULT_PRIORITY = 50,
     DEFAULT_DISPOSEAFTER = 0,
     NO_OP = function() { };
@@ -141,7 +142,8 @@ ChannelDefinition.prototype = {
                         topic: this.configuration.topic
                        });
     }
-};var bindingsResolver = {
+};
+var bindingsResolver = {
     cache: { },
     
     compare: function(binding, topic) {
@@ -154,7 +156,8 @@ ChannelDefinition.prototype = {
                       .replace(/\*/g, ".*") // asterisks match any value
                       .replace(/#/g, "[A-Z,a-z,0-9]*"); // hash matches any alpha-numeric 'word'
     }
-};var localBus = {
+};
+var localBus = {
     
     subscriptions: {},
 
@@ -176,8 +179,8 @@ ChannelDefinition.prototype = {
                 if(postal.configuration.resolver.compare(binding.topic, envelope.topic)) {
                     if(_.all(binding.constraints, function(constraint) { return constraint(envelope.data); })) {
                         if(typeof binding.callback === 'function') {
-                                binding.callback.apply(binding.context, [envelope.data]);
-                                binding.onHandled();
+                            binding.callback.apply(binding.context, [envelope.data]);
+                            binding.onHandled();
                         }
                     }
                 }
@@ -186,9 +189,9 @@ ChannelDefinition.prototype = {
     },
 
     subscribe: function(config) {
-        var idx, found;
+        var idx, found, fn;
         if(config.disposeAfter && config.disposeAfter > 0) {
-            var fn = config.onHandled,
+            fn = config.onHandled,
                 dispose = _.after(config.disposeAfter, _.bind(function() {
                     this.unsubscribe(config);
                 }, this));
@@ -197,6 +200,30 @@ ChannelDefinition.prototype = {
                 fn.apply(config.context, arguments);
                 dispose();
             }
+        }
+
+        if(config.delay) {
+            fn = config.callback;
+            config.callback = function(data) {
+                setTimeout(fn, config.delay, data);
+            };
+        }
+
+        if(config.defer) {
+            fn = config.callback;
+            config.callback = function(data) {
+                setTimeout(fn,0,data);
+            }
+        }
+
+        if(config.throttle) {
+            fn = config.callback;
+            config.callback = _.throttle(fn, config.throttle);
+        }
+
+        if(config.debounce) {
+            fn = config.callback;
+            config.callback = _.debounce(fn, config.debounce);
         }
 
         if(!this.subscriptions[config.exchange]) {
@@ -249,7 +276,8 @@ ChannelDefinition.prototype = {
             }
         };
     }
-};var postal = {
+};
+var postal = {
 
     configuration: {
         bus: localBus,
@@ -280,6 +308,7 @@ ChannelDefinition.prototype = {
         this.configuration.bus.addWireTap(callback);
     }
 };
+
 global.postal = postal;
 
 })(window);
