@@ -27,18 +27,20 @@ var DEFAULT_EXCHANGE = "/",
     DEFAULT_DISPOSEAFTER = 0,
     NO_OP = function() { };
 
+var defaultConfiguration = {
+    exchange: exchange || DEFAULT_EXCHANGE,
+    topic: topic || "",
+    callback: NO_OP,
+    priority: DEFAULT_PRIORITY,
+    constraints: [],
+    disposeAfter: DEFAULT_DISPOSEAFTER,
+    onHandled: NO_OP,
+    context: null,
+    modifiers: []
+};
+
 var ChannelDefinition = function(exchange, topic) {
-    this.configuration = {
-        exchange: exchange || DEFAULT_EXCHANGE,
-        topic: topic || "",
-        callback: NO_OP,
-        priority: DEFAULT_PRIORITY,
-        constraints: [],
-        disposeAfter: DEFAULT_DISPOSEAFTER,
-        onHandled: NO_OP,
-        context: null,
-        modifiers: []
-    };
+    this.configuration = defaultConfiguration;
 } ;
 
 ChannelDefinition.prototype = {
@@ -192,6 +194,7 @@ var localBus = {
     wireTaps: [],
 
     publish: function(envelope) {
+        envelope.exchange = envelope.exchange || DEFAULT_EXCHANGE;
         envelope.timeStamp = new Date();
         _.each(this.wireTaps,function(tap) {
             tap({
@@ -216,8 +219,8 @@ var localBus = {
         });
     },
 
-    subscribe: function(config) {
-        var idx, found, fn;
+    subscribe: function(channelDef) {
+        var idx, found, fn, config = _.extend(defaultConfiguration, channelDef);
         if(config.disposeAfter && config.disposeAfter > 0) {
             fn = config.onHandled,
                 dispose = _.after(config.disposeAfter, _.bind(function() {

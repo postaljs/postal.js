@@ -3,18 +3,20 @@ var DEFAULT_EXCHANGE = "/",
     DEFAULT_DISPOSEAFTER = 0,
     NO_OP = function() { };
 
+var defaultConfiguration = {
+    exchange: exchange || DEFAULT_EXCHANGE,
+    topic: topic || "",
+    callback: NO_OP,
+    priority: DEFAULT_PRIORITY,
+    constraints: [],
+    disposeAfter: DEFAULT_DISPOSEAFTER,
+    onHandled: NO_OP,
+    context: null,
+    modifiers: []
+};
+
 var ChannelDefinition = function(exchange, topic) {
-    this.configuration = {
-        exchange: exchange || DEFAULT_EXCHANGE,
-        topic: topic || "",
-        callback: NO_OP,
-        priority: DEFAULT_PRIORITY,
-        constraints: [],
-        disposeAfter: DEFAULT_DISPOSEAFTER,
-        onHandled: NO_OP,
-        context: null,
-        modifiers: []
-    };
+    this.configuration = defaultConfiguration;
 } ;
 
 ChannelDefinition.prototype = {

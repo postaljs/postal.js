@@ -22,6 +22,7 @@ var localBus = {
     wireTaps: [],
 
     publish: function(envelope) {
+        envelope.exchange = envelope.exchange || DEFAULT_EXCHANGE;
         envelope.timeStamp = new Date();
         _.each(this.wireTaps,function(tap) {
             tap({
@@ -46,8 +47,8 @@ var localBus = {
         });
     },
 
-    subscribe: function(config) {
-        var idx, found, fn;
+    subscribe: function(channelDef) {
+        var idx, found, fn, config = _.extend(defaultConfiguration, channelDef);
         if(config.disposeAfter && config.disposeAfter > 0) {
             fn = config.onHandled,
                 dispose = _.after(config.disposeAfter, _.bind(function() {
