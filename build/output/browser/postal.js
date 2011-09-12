@@ -193,9 +193,8 @@ var localBus = {
 
     wireTaps: [],
 
-    publish: function(envelope) {
-        envelope.exchange = envelope.exchange || DEFAULT_EXCHANGE;
-        envelope.timeStamp = new Date();
+    publish: function(config) {
+        var envelope = _.extend(defaultConfiguration, { timeStamp: new Date() }, config);
         _.each(this.wireTaps,function(tap) {
             tap({
                     exchange:   envelope.exchange,
