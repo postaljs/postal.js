@@ -4,8 +4,8 @@ var DEFAULT_EXCHANGE = "/",
     NO_OP = function() { };
 
 var defaultConfiguration = {
-    exchange: exchange || DEFAULT_EXCHANGE,
-    topic: topic || "",
+    exchange: DEFAULT_EXCHANGE,
+    topic: "",
     callback: NO_OP,
     priority: DEFAULT_PRIORITY,
     constraints: [],
@@ -16,7 +16,7 @@ var defaultConfiguration = {
 };
 
 var ChannelDefinition = function(exchange, topic) {
-    this.configuration = _.extend(defaultConfiguration { exchange: exchange, topic: topic });
+    this.configuration = _.extend(defaultConfiguration, { exchange: exchange, topic: topic });
 } ;
 
 ChannelDefinition.prototype = {
