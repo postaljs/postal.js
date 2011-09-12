@@ -5,6 +5,10 @@
     Version 0.1.0
 */
 
+var DEFAULT_EXCHANGE = "/",
+    DEFAULT_PRIORITY = 50,
+    DEFAULT_DISPOSEAFTER = 0,
+    NO_OP = function() { };
 var DistinctPredicate = function() {
     var previous;
     return function(data) {
@@ -20,48 +24,56 @@ var DistinctPredicate = function() {
         return !eq;
     };
 };
-var DEFAULT_EXCHANGE = "/",
-    DEFAULT_PRIORITY = 50,
-    DEFAULT_DISPOSEAFTER = 0,
-    NO_OP = function() { };
-
-var defaultConfiguration = {
-    exchange: DEFAULT_EXCHANGE,
-    topic: "",
-    callback: NO_OP,
-    priority: DEFAULT_PRIORITY,
-    constraints: [],
-    disposeAfter: DEFAULT_DISPOSEAFTER,
-    onHandled: NO_OP,
-    context: null,
-    modifiers: []
+var ChannelDefinition = function(exchange, topic) {
+    this.exchange = exchange;
+    this.topic = topic;
 };
 
-var ChannelDefinition = function(exchange, topic) {
-    this.configuration = _.extend(defaultConfiguration, { exchange: exchange, topic: topic });
-} ;
-
 ChannelDefinition.prototype = {
-    exchange: function(exchange) {
-        this.configuration.exchange = exchange;
-        return this;
+    subscribe: function(callback) {
+        var subscription = new SubscriptionDefinition(this.exchange, this.topic, callback);
+        postal.configuration.bus.subscribe(subscription);
+        return subscription;
     },
 
-    topic: function(topic) {
-        this.configuration.topic = topic;
-        return this;
+    publish: function(data) {
+        postal.configuration.bus.publish({
+            exchange: this.exchange,
+            topic: this.topic,
+            data: data,
+            timeStamp: new Date()
+        })
+    }
+};
+var SubscriptionDefinition = function(exchange, topic, callback) {
+    this.exchange = exchange;
+    this.topic = topic;
+    this.callback = callback;
+    this.priority = DEFAULT_PRIORITY;
+    this.constraints = [];
+    this.maxCalls = DEFAULT_DISPOSEAFTER;
+    this.onHandled = NO_OP;
+    this.context = null
+};
+
+SubscriptionDefinition.prototype = {
+    unsubscribe: function() {
+        postal.configuration.bus.unsubscribe(this);
     },
 
     defer: function() {
-        this.configuration.modifiers.push({type: "defer"});
+        var fn = this.callback;
+        this.callback = function(data) {
+            setTimeout(fn,0,data);
+        };
         return this;
     },
 
-    disposeAfter: function(receiveCount) {
-        if(_.isNaN(receiveCount)) {
-            throw "The value provided to disposeAfter (receiveCount) must be a number";
+    disposeAfter: function(maxCalls) {
+        if(_.isNaN(maxCalls)) {
+            throw "The value provided to disposeAfter (maxCalls) must be a number";
         }
-        this.configuration.disposeAfter = receiveCount;
+        this.maxCalls = maxCalls;
         return this;
     },
 
@@ -74,7 +86,7 @@ ChannelDefinition.prototype = {
         if(! _.isFunction(callback)) {
             throw "Value provided to 'whenHandledThenExecute' must be a function";
         }
-        this.configuration.onHandled = callback;
+        this.onHandled = callback;
         return this;
     },
 
@@ -82,7 +94,7 @@ ChannelDefinition.prototype = {
         if(! _.isFunction(predicate)) {
             throw "Predicate constraint must be a function";
         }
-        this.configuration.constraints.push(predicate);
+        this.constraints.push(predicate);
         return this;
     },
 
@@ -95,7 +107,7 @@ ChannelDefinition.prototype = {
     },
 
     withContext: function(context) {
-        this.configuration.context = context;
+        this.context = context;
         return this;
     },
 
@@ -103,7 +115,8 @@ ChannelDefinition.prototype = {
         if(_.isNaN(milliseconds)) {
             throw "Milliseconds must be a number";
         }
-        this.configuration.modifiers.push({type: "debounce", milliseconds: milliseconds});
+        var fn = this.callback;
+        this.callback = _.debounce(fn, milliseconds);
         return this;
     },
 
@@ -111,7 +124,10 @@ ChannelDefinition.prototype = {
         if(_.isNaN(milliseconds)) {
             throw "Milliseconds must be a number";
         }
-        this.configuration.modifiers.push({type: "delay", milliseconds: milliseconds});
+        var fn = this.callback;
+        this.callback = function(data) {
+            setTimeout(fn, milliseconds, data);
+        };
         return this;
     },
 
@@ -119,7 +135,7 @@ ChannelDefinition.prototype = {
         if(_.isNaN(priority)) {
             throw "Priority must be a number";
         }
-        this.configuration.priority = priority;
+        this.priority = priority;
         return this;
     },
 
@@ -127,26 +143,14 @@ ChannelDefinition.prototype = {
         if(_.isNaN(milliseconds)) {
             throw "Milliseconds must be a number";
         }
-        this.configuration.modifiers.push({type: "throttle", milliseconds: milliseconds});
+        var fn = this.callback;
+        this.callback = _.throttle(fn, milliseconds);
         return this;
-    },
-
-    subscribe: function(callback) {
-        this.configuration.callback = callback || NO_OP;
-        return postal.subscribe(this.configuration);
-    },
-
-    publish: function(data) {
-        postal.publish({
-                        exchange: this.configuration.exchange,
-                        data: data,
-                        topic: this.configuration.topic
-                       });
     }
 };
 var bindingsResolver = {
     cache: { },
-    
+
     compare: function(binding, topic) {
         if(this.cache[topic] && this.cache[topic][binding]) {
             return true;
@@ -161,38 +165,20 @@ var bindingsResolver = {
         }
         return result;
     },
-    
+
     regexify: function(binding) {
         return binding.replace(/\./g,"\\.") // escape actual periods
                       .replace(/\*/g, ".*") // asterisks match any value
                       .replace(/#/g, "[A-Z,a-z,0-9]*"); // hash matches any alpha-numeric 'word'
     }
 };
-var wrapWithDelay = function(callback, config) {
-        return function(data) {
-            setTimeout(callback, config.milliseconds, data);
-        };
-    },
-    wrapWithDefer = function(callback) {
-        return function(data) {
-            setTimeout(callback,0,data);
-        }
-    },
-    wrapWithThrottle = function(callback, config) {
-        return _.throttle(callback, config.milliseconds);
-    },
-    wrapWithDebounce = function(callback, config) {
-        return _.debounce(callback, config.milliseconds);
-    };
-
 var localBus = {
-    
+
     subscriptions: {},
 
     wireTaps: [],
 
-    publish: function(config) {
-        var envelope = _.extend(defaultConfiguration, { timeStamp: new Date() }, config);
+    publish: function(envelope) {
         _.each(this.wireTaps,function(tap) {
             tap({
                     exchange:   envelope.exchange,
@@ -216,63 +202,35 @@ var localBus = {
         });
     },
 
-    subscribe: function(channelDef) {
-        var idx, found, fn, config = _.extend(defaultConfiguration, channelDef);
-        if(config.disposeAfter && config.disposeAfter > 0) {
-            fn = config.onHandled,
-                dispose = _.after(config.disposeAfter, _.bind(function() {
-                    this.unsubscribe(config);
+    subscribe: function(subDef) {
+        var idx, found, fn;
+        if(subDef.maxCalls) {
+            fn = subDef.onHandled;
+            var dispose = _.after(subDef.maxCalls, _.bind(function() {
+                    this.unsubscribe(subDef);
                 }, this));
-            
-            config.onHandled = function() {
-                fn.apply(config.context, arguments);
+
+            subDef.onHandled = function() {
+                fn.apply(subDef.context, arguments);
                 dispose();
             }
         }
 
-        _.each(config.modifiers, function(modifier) {
-            fn = config.callback;
-            switch(modifier.type) {
-                case 'delay':
-                    config.callback = wrapWithDelay(fn, modifier);
-                break;
-                case 'defer':
-                    config.callback = wrapWithDefer(fn);
-                break;
-                case 'throttle':
-                    config.callback = wrapWithThrottle(fn,modifier);
-                break;
-                case 'debounce':
-                    config.callback = wrapWithDebounce(fn, modifier);
-                break;
+        idx = this.subscriptions[subDef.exchange][subDef.topic].length - 1;
+        if(!_.any(this.subscriptions[subDef.exchange][subDef.topic], function(cfg) { return cfg === subDef; })) {
+            for(; idx >= 0; idx--) {
+                if(this.subscriptions[subDef.exchange][subDef.topic][idx].priority <= subDef.priority) {
+                    this.subscriptions[subDef.exchange][subDef.topic].splice(idx + 1, 0, subDef);
+                    found = true;
+                    break;
+                }
             }
-        });
-
-        if(!this.subscriptions[config.exchange]) {
-            this.subscriptions[config.exchange] = {};
-        }
-
-        if(!this.subscriptions[config.exchange][config.topic]) {
-            this.subscriptions[config.exchange][config.topic] = [config];
-        }
-        else {
-            idx = this.subscriptions[config.exchange][config.topic].length - 1;
-            if(!_.any(this.subscriptions[config.exchange][config.topic], function(cfg) { return cfg === config; })) {
-                for(; idx >= 0; idx--) {
-                    if(this.subscriptions[config.exchange][config.topic][idx].priority <= config.priority) {
-                        this.subscriptions[config.exchange][config.topic].splice(idx + 1, 0, config);
-                        found = true;
-                        break;
-                    }
-                }
-                if(!found) {
-                    this.subscriptions[config.exchange][config.topic].unshift(config);
-                }
-                console.log("SUBSCRIBE: " + JSON.stringify(config));
+            if(!found) {
+                this.subscriptions[subDef.exchange][subDef.topic].unshift(subDef);
             }
         }
 
-        return _.bind(function() { this.unsubscribe(config); }, this);
+        return _.bind(function() { this.unsubscribe(subDef); }, this);
     },
 
     unsubscribe: function(config) {
@@ -282,7 +240,6 @@ var localBus = {
             for ( ; idx < len; idx++ ) {
                 if (this.subscriptions[config.exchange][config.topic][idx] === config) {
                     this.subscriptions[config.exchange][config.topic].splice( idx, 1 );
-                    console.log("UNSUBSCRIBE: " + JSON.stringify(config));
                     break;
                 }
             }
@@ -300,30 +257,21 @@ var localBus = {
     }
 };
 var postal = {
-
     configuration: {
         bus: localBus,
         resolver: bindingsResolver
     },
 
-    exchange: function(exchange) {
-        return new ChannelDefinition(exchange);
-    },
-
-    topic: function(topic) {
-        return new ChannelDefinition(undefined, topic);
-    },
-
-    publish: function(config) {
-        this.configuration.bus.publish(config);
-    },
-
-    subscribe: function(config) {
-        return this.configuration.bus.subscribe(config);
-    },
-
-    unsubscribe: function(config) {
-        this.configuration.bus.unsubscribe(config);
+    createChannel: function(exchange, topic) {
+        var exch = arguments.length === 2 ? exchange : DEFAULT_EXCHANGE,
+            tpc  = arguments.length === 2 ? topic : exchange;
+        if(!this.configuration.bus.subscriptions[exch]) {
+            this.configuration.bus.subscriptions[exch] = {};
+        }
+        if(!this.configuration.bus.subscriptions[exch][tpc]) {
+            this.configuration.bus.subscriptions[exch][tpc] = [];
+        }
+        return new ChannelDefinition(exch, tpc);
     },
 
     addWireTap: function(callback) {

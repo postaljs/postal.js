@@ -1,6 +1,6 @@
 var bindingsResolver = {
     cache: { },
-    
+
     compare: function(binding, topic) {
         if(this.cache[topic] && this.cache[topic][binding]) {
             return true;
@@ -15,7 +15,7 @@ var bindingsResolver = {
         }
         return result;
     },
-    
+
     regexify: function(binding) {
         return binding.replace(/\./g,"\\.") // escape actual periods
                       .replace(/\*/g, ".*") // asterisks match any value
