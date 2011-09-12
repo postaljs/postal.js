@@ -16,7 +16,7 @@ var defaultConfiguration = {
 };
 
 var ChannelDefinition = function(exchange, topic) {
-    this.configuration = defaultConfiguration;
+    this.configuration = _.extend(defaultConfiguration { exchange: exchange, topic: topic });
 } ;
 
 ChannelDefinition.prototype = {
