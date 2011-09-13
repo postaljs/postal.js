@@ -30,16 +30,12 @@ var localBus = {
 
     subscribe: function(subDef) {
         var idx, found, fn;
-        if(subDef.maxCalls) {
-            fn = subDef.onHandled;
-            var dispose = _.after(subDef.maxCalls, _.bind(function() {
-                    this.unsubscribe(subDef);
-                }, this));
 
-            subDef.onHandled = function() {
-                fn.apply(subDef.context, arguments);
-                dispose();
-            }
+        if(!this.subscriptions[subDef.exchange]) {
+            this.subscriptions[subDef.exchange] = {};
+        }
+        if(!this.subscriptions[subDef.exchange][subDef.topic]) {
+            this.subscriptions[subDef.exchange][subDef.topic] = [];
         }
 
         idx = this.subscriptions[subDef.exchange][subDef.topic].length - 1;

@@ -23,10 +23,19 @@ SubscriptionDefinition.prototype = {
     },
 
     disposeAfter: function(maxCalls) {
-        if(_.isNaN(maxCalls)) {
-            throw "The value provided to disposeAfter (maxCalls) must be a number";
+        if(_.isNaN(maxCalls) || maxCalls <= 0) {
+            throw "The value provided to disposeAfter (maxCalls) must be a number greater than zero.";
         }
-        this.maxCalls = maxCalls;
+
+        var fn = this.onHandled;
+        var dispose = _.after(maxCalls, _.bind(function() {
+                this.unsubscribe(this);
+            }, this));
+
+        this.onHandled = function() {
+            fn.apply(this.context, arguments);
+            dispose();
+        };
         return this;
     },
 
