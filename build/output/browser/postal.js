@@ -72,10 +72,19 @@ SubscriptionDefinition.prototype = {
     },
 
     disposeAfter: function(maxCalls) {
-        if(_.isNaN(maxCalls)) {
-            throw "The value provided to disposeAfter (maxCalls) must be a number";
+        if(_.isNaN(maxCalls) || maxCalls <= 0) {
+            throw "The value provided to disposeAfter (maxCalls) must be a number greater than zero.";
         }
-        this.maxCalls = maxCalls;
+
+        var fn = this.onHandled;
+        var dispose = _.after(maxCalls, _.bind(function() {
+                this.unsubscribe(this);
+            }, this));
+
+        this.onHandled = function() {
+            fn.apply(this.context, arguments);
+            dispose();
+        };
         return this;
     },
 
@@ -206,16 +215,12 @@ var localBus = {
 
     subscribe: function(subDef) {
         var idx, found, fn;
-        if(subDef.maxCalls) {
-            fn = subDef.onHandled;
-            var dispose = _.after(subDef.maxCalls, _.bind(function() {
-                    this.unsubscribe(subDef);
-                }, this));
 
-            subDef.onHandled = function() {
-                fn.apply(subDef.context, arguments);
-                dispose();
-            }
+        if(!this.subscriptions[subDef.exchange]) {
+            this.subscriptions[subDef.exchange] = {};
+        }
+        if(!this.subscriptions[subDef.exchange][subDef.topic]) {
+            this.subscriptions[subDef.exchange][subDef.topic] = [];
         }
 
         idx = this.subscriptions[subDef.exchange][subDef.topic].length - 1;
@@ -264,15 +269,9 @@ var postal = {
         resolver: bindingsResolver
     },
 
-    createChannel: function(exchange, topic) {
+    channel: function(exchange, topic) {
         var exch = arguments.length === 2 ? exchange : DEFAULT_EXCHANGE,
             tpc  = arguments.length === 2 ? topic : exchange;
-        if(!this.configuration.bus.subscriptions[exch]) {
-            this.configuration.bus.subscriptions[exch] = {};
-        }
-        if(!this.configuration.bus.subscriptions[exch][tpc]) {
-            this.configuration.bus.subscriptions[exch][tpc] = [];
-        }
         return new ChannelDefinition(exch, tpc);
     },
 

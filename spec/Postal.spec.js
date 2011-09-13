@@ -5,7 +5,7 @@ QUnit.specify("postal.js", function(){
             channel;
         describe("when creating basic subscription", function() {
             before(function(){
-                subscription = postal.createChannel("MyExchange","MyTopic")
+                subscription = postal.channel("MyExchange","MyTopic")
                                      .subscribe(function() { });
                 sub = postal.configuration.bus.subscriptions.MyExchange.MyTopic[0];
             });
@@ -41,7 +41,7 @@ QUnit.specify("postal.js", function(){
             var subExistsBefore = false,
                 subExistsAfter = true;
             before(function(){
-                subscription = postal.createChannel("MyExchange","MyTopic")
+                subscription = postal.channel("MyExchange","MyTopic")
                                      .subscribe(function() { });
                 subExistsBefore = postal.configuration.bus.subscriptions.MyExchange.MyTopic[0] !== undefined;
                 subscription.unsubscribe();
@@ -61,7 +61,7 @@ QUnit.specify("postal.js", function(){
             var msgReceivedCnt = 0,
                 msgData;
             before(function(){
-                channel = postal.createChannel("MyExchange","MyTopic")
+                channel = postal.channel("MyExchange","MyTopic")
                 subscription = channel.subscribe(function(data) { msgReceivedCnt++; msgData = data;});
                 channel.publish("Testing123");
                 subscription.unsubscribe();
@@ -80,7 +80,7 @@ QUnit.specify("postal.js", function(){
         describe("When subscribing with a disposeAfter of 5", function(){
             var msgReceivedCnt = 0;
             before(function(){
-                channel = postal.createChannel("MyExchange","MyTopic");
+                channel = postal.channel("MyExchange","MyTopic");
                 subscription = channel.subscribe(function(data) { msgReceivedCnt++; })
                                       .disposeAfter(5);
                 channel.publish("Testing123");
@@ -100,7 +100,7 @@ QUnit.specify("postal.js", function(){
         describe("When subscribing and ignoring duplicates", function(){
             var subInvokedCnt = 0;
             before(function(){
-                channel = postal.createChannel("MyExchange", "MyTopic");
+                channel = postal.channel("MyExchange", "MyTopic");
                 subscription = channel.subscribe(function(data) { subInvokedCnt++; })
                                       .ignoreDuplicates();
                 channel.publish("Testing123");
@@ -124,7 +124,7 @@ QUnit.specify("postal.js", function(){
         describe("When subscribing and passing onHandled callback", function(){
             var whte = false;
             before(function(){
-                channel = postal.createChannel("MyExchange", "MyTopic");
+                channel = postal.channel("MyExchange", "MyTopic");
                 subscription = channel.subscribe(function(data) {  })
                                       .whenHandledThenExecute(function() { whte = true; });
                 channel.publish("Testing123");
@@ -143,7 +143,7 @@ QUnit.specify("postal.js", function(){
         describe("When subscribing with one constraint returning true", function(){
             var recvd = false;
             before(function(){
-                channel = postal.createChannel("MyExchange", "MyTopic");
+                channel = postal.channel("MyExchange", "MyTopic");
                 subscription = channel.subscribe(function(data) { recvd= true; })
                                       .withConstraint(function() { return true; });
                 channel.publish("Testing123");
@@ -162,7 +162,7 @@ QUnit.specify("postal.js", function(){
         describe("When subscribing with one constraint returning false", function(){
             var recvd = false;
             before(function(){
-                channel = postal.createChannel("MyExchange", "MyTopic");
+                channel = postal.channel("MyExchange", "MyTopic");
                 subscription = channel.subscribe(function(data) { recvd= true; })
                                       .withConstraint(function() { return false; });
                 channel.publish("Testing123");
@@ -181,7 +181,7 @@ QUnit.specify("postal.js", function(){
         describe("When subscribing with multiple constraints returning true", function(){
             var recvd = false;
             before(function(){
-                channel = postal.createChannel("MyExchange", "MyTopic");
+                channel = postal.channel("MyExchange", "MyTopic");
                 subscription = channel.subscribe(function(data) { recvd= true; })
                                       .withConstraints([function() { return true; },
                                                        function() { return true; },
@@ -202,7 +202,7 @@ QUnit.specify("postal.js", function(){
         describe("When subscribing with multiple constraints and one returning false", function(){
             var recvd = false;
             before(function(){
-                channel = postal.createChannel("MyExchange", "MyTopic");
+                channel = postal.channel("MyExchange", "MyTopic");
                 subscription = channel.subscribe(function(data) { recvd= true; })
                                       .withConstraints([function() { return true; },
                                                        function() { return false; },
@@ -228,7 +228,7 @@ QUnit.specify("postal.js", function(){
                     }
                 };
             before(function(){
-                channel = postal.createChannel("MyExchange", "MyTopic");
+                channel = postal.channel("MyExchange", "MyTopic");
                 subscription = channel.subscribe(function(data) { this.increment(); })
                                       .withContext(obj);
                 channel.publish("Testing123");
@@ -243,9 +243,9 @@ QUnit.specify("postal.js", function(){
         describe("When subscribing with a hierarchical binding, no wildcards", function(){
             var count = 0, channelB, channelC;
             before(function(){
-                channel = postal.createChannel("MyExchange", "MyTopic.MiddleTopic.SubTopic");
-                channelB = postal.createChannel("MyExchange", "MyTopic.MiddleTopic");
-                channelC = postal.createChannel("MyExchange", "MyTopic.MiddleTopic.SubTopic.YetAnother");
+                channel = postal.channel("MyExchange", "MyTopic.MiddleTopic.SubTopic");
+                channelB = postal.channel("MyExchange", "MyTopic.MiddleTopic");
+                channelC = postal.channel("MyExchange", "MyTopic.MiddleTopic.SubTopic.YetAnother");
                 subscription = channel.subscribe(function(data) { count++; });
                 channel.publish("Testing123");
                 channelB.publish("Testing123");
@@ -262,10 +262,10 @@ QUnit.specify("postal.js", function(){
         describe("When subscribing with a hierarchical binding, using #", function(){
             var count = 0, channelB, channelC, channelD;
             before(function(){
-                channel = postal.createChannel("MyExchange", "MyTopic.#.SubTopic");
-                channelB = postal.createChannel("MyExchange", "MyTopic.MiddleTopic");
-                channelC = postal.createChannel("MyExchange", "MyTopic.MiddleTopic.SubTopic");
-                channelD = postal.createChannel("MyExchange", "MyTopic.MiddleTopic.SubTopic.YetAnother");
+                channel = postal.channel("MyExchange", "MyTopic.#.SubTopic");
+                channelB = postal.channel("MyExchange", "MyTopic.MiddleTopic");
+                channelC = postal.channel("MyExchange", "MyTopic.MiddleTopic.SubTopic");
+                channelD = postal.channel("MyExchange", "MyTopic.MiddleTopic.SubTopic.YetAnother");
                 subscription = channel.subscribe(function(data) { count++; });
                 channelC.publish({exchange: "MyExchange", topic: "MyTopic.MiddleTopic.SubTopic", data: "Testing123"});
                 channelB.publish({exchange: "MyExchange", topic: "MyTopic.MiddleTopic", data: "Testing123"});
@@ -282,10 +282,10 @@ QUnit.specify("postal.js", function(){
         describe("When subscribing with a hierarchical binding, using *", function(){
             var count = 0, channelB, channelC, channelD;
             before(function(){
-                channel = postal.createChannel("MyExchange", "MyTopic.MiddleTopic.*");
-                channelB = postal.createChannel("MyExchange", "MyTopic.MiddleTopic");
-                channelC = postal.createChannel("MyExchange", "MyTopic.MiddleTopic.SubTopic");
-                channelD = postal.createChannel("MyExchange", "MyTopic.MiddleTopic.SubTopic.YetAnother");
+                channel = postal.channel("MyExchange", "MyTopic.MiddleTopic.*");
+                channelB = postal.channel("MyExchange", "MyTopic.MiddleTopic");
+                channelC = postal.channel("MyExchange", "MyTopic.MiddleTopic.SubTopic");
+                channelD = postal.channel("MyExchange", "MyTopic.MiddleTopic.SubTopic.YetAnother");
                 subscription = channel.subscribe(function(data) { count++; });
 
                 channelC.publish("Testing123");
@@ -303,11 +303,11 @@ QUnit.specify("postal.js", function(){
         describe("When subscribing with a hierarchical binding, using # and *", function(){
             var count = 0, channelB, channelC, channelD, channelE;
             before(function(){
-                channel = postal.createChannel("MyExchange", "MyTopic.#.*");
-                channelB = postal.createChannel("MyExchange", "MyTopic.MiddleTopic");
-                channelC = postal.createChannel("MyExchange", "MyTopic.MiddleTopic.SubTopic");
-                channelD = postal.createChannel("MyExchange", "MyTopic.MiddleTopic.SubTopic.YetAnother");
-                channelE = postal.createChannel("MyExchange", "OtherTopic.MiddleTopic.SubTopic.YetAnother");
+                channel = postal.channel("MyExchange", "MyTopic.#.*");
+                channelB = postal.channel("MyExchange", "MyTopic.MiddleTopic");
+                channelC = postal.channel("MyExchange", "MyTopic.MiddleTopic.SubTopic");
+                channelD = postal.channel("MyExchange", "MyTopic.MiddleTopic.SubTopic.YetAnother");
+                channelE = postal.channel("MyExchange", "OtherTopic.MiddleTopic.SubTopic.YetAnother");
                 subscription = channel.subscribe(function(data) { count++; });
 
                 channelC.publish({exchange: "MyExchange", topic: "MyTopic.MiddleTopic.SubTopic", data: "Testing123"});

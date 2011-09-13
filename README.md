@@ -20,7 +20,7 @@ JavaScript:
 
     // The world's simplest subscription - first let's look at the fluent configuration approach:
     var name = undefined,
-        channel = postal.createChannel("Name.Changed");
+        channel = postal.channel("Name.Changed");
     // subscribe
     channel.subscribe(function(data) { name = data.name });
     // And someone publishes a first name change:
@@ -31,13 +31,13 @@ JavaScript:
     // The # symbol represents "one word" in a topic (i.e - the text between two periods of a topic).
     // By subscribing to "#.Changed", the binding will match
     // Name.Changed & Location.Changed but *not* for Changed.Companion
-    var chgChannel = postal.createChannel("#.Changed"),
+    var chgChannel = postal.channel("#.Changed"),
         chgSubscription = chgChannel.subscribe(function(data) {
             console.log(data.type + " Changed: " + data.value);
         });
-    postal.createChannel("Name.Changed")
+    postal.channel("Name.Changed")
           .publish({ type: "Name", value:"John Smith" });
-    postal.createChannel("Location.Changed")
+    postal.channel("Location.Changed")
           .publish({ type: "Location", value: "Early 20th Century England" });
 
 ## How can I extend it?
