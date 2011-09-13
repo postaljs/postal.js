@@ -14,12 +14,38 @@ If you are looking to decouple the various components/libraries/plugins you use 
 Why, yes.  There are great alternatives to Postal.  If you need something leaner for client-side development, look at amplify.js.  If you're in Node.js and can get by with EventEmitter, great.  However, I discovered that as my needs quickly grew, I wanted something that was as lean as possible, without sacrificing some of the more complex functionality that's not provided by libraries like amplify.js, and the EventEmitter object in Node.
 
 ## How do I use it?
-In a nutshell, Postal provides an in-memory message bus, where clients subscribe to a topic (which can include wildcards, as we'll see), and publishers publish messages (passing a topic along with it).  Postal's "bindingResolver" handles matching a published message's topic to subscribers who should be notified of the message.  When a client subscribes, they pass a callback that should be invoked whenever a message comes through.  This callback takes one argument - the "data" payload of the message.  Messages do not *have* to include data (they can simply be used to indicate an event, and not transmit additional state).  In the examples below, we'll see that you can call postal.publish() and postal.subscribe() directly, but you also have a much more intuitive option to fluently configure your subscription and publish handles.  
+In a nutshell, Postal provides an in-memory message bus, where clients subscribe to a topic (which can include wildcards, as we'll see), and publishers publish messages (passing a topic along with it).  Postal's "bindingResolver" handles matching a published message's topic to subscribers who should be notified of the message.  When a client subscribes, they pass a callback that should be invoked whenever a message comes through.  This callback takes one argument - the "data" payload of the message.  Messages do not *have* to include data (they can simply be used to indicate an event, and not transmit additional state).  In the examples below, we'll see that you can call postal.publish() and postal.subscribe() directly, but you also have a much more intuitive option to fluently configure your subscription and publish handles.
+
+JavaScript:
+
+    // The world's simplest subscription - first let's look at the fluent configuration approach:
+    var name = undefined,
+        channel = postal.createChannel("Name.Changed");
+    // subscribe
+    channel.subscribe(function(data) { name = data.name });
+    // And someone publishes a first name change:
+    channel.publish({ name: "Dr. Who" });
+    console.log(name); // Dr. Who
+
+    // Subscribing to a wildcard topic using #
+    // The # symbol represents "one word" in a topic (i.e - the text between two periods of a topic).
+    // By subscribing to "#.Changed", the binding will match
+    // Name.Changed & Location.Changed but *not* for Changed.Companion
+    var chgChannel = postal.createChannel("#.Changed"),
+        chgSubscription = chgChannel.subscribe(function(data) {
+            console.log(data.type + " Changed: " + data.value);
+        });
+    postal.createChannel("Name.Changed")
+          .publish({ type: "Name", value:"John Smith" });
+    postal.createChannel("Location.Changed")
+          .publish({ type: "Location", value: "Early 20th Century England" });
 
 ## How can I extend it?
 There are two main ways you can extend Postal:
+
 * First, you can write an entirely new bus implementation (want to tie into a real broker like AMQP, and wrap it with Postal's API?  This is how you'd do it.).  If you want to do this, look over the "localBus" implementation to see how the core version works.  Then, you can simply swap the bus implementation out by calling: postal.configuration.bus = myWayBetterBusImplementation.
 * The second way you can extend Postal is to change how the bindingResolver works.  You may not care for the RabbitMQ-style bindings functionality.  No problem!  Write your own resolver object that implements a "compare" method and swap the core version out with your implementation by calling: postal.configuration.resolver = myWayBetterResolver.
+
 It's also possible to extend the monitoring of messages passing through Postal by adding a "wire tap".  A wire tap is a callback that will get invoked for any published message (even if no actual subscriptions would bind to the message's topic).  Wire taps should _not_ be used in lieu of an actual subscription - but instead should be used for diagnostics, logging, forwarding or other concerns that fall along those lines.
 
 ## Can I contribute?
