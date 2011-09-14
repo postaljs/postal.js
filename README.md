@@ -1,10 +1,10 @@
 # Postal.js
 
 ## What is it?
-Postal.js is a JavaScript pub/sub library that can be used in the browser, or on the server-side using Node.js. It extends the "eventing" paradigm most JavaScript developers are already familiar with.
+Postal.js is a JavaScript pub/sub library that can be used in the browser, or on the server-side using Node.js. It extends the "eventing" paradigm most JavaScript developers are already familiar with by provinding an in-memory message bus to which your code/components/modules/etc can subscribe & publish.
 
 ## Why would I use it?
-If you are looking to decouple the various components/libraries/plugins you use (client-or-server-side), applying messaging can enable you to not only easily separate concerns, but also enable you to more painlessly plug in additional components/functionality in the future.  A pub/sub library like Postal.js can assist you in picking & choosing the libraries the best address the problems you're trying to solve, without burdening you with the requirement that those libraries have to be natively interoperable.  For example:
+If you are looking to decouple the various components/libraries/plugins you use (client-or-server-side), applying messaging can enable you to not only easily separate concerns, but also enable you to more painlessly plug in additional components/functionality in the future.  A pub/sub library like Postal.js can assist you in picking & choosing the libraries that best address the problems you're trying to solve, without burdening you with the requirement that those libraries have to be natively interoperable.  For example:
 
 * If you're using a client-side binding framework, and either don't have - or don't like - the request/communication abstractions provided, then grab a library like amplify.js or reqwest.  Then, instead of tightly coupling the two, have the request success/error callbacks publish messages with the appropriate data and any subscribers you've wired up can handle applying the data to the specific objects/elements they're concerned with.
 * Do you need two view models to communicate, but you don't want them to need to know about each other?  Have them subscribe to the topics about which they are interested in receiving messages.  From there, whenever a view model needs to alert any listeners of specific data/events, just publish a message to the bus.  If the other view model is present, it will receive the notification.
