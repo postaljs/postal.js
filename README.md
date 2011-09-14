@@ -14,7 +14,7 @@ If you are looking to decouple the various components/libraries/plugins you use 
 Why, yes.  There are great alternatives to Postal.  If you need something leaner for client-side development, look at amplify.js.  If you're in Node.js and can get by with EventEmitter, great.  However, I discovered that as my needs quickly grew, I wanted something that was as lean as possible, without sacrificing some of the more complex functionality that's not provided by libraries like amplify.js, and the EventEmitter object in Node.
 
 ## How do I use it?
-In a nutshell, Postal provides an in-memory message bus, where clients subscribe to a topic (which can include wildcards, as we'll see), and publishers publish messages (passing a topic along with it).  Postal's "bindingResolver" handles matching a published message's topic to subscribers who should be notified of the message.  When a client subscribes, they pass a callback that should be invoked whenever a message comes through.  This callback takes one argument - the "data" payload of the message.  Messages do not *have* to include data (they can simply be used to indicate an event, and not transmit additional state).  In the examples below, we'll see that you can call postal.publish() and postal.subscribe() directly, but you also have a much more intuitive option to fluently configure your subscription and publish handles.
+In a nutshell, Postal provides an in-memory message bus, where clients subscribe to a topic (which can include wildcards, as we'll see), and publishers publish messages (passing a topic along with it).  Postal's "bindingResolver" handles matching a published message's topic to subscribers who should be notified of the message.  When a client subscribes, they pass a callback that should be invoked whenever a message comes through.  This callback takes one argument - the "data" payload of the message.  (Messages do not *have* to include data - they can simply be used to indicate an event, and not transmit additional state).  Additional options/constraints can be set on a subscription (see examples below, and check out the fluent calls available on the SubscriptionDefinition prototype).
 
 All of these examples can be run live here: [http://jsfiddle.net/ifandelse/NTPcT/](http://jsfiddle.net/ifandelse/NTPcT/)
 
@@ -177,3 +177,9 @@ It's also possible to extend the monitoring of messages passing through Postal b
 
 ## Can I contribute?
 Please - by all means!  While I hope the API is relatively stable, I'm open to pull requests.  (Hint - if you want a feature implemented, a pull request gives it a much higher probability of being included than simply asking me.)  As I said, pull requests are most certainly welcome - but please include tests for your additions.  Otherwise, it will disappear into the ether.
+
+## Roadmap for the Future
+Here's where Postal is headed:
+* The original proof-of-concept version of postal supported the ability to capture messages and replay them.  This functionality will be added soon.
+* The ability to 'join' two (or more) subscriptions, so that the original subscription will only fire once the second "joined" subscription has also fired.  Think of it as a message-based version of a compound promise.
+* What else would you like to see?
