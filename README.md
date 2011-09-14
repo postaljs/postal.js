@@ -16,9 +16,7 @@ Why, yes.  There are great alternatives to Postal.  If you need something leaner
 ## How do I use it?
 In a nutshell, Postal provides an in-memory message bus, where clients subscribe to a topic (which can include wildcards, as we'll see), and publishers publish messages (passing a topic along with it).  Postal's "bindingResolver" handles matching a published message's topic to subscribers who should be notified of the message.  When a client subscribes, they pass a callback that should be invoked whenever a message comes through.  This callback takes one argument - the "data" payload of the message.  (Messages do not *have* to include data - they can simply be used to indicate an event, and not transmit additional state).  Additional options/constraints can be set on a subscription (see examples below, and check out the fluent calls available on the SubscriptionDefinition prototype).
 
-All of these examples can be run live here: [http://jsfiddle.net/ifandelse/NTPcT/](http://jsfiddle.net/ifandelse/NTPcT/)
-
-<iframe style="width: 100%; height: 300px" src="http://jsfiddle.net/ifandelse/NTPcT/embedded/"></iframe>
+Here are four examples of using Postal.  All of these examples - AND MORE! - can be run live here: [http://jsfiddle.net/ifandelse/NTPcT/](http://jsfiddle.net/ifandelse/NTPcT/)
 
 JavaScript:
 
@@ -88,85 +86,6 @@ JavaScript:
     dupSubscription.unsubscribe();
 
 
-
-    // Using disposeAfter(X) to remove subscription automagically after X number of receives
-    var daChannel = postal.channel("Donna.Noble.*"),
-        daSubscription = daChannel.subscribe(function(data) {
-                              $('<li>' + data.value + '</li>').appendTo("#example5");
-                          }).disposeAfter(2);
-    postal.channel("Donna.Noble.ScreamingAgain")
-          .publish({ value:"Donna Noble has left the library." });
-    postal.channel("Donna.Noble.ScreamingAgain")
-          .publish({ value:"Donna Noble has left the library." });
-    postal.channel("Donna.Noble.ScreamingAgain")
-          .publish({ value:"Donna Noble has left the library." });
-    postal.channel("Donna.Noble.ScreamingAgain")
-          .publish({ value:"Donna Noble has left the library." });
-    postal.channel("Donna.Noble.ScreamingAgain")
-          .publish({ value:"Donna Noble has left the library." });
-    daSubscription.unsubscribe();
-
-
-
-    // Using whenHandledThenExecute() to invoke a function after handling a message
-    var whteChannel = postal.channel("Donna.Noble.*"),
-        whteSubscription = whteChannel.subscribe(function(data) {
-                              $('<li>' + data.value + '</li>').appendTo("#example6");
-                           }).whenHandledThenExecute(function() {
-                               $('<li>[Kind of a frivolous example...but this line resulted from the whenHandledThenExecute() callback]</li>').appendTo("#example6");
-                           });
-    postal.channel("Donna.Noble.*")
-          .publish({ value:"Donna Noble has left the library." });
-    whteSubscription.unsubscribe();
-
-
-
-    // Using withConstraint to apply a predicate to the subscription
-    var drIsInTheTardis = false,
-        wcChannel = postal.channel("Tardis.Depart"),
-        wcSubscription = wcChannel.subscribe(function(data) {
-                              $('<li>' + data.value + '</li>').appendTo("#example7");
-                         }).withConstraint(function() { return drIsInTheTardis; } );
-    postal.channel("Tardis.Depart")
-          .publish({ value:"Time for time travel....fantastic!" });
-    postal.channel("Tardis.Depart")
-          .publish({ value:"Time for time travel....fantastic!" });
-    drIsInTheTardis = true;
-    postal.channel("Tardis.Depart")
-          .publish({ value:"Time for time travel....fantastic!" });
-    wcSubscription.unsubscribe();
-
-
-
-    // Using withContext to set the "this" context
-    var ctxChannel = postal.channel("Dalek.Meet.CyberMen"),
-        ctxSubscription = ctxChannel.subscribe(function(data) {
-                              $('<li>' + data.value + '</li>').appendTo(this);
-                         }).withContext($("#example8"));
-    postal.channel("Dalek.Meet.CyberMen")
-          .publish({ value:"Exterminate!" });
-    postal.channel("Dalek.Meet.CyberMen")
-          .publish({ value:"Delete!" });
-    ctxSubscription.unsubscribe();
-
-
-
-    // Using withDelay() to delay the subscription evaluation
-    var wdChannel = postal.channel("He.Will.Knock.Four.Times"),
-        wdSubscription = wdChannel.subscribe(function(data) {
-                              $('<li>' + data.value + '</li>').appendTo($("#example9"));
-                         }).withDelay(5000);
-    postal.channel("He.Will.Knock.Four.Times")
-          .publish({ value:"Knock!" });
-    postal.channel("He.Will.Knock.Four.Times")
-          .publish({ value:"Knock!" });
-    postal.channel("He.Will.Knock.Four.Times")
-          .publish({ value:"Knock!" });
-    postal.channel("He.Will.Knock.Four.Times")
-          .publish({ value:"Knock!" });
-    wdSubscription.unsubscribe();
-
-
 ## How can I extend it?
 There are two main ways you can extend Postal:
 
@@ -180,6 +99,8 @@ Please - by all means!  While I hope the API is relatively stable, I'm open to p
 
 ## Roadmap for the Future
 Here's where Postal is headed:
+
 * The original proof-of-concept version of postal supported the ability to capture messages and replay them.  This functionality will be added soon.
 * The ability to 'join' two (or more) subscriptions, so that the original subscription will only fire once the second "joined" subscription has also fired.  Think of it as a message-based version of a compound promise.
+* I haven't yet thoroughly tested Postal on Node.js - that is high on my list as well.
 * What else would you like to see?
