@@ -12,3 +12,6 @@ while read line; do
 done < source-browser-postal.txt
 
 cat ../boilerplate/browser_footer.txt  >> $OutFile
+
+DiagOutFile='../output/browser/postal.diagnostics.js'
+cat ../../src/Diagnostics.js  >> $DiagOutFile
