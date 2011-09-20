@@ -16,6 +16,6 @@ ChannelDefinition.prototype = {
             topic: this.topic,
             data: data,
             timeStamp: new Date()
-        })
+        });
     }
 };

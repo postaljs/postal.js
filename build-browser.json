@@ -1,0 +1,12 @@
+{
+    "source": "src/main",
+    "output": "build/browser",
+    "lint": {},
+    "uglify": {},
+    "gzip": {},
+    "extensions": { "uglify": "min", "gzip": "gz" },
+    "wrap": {
+        "prefix": "(function(global, undefined) {",
+        "suffix": "global.postal = postal; })(window);"
+    }
+}

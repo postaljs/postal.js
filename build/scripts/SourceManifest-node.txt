@@ -1,7 +1,0 @@
-src/Constants.js
-src/DistinctPredicate.js
-src/ChannelDefinition.js
-src/SubscriptionDefinition.js
-src/BindingsResolver.js
-src/LocalBus.js
-src/Postal.js

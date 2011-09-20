@@ -1,4 +1,0 @@
-
-global.postal = postal;
-
-})(window);

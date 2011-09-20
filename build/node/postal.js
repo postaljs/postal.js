@@ -2,15 +2,14 @@
     postal.js
     Author: Jim Cowart
     License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
-    Version 0.1.0
+    Version 0.3.0
 */
-
-(function(global, undefined) {
 
 var DEFAULT_EXCHANGE = "/",
     DEFAULT_PRIORITY = 50,
     DEFAULT_DISPOSEAFTER = 0,
     NO_OP = function() { };
+
 var DistinctPredicate = function() {
     var previous;
     return function(data) {
@@ -26,6 +25,7 @@ var DistinctPredicate = function() {
         return !eq;
     };
 };
+
 var ChannelDefinition = function(exchange, topic) {
     this.exchange = exchange;
     this.topic = topic;
@@ -44,9 +44,10 @@ ChannelDefinition.prototype = {
             topic: this.topic,
             data: data,
             timeStamp: new Date()
-        })
+        });
     }
 };
+
 var SubscriptionDefinition = function(exchange, topic, callback) {
     this.exchange = exchange;
     this.topic = topic;
@@ -55,7 +56,7 @@ var SubscriptionDefinition = function(exchange, topic, callback) {
     this.constraints = [];
     this.maxCalls = DEFAULT_DISPOSEAFTER;
     this.onHandled = NO_OP;
-    this.context = null
+    this.context = null;
 };
 
 SubscriptionDefinition.prototype = {
@@ -159,6 +160,7 @@ SubscriptionDefinition.prototype = {
         return this;
     }
 };
+
 var bindingsResolver = {
     cache: { },
 
@@ -183,6 +185,7 @@ var bindingsResolver = {
                       .replace(/#/g, "[A-Z,a-z,0-9]*"); // hash matches any alpha-numeric 'word'
     }
 };
+
 var localBus = {
 
     subscriptions: {},
@@ -263,6 +266,7 @@ var localBus = {
         };
     }
 };
+
 var postal = {
     configuration: {
         bus: localBus,
@@ -280,6 +284,4 @@ var postal = {
     }
 };
 
-global.postal = postal;
-
-})(window);
+exports.postal = postal;

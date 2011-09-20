@@ -1,0 +1,9 @@
+{
+    "source": "src/main",
+    "output": "build/node",
+    "lint": {},
+    "wrap": {
+        "prefix": "",
+        "suffix": "exports.postal = postal;"
+    }
+}

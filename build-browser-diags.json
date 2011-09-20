@@ -1,0 +1,8 @@
+{
+    "source": "src/diags",
+    "output": "build/browser",
+    "lint": {},
+    "uglify": {},
+    "gzip": {},
+    "extensions": { "uglify": "min", "gzip": "gz" }
+}

@@ -6,7 +6,7 @@ var SubscriptionDefinition = function(exchange, topic, callback) {
     this.constraints = [];
     this.maxCalls = DEFAULT_DISPOSEAFTER;
     this.onHandled = NO_OP;
-    this.context = null
+    this.context = null;
 };
 
 SubscriptionDefinition.prototype = {
