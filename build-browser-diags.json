@@ -1,6 +1,6 @@
 {
     "source": "src/diags",
-    "output": "build/browser",
+    "output": "lib/browser",
     "lint": {},
     "uglify": {},
     "gzip": {},

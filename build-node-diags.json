@@ -1,6 +1,6 @@
 {
     "source": "src/diags",
-    "output": "build/node",
+    "output": "lib/node",
     "lint": {},
     "wrap": {
         "prefix": "module.exports = function(postal) {",
