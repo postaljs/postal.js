@@ -323,6 +323,59 @@ QUnit.specify("postal.js", function(){
                 assert(count).equals(2);
             });
         });
+        describe("When using shortcut publish api", function(){
+            var msgReceivedCnt = 0,
+                msgData;
+            before(function(){
+                channel = postal.channel("MyExchange","MyTopic")
+                subscription = channel.subscribe(function(data) { msgReceivedCnt++; msgData = data;});
+                postal.publish("MyExchange", "MyTopic", "Testing123");
+                subscription.unsubscribe();
+                postal.publish("MyExchange", "MyTopic", "Testing123");
+            });
+            after(function(){
+                postal.configuration.bus.subscriptions = {};
+            });
+            it("subscription callback should be invoked once", function(){
+                assert(msgReceivedCnt).equals(1);
+            });
+            it("subscription callback should receive published data", function(){
+                assert(msgData).equals("Testing123");
+            });
+        });
+        describe("When using shortcut subscribe api", function(){
+            before(function(){
+                subscription = postal.subscribe("MyExchange", "MyTopic", function() { });
+                sub = postal.configuration.bus.subscriptions.MyExchange.MyTopic[0];
+            });
+            after(function(){
+                postal.configuration.bus.subscriptions = {};
+            });
+            it("should create an exchange called MyExchange", function(){
+                assert(postal.configuration.bus.subscriptions["MyExchange"] !== undefined).isTrue();
+            });
+            it("should create a topic under MyExchange called MyTopic", function(){
+                assert(postal.configuration.bus.subscriptions["MyExchange"]["MyTopic"] !== undefined).isTrue();
+            });
+            it("should have set subscription exchange value", function() {
+                assert(sub.exchange).equals("MyExchange");
+            });
+            it("should have set subscription topic value", function() {
+                assert(sub.topic).equals("MyTopic");
+            });
+            it("should have set subscription priority value", function() {
+                assert(sub.priority).equals(50);
+            });
+            it("should have defaulted the subscription constraints array", function() {
+                assert(sub.constraints.length).equals(0);
+            });
+            it("should have defaulted the subscription disposeAfter value", function() {
+                assert(sub.maxCalls).equals(0);
+            });
+            it("should have defaulted the subscription context value", function() {
+                assert(sub.context).isNull();
+            });
+        });
         // TODO: Add test coverage for direct unsubscribe and wire taps
     });
 });
