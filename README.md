@@ -21,15 +21,15 @@ Here are four examples of using Postal.  All of these examples - AND MORE! - can
 JavaScript:
 
 ```javascript
-    // The world's simplest subscription
-    var channel = postal.channel("Name.Changed");
+// The world's simplest subscription
+var channel = postal.channel("Name.Changed");
 
-    // subscribe
-    var subscription = channel.subscribe(function(data) { $("#example1").html("Name: " + data.name); });
+// subscribe
+var subscription = channel.subscribe(function(data) { $("#example1").html("Name: " + data.name); });
 
-    // And someone publishes a first name change:
-    channel.publish({ name: "Dr. Who" });
-    subscription.unsubscribe();
+// And someone publishes a first name change:
+channel.publish({ name: "Dr. Who" });
+subscription.unsubscribe();
 ```
 
 ### Subscribing to a wildcard topic using #
@@ -37,15 +37,15 @@ JavaScript:
 The `#` symbol represents "one word" in a topic (i.e - the text between two periods of a topic). By subscribing to `"#.Changed"`, the binding will match `Name.Changed` & `Location.Changed` but *not* for `Changed.Companion`
 
 ```javascript
-    var hashChannel = postal.channel("#.Changed"),
-        chgSubscription = hashChannel.subscribe(function(data) {
-            $('<li>' + data.type + " Changed: " + data.value + '</li>').appendTo("#example2");
-        });
-    postal.channel("Name.Changed")
-          .publish({ type: "Name", value:"John Smith" });
-    postal.channel("Location.Changed")
-          .publish({ type: "Location", value: "Early 20th Century England" });
-    chgSubscription.unsubscribe();
+var hashChannel = postal.channel("#.Changed"),
+    chgSubscription = hashChannel.subscribe(function(data) {
+        $('<li>' + data.type + " Changed: " + data.value + '</li>').appendTo("#example2");
+    });
+postal.channel("Name.Changed")
+      .publish({ type: "Name", value:"John Smith" });
+postal.channel("Location.Changed")
+      .publish({ type: "Location", value: "Early 20th Century England" });
+chgSubscription.unsubscribe();
 ```
 
 ### Subscribing to a wildcard topic using *
@@ -53,41 +53,41 @@ The `#` symbol represents "one word" in a topic (i.e - the text between two peri
 The `*` symbol represents any number of characters/words in a topic string. By subscribing to ``"DrWho.*.Changed"``, the binding will match `DrWho.NinthDoctor.Companion.Changed` & `DrWho.Location.Changed` but *not* `Changed`
 
 ```javascript
-    var starChannel = postal.channel("DrWho.*.Changed"),
-        starSubscription = starChannel.subscribe(function(data) {
-            $('<li>' + data.type + " Changed: " + data.value + '</li>').appendTo("#example3");
-        });
-    postal.channel("DrWho.NinthDoctor.Companion.Changed")
-          .publish({ type: "Name", value:"Rose" });
-    postal.channel("DrWho.TenthDoctor.Companion.Changed")
-          .publish({ type: "Name", value:"Martha" });
-    postal.channel("DrWho.Eleventh.Companion.Changed")
-          .publish({ type: "Name", value:"Amy" });
-    postal.channel("DrWho.Location.Changed")
-          .publish({ type: "Location", value: "The Library" });
-    postal.channel("TheMaster.DrumBeat.Changed")
-          .publish({ type: "DrumBeat", value: "This won't trigger any subscriptions" });
-    postal.channel("Changed")
-          .publish({ type: "Useless", value: "This won't trigger any subscriptions either" });
-    starSubscription.unsubscribe();
+var starChannel = postal.channel("DrWho.*.Changed"),
+    starSubscription = starChannel.subscribe(function(data) {
+        $('<li>' + data.type + " Changed: " + data.value + '</li>').appendTo("#example3");
+    });
+postal.channel("DrWho.NinthDoctor.Companion.Changed")
+      .publish({ type: "Name", value:"Rose" });
+postal.channel("DrWho.TenthDoctor.Companion.Changed")
+      .publish({ type: "Name", value:"Martha" });
+postal.channel("DrWho.Eleventh.Companion.Changed")
+      .publish({ type: "Name", value:"Amy" });
+postal.channel("DrWho.Location.Changed")
+      .publish({ type: "Location", value: "The Library" });
+postal.channel("TheMaster.DrumBeat.Changed")
+      .publish({ type: "DrumBeat", value: "This won't trigger any subscriptions" });
+postal.channel("Changed")
+      .publish({ type: "Useless", value: "This won't trigger any subscriptions either" });
+starSubscription.unsubscribe();
 ```
 
 ### Applying ignoreDuplicates to a subscription
 
 ```javascript
-    var dupChannel = postal.channel("WeepingAngel.*"),
-        dupSubscription = dupChannel.subscribe(function(data) {
-                              $('<li>' + data.value + '</li>').appendTo("#example4");
-                          }).ignoreDuplicates();
-    postal.channel("WeepingAngel.DontBlink")
-          .publish({ value:"Don't Blink" });
-    postal.channel("WeepingAngel.DontBlink")
-          .publish({ value:"Don't Blink" });
-    postal.channel("WeepingAngel.DontEvenBlink")
-          .publish({ value:"Don't Even Blink" });
-    postal.channel("WeepingAngel.DontBlink")
-          .publish({ value:"Don't Close Your Eyes" });
-    dupSubscription.unsubscribe();
+var dupChannel = postal.channel("WeepingAngel.*"),
+    dupSubscription = dupChannel.subscribe(function(data) {
+                          $('<li>' + data.value + '</li>').appendTo("#example4");
+                      }).ignoreDuplicates();
+postal.channel("WeepingAngel.DontBlink")
+      .publish({ value:"Don't Blink" });
+postal.channel("WeepingAngel.DontBlink")
+      .publish({ value:"Don't Blink" });
+postal.channel("WeepingAngel.DontEvenBlink")
+      .publish({ value:"Don't Even Blink" });
+postal.channel("WeepingAngel.DontBlink")
+      .publish({ value:"Don't Close Your Eyes" });
+dupSubscription.unsubscribe();
 ```
 
 ## How can I extend it?
