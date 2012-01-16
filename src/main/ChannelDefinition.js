@@ -10,12 +10,12 @@ ChannelDefinition.prototype = {
         return subscription;
     },
 
-    publish: function(data) {
-        postal.configuration.bus.publish({
+    publish: function(data, envelope) {
+        var env = _.extend({
             exchange: this.exchange,
-            topic: this.topic,
-            data: data,
-            timeStamp: new Date()
-        });
+            timeStamp: new Date(),
+            topic: this.topic
+        }, envelope);
+        postal.configuration.bus.publish(data, env);
     }
 };

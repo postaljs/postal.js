@@ -4,22 +4,17 @@ var localBus = {
 
     wireTaps: [],
 
-    publish: function(envelope) {
+    publish: function(data, envelope) {
         _.each(this.wireTaps,function(tap) {
-            tap({
-                    exchange:   envelope.exchange,
-                    topic:      envelope.topic,
-                    data:       envelope.data,
-                    timeStamp:  envelope.timeStamp
-                });
+            tap(data, envelope);
         });
 
         _.each(this.subscriptions[envelope.exchange], function(topic) {
             _.each(topic, function(binding){
                 if(postal.configuration.resolver.compare(binding.topic, envelope.topic)) {
-                    if(_.all(binding.constraints, function(constraint) { return constraint(envelope.data); })) {
+                    if(_.all(binding.constraints, function(constraint) { return constraint(data); })) {
                         if(typeof binding.callback === 'function') {
-                            binding.callback.apply(binding.context, [envelope.data]);
+                            binding.callback.apply(binding.context, [data, envelope]);
                             binding.onHandled();
                         }
                     }

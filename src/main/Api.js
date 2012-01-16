@@ -18,12 +18,10 @@ var postal = {
         return channel.subscribe(callbk);
     },
 
-    publish: function(exchange, topic, payload) {
-        var exch = arguments.length === 3 ? exchange : DEFAULT_EXCHANGE,
-            tpc  = arguments.length === 3 ? topic : exchange,
-            msg  = arguments.length === 3 ? payload : topic;
-        var channel = this.channel(exch, tpc);
-        channel.publish(msg);
+    publish: function(exchange, topic, payload, envelopeOptions) {
+        var parsedArgs = parsePublishArgs([].slice.call(arguments,0));
+        var channel = this.channel(parsedArgs.envelope.exchange, parsedArgs.envelope.topic);
+        channel.publish(parsedArgs.payload, parsedArgs.envelope);
     },
 
     addWireTap: function(callback) {
