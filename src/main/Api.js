@@ -12,9 +12,10 @@ var postal = {
 
     subscribe: function(exchange, topic, callback) {
         var exch = arguments.length === 3 ? exchange : DEFAULT_EXCHANGE,
-            tpc  = arguments.length === 3 ? topic : exchange;
+            tpc  = arguments.length === 3 ? topic : exchange,
+            callbk  = arguments.length === 3 ? callback : topic;
         var channel = this.channel(exch, tpc);
-        return channel.subscribe(callback);
+        return channel.subscribe(callbk);
     },
 
     publish: function(exchange, topic, payload) {
