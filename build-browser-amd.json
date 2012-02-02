@@ -1,12 +1,12 @@
 {
     "source": "src/main",
-    "output": "lib/browser",
+    "output": "lib/browser/amd",
     "lint": {},
     "uglify": {},
     "gzip": {},
     "extensions": { "uglify": "min", "gzip": "gz" },
     "wrap": {
-        "prefix": "(function(global, undefined) {",
-        "suffix": "global.postal = postal; })(window);"
+        "prefix": "define(['underscore'], function(_) {",
+        "suffix": "return postal; });"
     }
 }
