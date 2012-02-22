@@ -2,9 +2,18 @@ QUnit.specify("postal.js", function(){
     describe("Postal", function(){
         var subscription,
             sub,
-            channel;
+            channel,
+            gotSubscriptionFromTap;
         describe("when creating basic subscription", function() {
             before(function(){
+                postal.addWireTap(function(x,y){
+                    if( x.event &&
+                        x.event == "subscription-created" &&
+                        x.exchange == "MyExchange" &&
+                        x.topic == "MyTopic") {
+                        gotSubscriptionFromTap = true;
+                    }
+                });
                 subscription = postal.channel("MyExchange","MyTopic")
                                      .subscribe(function() { });
                 sub = postal.configuration.bus.subscriptions.MyExchange.MyTopic[0];
@@ -36,11 +45,24 @@ QUnit.specify("postal.js", function(){
             it("should have defaulted the subscription context value", function() {
                 assert(sub.context).isNull();
             });
+            it("should have captured subscription creation event in wire-tap", function() {
+                assert(gotSubscriptionFromTap).isTrue();
+            });
         });
         describe("when unsubscribing", function() {
             var subExistsBefore = false,
-                subExistsAfter = true;
+                subExistsAfter = true,
+                gotUnsubscriptionFromTap = false;
+
             before(function(){
+                postal.addWireTap(function(x,y){
+                    if( x.event &&
+                        x.event == "subscription-removed" &&
+                        x.exchange == "MyExchange" &&
+                        x.topic == "MyTopic") {
+                        gotUnsubscriptionFromTap = true;
+                    }
+                });
                 subscription = postal.channel("MyExchange","MyTopic")
                                      .subscribe(function() { });
                 subExistsBefore = postal.configuration.bus.subscriptions.MyExchange.MyTopic[0] !== undefined;
@@ -55,6 +77,9 @@ QUnit.specify("postal.js", function(){
             });
             it("subscription should not exist after unsubscribe", function(){
                 assert(subExistsAfter).isFalse();
+            });
+            it("should have captured unsubscription creation event in wire-tap", function() {
+                assert(gotUnsubscriptionFromTap).isTrue();
             });
         });
         describe("When publishing a message", function(){

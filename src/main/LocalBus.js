@@ -5,9 +5,7 @@ var localBus = {
     wireTaps: [],
 
     publish: function(data, envelope) {
-        _.each(this.wireTaps,function(tap) {
-            tap(data, envelope);
-        });
+        this.notifyTaps(data, envelope);
 
         _.each(this.subscriptions[envelope.exchange], function(topic) {
             _.each(topic, function(binding){
@@ -44,16 +42,32 @@ var localBus = {
             }
             if(!found) {
                 this.subscriptions[subDef.exchange][subDef.topic].unshift(subDef);
+                this.notifyTaps({
+                        event: "subscription-created",
+                        exchange: subDef.exchange,
+                        topic: subDef.topic
+                    }, {});
             }
         }
 
         return _.bind(function() { this.unsubscribe(subDef); }, this);
     },
 
+    notifyTaps: function(data, envelope) {
+        _.each(this.wireTaps,function(tap) {
+            tap(data, envelope);
+        });
+    },
+
     unsubscribe: function(config) {
         if(this.subscriptions[config.exchange][config.topic]) {
             var len = this.subscriptions[config.exchange][config.topic].length,
                 idx = 0;
+            this.notifyTaps({
+                event: "subscription-removed",
+                exchange: config.exchange,
+                topic: config.topic
+            }, {});
             for ( ; idx < len; idx++ ) {
                 if (this.subscriptions[config.exchange][config.topic][idx] === config) {
                     this.subscriptions[config.exchange][config.topic].splice( idx, 1 );
