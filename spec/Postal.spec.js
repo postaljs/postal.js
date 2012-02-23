@@ -3,22 +3,28 @@ QUnit.specify("postal.js", function(){
         var subscription,
             sub,
             channel,
-            gotSubscriptionFromTap;
+            caughtSubscribeEvent = false,
+            caughtUnsubscribeEvent = false;
+
         describe("when creating basic subscription", function() {
+            var systemSubscription = {};
             before(function(){
-                postal.addWireTap(function(x,y){
+
+                systemSubscription = postal.subscribe( "postal", "subscription.created", function(x){
+                    console.log("on subscription " + JSON.stringify(x));
                     if( x.event &&
-                        x.event == "subscription-created" &&
+                        x.event == "subscription.created" &&
                         x.exchange == "MyExchange" &&
                         x.topic == "MyTopic") {
-                        gotSubscriptionFromTap = true;
-                    }
+                        caughtSubscribeEvent = true;
+                    };
                 });
                 subscription = postal.channel("MyExchange","MyTopic")
                                      .subscribe(function() { });
                 sub = postal.configuration.bus.subscriptions.MyExchange.MyTopic[0];
             });
             after(function(){
+                systemSubscription.unsubscribe();
                 postal.configuration.bus.subscriptions = {};
             });
             it("should create an exchange called MyExchange", function(){
@@ -46,22 +52,22 @@ QUnit.specify("postal.js", function(){
                 assert(sub.context).isNull();
             });
             it("should have captured subscription creation event in wire-tap", function() {
-                assert(gotSubscriptionFromTap).isTrue();
+                assert(caughtSubscribeEvent).isTrue();
             });
         });
         describe("when unsubscribing", function() {
             var subExistsBefore = false,
-                subExistsAfter = true,
-                gotUnsubscriptionFromTap = false;
-
+                subExistsAfter = true;
+            var systemSubscription = {};
             before(function(){
-                postal.addWireTap(function(x,y){
+                systemSubscription = postal.subscribe( "postal", "subscription.*", function(x){
+                    console.log("on unsubscription " + JSON.stringify(x));
                     if( x.event &&
-                        x.event == "subscription-removed" &&
+                        x.event == "subscription.removed" &&
                         x.exchange == "MyExchange" &&
                         x.topic == "MyTopic") {
-                        gotUnsubscriptionFromTap = true;
-                    }
+                        caughtUnsubscribeEvent = true;
+                    };
                 });
                 subscription = postal.channel("MyExchange","MyTopic")
                                      .subscribe(function() { });
@@ -70,6 +76,7 @@ QUnit.specify("postal.js", function(){
                 subExistsAfter = postal.configuration.bus.subscriptions.MyExchange.MyTopic.length !== 0;
             });
             after(function(){
+                systemSubscription.unsubscribe();
                 postal.configuration.bus.subscriptions = {};
             });
             it("subscription should exist before unsubscribe", function(){
@@ -79,7 +86,7 @@ QUnit.specify("postal.js", function(){
                 assert(subExistsAfter).isFalse();
             });
             it("should have captured unsubscription creation event in wire-tap", function() {
-                assert(gotUnsubscriptionFromTap).isTrue();
+                assert(caughtUnsubscribeEvent).isTrue();
             });
         });
         describe("When publishing a message", function(){
