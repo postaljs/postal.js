@@ -7,11 +7,24 @@ var SubscriptionDefinition = function(exchange, topic, callback) {
     this.maxCalls = DEFAULT_DISPOSEAFTER;
     this.onHandled = NO_OP;
     this.context = null;
+
+    postal.publish(SYSTEM_EXCHANGE, "subscription.created",
+        {
+            event: "subscription.created",
+            exchange: exchange,
+            topic: topic
+        });
 };
 
 SubscriptionDefinition.prototype = {
     unsubscribe: function() {
         postal.configuration.bus.unsubscribe(this);
+        postal.publish(SYSTEM_EXCHANGE, "subscription.removed",
+            {
+                event: "subscription.removed",
+                exchange: this.exchange,
+                topic: this.topic
+            });
     },
 
     defer: function() {
