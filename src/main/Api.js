@@ -38,13 +38,11 @@ var postal = {
 		}
 		_.each(sources, function(source){
 			var sourceTopic = source.topic || "*";
-			console.log("SOURCE: " + source.exchange + " | " + sourceTopic);
 			_.each(destinations, function(destination) {
 				var destExchange = destination.exchange || DEFAULT_EXCHANGE;
 				subscriptions.push(
 					postal.subscribe(source.exchange || DEFAULT_EXCHANGE, source.topic || "*", function(msg, env) {
 						var destTopic = _.isFunction(destination.topic) ? destination.topic(env.topic) : destination.topic || env.topic;
-						console.log("DESTINATION: " + destExchange + " | " + destTopic);
 						postal.publish(destExchange, destTopic, msg);
 					})
 				);
