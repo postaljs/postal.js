@@ -5,9 +5,7 @@ var localBus = {
     wireTaps: [],
 
     publish: function(data, envelope) {
-        _.each(this.wireTaps,function(tap) {
-            tap(data, envelope);
-        });
+        this.notifyTaps(data, envelope);
 
         _.each(this.subscriptions[envelope.exchange], function(topic) {
             _.each(topic, function(binding){
@@ -48,6 +46,12 @@ var localBus = {
         }
 
         return _.bind(function() { this.unsubscribe(subDef); }, this);
+    },
+
+    notifyTaps: function(data, envelope) {
+        _.each(this.wireTaps,function(tap) {
+            tap(data, envelope);
+        });
     },
 
     unsubscribe: function(config) {
