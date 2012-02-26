@@ -25,6 +25,6 @@ var postal = {
     },
 
     addWireTap: function(callback) {
-        this.configuration.bus.addWireTap(callback);
+        return this.configuration.bus.addWireTap(callback);
     }
 };
