@@ -68,11 +68,12 @@ var localBus = {
     },
 
     addWireTap: function(callback) {
-        this.wireTaps.push(callback);
+	    var self = this;
+	    self.wireTaps.push(callback);
         return function() {
-            var idx = this.wireTaps.indexOf(callback);
+            var idx = self.wireTaps.indexOf(callback);
             if(idx !== -1) {
-                this.wireTaps.splice(idx,1);
+	            self.wireTaps.splice(idx,1);
             }
         };
     }

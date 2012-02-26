@@ -408,6 +408,123 @@ QUnit.specify("postal.js", function(){
                 assert(sub.context).isNull();
             });
         });
-        // TODO: Add test coverage for direct unsubscribe and wire taps
+	    describe("when subscribing and unsubscribing a wire tap", function() {
+		    var wireTapData = [],
+			    wireTapEnvelope = [],
+			    wiretap;
+		    before(function(){
+			    caughtUnsubscribeEvent = false;
+			    wiretap = postal.addWireTap(function(msg, envelope) {
+				    wireTapData.push(msg);
+				    wireTapEnvelope.push(envelope);
+			    });
+			    postal.publish("Oh.Hai.There", { data: "I'm in yer bus, tappin' yer subscriptionz..."});
+			    wiretap();
+			    postal.publish("Oh.Hai.There", { data: "I'm in yer bus, tappin' yer subscriptionz..."});
+		    });
+		    after(function(){
+			    postal.configuration.bus.subscriptions = {};
+		    });
+		    it("wire tap should have been invoked only once", function(){
+			    assert(wireTapData.length).equals(1);
+			    assert(wireTapEnvelope.length).equals(1);
+		    });
+		    it("wireTap data should match expected results", function(){
+			    assert(wireTapData[0].data).equals("I'm in yer bus, tappin' yer subscriptionz...");
+		    });
+		    it("wireTap envelope should match expected results", function() {
+			    assert(wireTapEnvelope[0].exchange).equals(DEFAULT_EXCHANGE);
+			    assert(wireTapEnvelope[0].topic).equals("Oh.Hai.There");
+		    });
+	    });
+	    describe("when binding exchange - one source to one destination", function(){
+		    describe("with only exchange values provided", function(){
+			    var destData = [],
+				    destEnv = [],
+				    linkages;
+			    before(function(){
+				    linkages = postal.bindExchanges({ exchange: "sourceExchange" }, { exchange: "destinationExchange" });
+				    subscription = postal.subscribe("destinationExchange", "Oh.Hai.There", function(data, env) {
+					    destData.push(data);
+					    destEnv.push(env);
+				    });
+				    postal.publish("sourceExchange", "Oh.Hai.There", { data: "I'm in yer bus, linkin' to yer subscriptionz..."});
+				    linkages[0].unsubscribe();
+				    postal.publish("sourceExchange", "Oh.Hai.There", { data: "I'm in yer bus, linkin' to yer subscriptionz..."});
+			    });
+			    after(function(){
+				    postal.configuration.bus.subscriptions = {};
+			    });
+			    it("linked subscription should only have been invoked once", function(){
+				    assert(destData.length).equals(1);
+				    assert(destEnv.length).equals(1);
+			    });
+			    it("linked subscription data should match expected results", function(){
+				    assert(destData[0].data).equals("I'm in yer bus, linkin' to yer subscriptionz...");
+			    });
+			    it("linked subscription envelope should match expected results", function() {
+				    assert(destEnv[0].exchange).equals("destinationExchange");
+				    assert(destEnv[0].topic).equals("Oh.Hai.There");
+			    });
+		    });
+		    describe("with exchange and static topic values provided", function(){
+			    var destData = [],
+				    destEnv = [],
+				    linkages;
+			    before(function(){
+				    linkages = postal.bindExchanges({ exchange: "sourceExchange", topic: "Oh.Hai.There"  }, { exchange: "destinationExchange", topic: "kthxbye" });
+				    subscription = postal.subscribe("destinationExchange", "kthxbye", function(data, env) {
+					    destData.push(data);
+					    destEnv.push(env);
+				    });
+				    postal.publish("sourceExchange", "Oh.Hai.There", { data: "I'm in yer bus, linkin' to yer subscriptionz..."});
+				    linkages[0].unsubscribe();
+				    postal.publish("sourceExchange", "Oh.Hai.There", { data: "I'm in yer bus, linkin' to yer subscriptionz..."});
+			    });
+			    after(function(){
+				    postal.configuration.bus.subscriptions = {};
+			    });
+			    it("linked subscription should only have been invoked once", function(){
+				    assert(destData.length).equals(1);
+				    assert(destEnv.length).equals(1);
+			    });
+			    it("linked subscription data should match expected results", function(){
+				    assert(destData[0].data).equals("I'm in yer bus, linkin' to yer subscriptionz...");
+			    });
+			    it("linked subscription envelope should match expected results", function() {
+				    assert(destEnv[0].exchange).equals("destinationExchange");
+				    assert(destEnv[0].topic).equals("kthxbye");
+			    });
+		    });
+		    describe("with exchange and topic transform values provided", function(){
+			    var destData = [],
+				    destEnv = [],
+				    linkages;
+			    before(function(){
+				    linkages = postal.bindExchanges({ exchange: "sourceExchange"  }, { exchange: "destinationExchange", topic: function(tpc) { return "NewTopic." + tpc; } });
+				    subscription = postal.subscribe("destinationExchange", "NewTopic.Oh.Hai.There", function(data, env) {
+					    destData.push(data);
+					    destEnv.push(env);
+				    });
+				    postal.publish("sourceExchange", "Oh.Hai.There", { data: "I'm in yer bus, linkin' to yer subscriptionz..."});
+				    linkages[0].unsubscribe();
+				    postal.publish("sourceExchange", "Oh.Hai.There", { data: "I'm in yer bus, linkin' to yer subscriptionz..."});
+			    });
+			    after(function(){
+				    postal.configuration.bus.subscriptions = {};
+			    });
+			    it("linked subscription should only have been invoked once", function(){
+				    assert(destData.length).equals(1);
+				    assert(destEnv.length).equals(1);
+			    });
+			    it("linked subscription data should match expected results", function(){
+				    assert(destData[0].data).equals("I'm in yer bus, linkin' to yer subscriptionz...");
+			    });
+			    it("linked subscription envelope should match expected results", function() {
+				    assert(destEnv[0].exchange).equals("destinationExchange");
+				    assert(destEnv[0].topic).equals("NewTopic.Oh.Hai.There");
+			    });
+		    });
+	    });
     });
 });
