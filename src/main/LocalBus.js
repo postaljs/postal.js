@@ -22,30 +22,24 @@ var localBus = {
 	},
 
 	subscribe: function(subDef) {
-		var idx, found, fn;
+		var idx, found, fn, exch, subs;
 
-		if(!this.subscriptions[subDef.exchange]) {
-			this.subscriptions[subDef.exchange] = {};
-		}
-		if(!this.subscriptions[subDef.exchange][subDef.topic]) {
-			this.subscriptions[subDef.exchange][subDef.topic] = [];
-		}
+		exch = this.subscriptions[subDef.exchange] = this.subscriptions[subDef.exchange] || {};
+		subs = this.subscriptions[subDef.exchange][subDef.topic] = this.subscriptions[subDef.exchange][subDef.topic] || [];
 
-		idx = this.subscriptions[subDef.exchange][subDef.topic].length - 1;
-		if(!_.any(this.subscriptions[subDef.exchange][subDef.topic], function(cfg) { return cfg === subDef; })) {
+		idx = subs.length - 1;
+		if(!_.any(subs, function(cfg) { return cfg === subDef; })) {
 			for(; idx >= 0; idx--) {
-				if(this.subscriptions[subDef.exchange][subDef.topic][idx].priority <= subDef.priority) {
-					this.subscriptions[subDef.exchange][subDef.topic].splice(idx + 1, 0, subDef);
+				if(subs[idx].priority <= subDef.priority) {
+					subs.splice(idx + 1, 0, subDef);
 					found = true;
 					break;
 				}
 			}
 			if(!found) {
-				this.subscriptions[subDef.exchange][subDef.topic].unshift(subDef);
+				subs.unshift(subDef);
 			}
 		}
-
-		return _.bind(function() { this.unsubscribe(subDef); }, this);
 	},
 
 	notifyTaps: function(data, envelope) {
