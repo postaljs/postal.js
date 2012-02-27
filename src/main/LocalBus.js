@@ -28,7 +28,7 @@ var localBus = {
 		subs = this.subscriptions[subDef.exchange][subDef.topic] = this.subscriptions[subDef.exchange][subDef.topic] || [];
 
 		idx = subs.length - 1;
-		if(!_.any(subs, function(cfg) { return cfg === subDef; })) {
+		//if(!_.any(subs, function(cfg) { return cfg === subDef; })) {
 			for(; idx >= 0; idx--) {
 				if(subs[idx].priority <= subDef.priority) {
 					subs.splice(idx + 1, 0, subDef);
@@ -39,7 +39,7 @@ var localBus = {
 			if(!found) {
 				subs.unshift(subDef);
 			}
-		}
+		//}
 	},
 
 	notifyTaps: function(data, envelope) {
