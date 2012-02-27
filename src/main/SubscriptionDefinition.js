@@ -8,12 +8,14 @@ var SubscriptionDefinition = function(exchange, topic, callback) {
     this.onHandled = NO_OP;
     this.context = null;
 
-    postal.publish(SYSTEM_EXCHANGE, "subscription.created",
-        {
-            event: "subscription.created",
-            exchange: exchange,
-            topic: topic
-        });
+    _.defer(function() {
+	    postal.publish(SYSTEM_EXCHANGE, "subscription.created",
+		    {
+			    event: "subscription.created",
+			    exchange: exchange,
+			    topic: topic
+		    })
+    });
 };
 
 SubscriptionDefinition.prototype = {
