@@ -35,9 +35,7 @@ var ChannelDefinition = function(exchange, topic) {
 
 ChannelDefinition.prototype = {
     subscribe: function(callback) {
-        var subscription = new SubscriptionDefinition(this.exchange, this.topic, callback);
-        postal.configuration.bus.subscribe(subscription);
-        return subscription;
+	    return postal.configuration.bus.subscribe(new SubscriptionDefinition(this.exchange, this.topic, callback));
     },
 
     publish: function(data, envelope) {
@@ -252,6 +250,7 @@ var localBus = {
 				subs.unshift(subDef);
 			}
 		//}
+		return subDef;
 	},
 
 	unsubscribe: function(config) {

@@ -47,6 +47,7 @@ var localBus = {
 				subs.unshift(subDef);
 			}
 		//}
+		return subDef;
 	},
 
 	unsubscribe: function(config) {
