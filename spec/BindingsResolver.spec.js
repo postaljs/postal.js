@@ -1,6 +1,6 @@
 QUnit.specify("postal.js", function(){
     describe("bindingsResolver", function(){
-        describe("When calling regexify", function() {
+        /*describe("When calling regexify", function() {
             describe("With a topic containing no special escape chars", function() {
                 var result = bindingsResolver.regexify("CoolTopic");
                 it("Should equal 'CoolTopic'", function(){
@@ -43,7 +43,7 @@ QUnit.specify("postal.js", function(){
                     assert(result).equals("Top\\..*\\.Bottom");
                 });
             });
-        });
+        });*/
         describe("When calling compare", function(){
             describe("With topic Top.Middle.Bottom and binding Top.Middle.Bottom", function(){
                 var result = bindingsResolver.compare("Top.Middle.Bottom", "Top.Middle.Bottom"),

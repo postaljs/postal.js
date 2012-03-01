@@ -2,10 +2,12 @@ var localBus = {
 
 	subscriptions: {},
 
-	wireTaps: [],
+	wireTaps: new Array(0),
 
-	publish: function(data, envelope) {
-		this.notifyTaps(data, envelope);
+	publish: function(envelope, data) {
+		_.each(this.wireTaps,function(tap) {
+			tap(envelope, data);
+		});
 
 		_.each(this.subscriptions[envelope.exchange], function(topic) {
 			_.each(topic, function(binding){
@@ -22,10 +24,15 @@ var localBus = {
 	},
 
 	subscribe: function(subDef) {
-		var idx, found, fn, exch, subs;
+		var idx, found, fn, exch = this.subscriptions[subDef.exchange], subs;
 
-		exch = this.subscriptions[subDef.exchange] = this.subscriptions[subDef.exchange] || {};
-		subs = this.subscriptions[subDef.exchange][subDef.topic] = this.subscriptions[subDef.exchange][subDef.topic] || [];
+		if(!exch) {
+			exch = this.subscriptions[subDef.exchange] = {};
+		}
+		subs = this.subscriptions[subDef.exchange][subDef.topic]
+		if(!subs) {
+			subs = this.subscriptions[subDef.exchange][subDef.topic] = new Array(0);
+		}
 
 		idx = subs.length - 1;
 		//if(!_.any(subs, function(cfg) { return cfg === subDef; })) {
@@ -40,12 +47,6 @@ var localBus = {
 				subs.unshift(subDef);
 			}
 		//}
-	},
-
-	notifyTaps: function(data, envelope) {
-		_.each(this.wireTaps,function(tap) {
-			tap(data, envelope);
-		});
 	},
 
 	unsubscribe: function(config) {

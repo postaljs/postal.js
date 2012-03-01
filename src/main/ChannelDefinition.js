@@ -11,11 +11,10 @@ ChannelDefinition.prototype = {
     },
 
     publish: function(data, envelope) {
-        var env = _.extend({
-            exchange: this.exchange,
-            timeStamp: new Date(),
-            topic: this.topic
-        }, envelope);
-        postal.configuration.bus.publish(data, env);
+        var env = envelope || {};
+	    env.exchange = this.exchange;
+	    env.timeStamp = new Date();
+	    env.topic = this.topic;
+        postal.configuration.bus.publish(env, data);
     }
 };

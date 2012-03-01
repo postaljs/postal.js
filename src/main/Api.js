@@ -1,27 +1,39 @@
+var publishPicker = {
+	"2" : function(envelope, payload) {
+		if(!envelope.exchange) {
+			envelope.exchange = DEFAULT_EXCHANGE;
+		}
+		postal.configuration.bus.publish(envelope, payload);
+	},
+	"3" : function(exchange, topic, payload) {
+		postal.configuration.bus.publish({ exchange: exchange, topic: topic }, payload);
+	}
+};
+
 var postal = {
 	configuration: {
 		bus: localBus,
 		resolver: bindingsResolver
 	},
 
-	channel: function(exchange, topic) {
-		var exch = arguments.length === 2 ? exchange : DEFAULT_EXCHANGE,
-			tpc  = arguments.length === 2 ? topic : exchange;
+	channel: function(options) {
+		var exch = options.exchange || DEFAULT_EXCHANGE,
+			tpc = options.topic;
 		return new ChannelDefinition(exch, tpc);
 	},
 
-	subscribe: function(exchange, topic, callback) {
-		var exch = arguments.length === 3 ? exchange : DEFAULT_EXCHANGE,
-			tpc  = arguments.length === 3 ? topic : exchange,
-			callbk  = arguments.length === 3 ? callback : topic;
-		var channel = this.channel(exch, tpc);
-		return channel.subscribe(callbk);
+	subscribe: function(options) {
+		var callback = options.callback,
+			topic = options.topic,
+			exchange = options.exchange || DEFAULT_EXCHANGE;
+		return new ChannelDefinition(exchange, topic).subscribe(callback);
 	},
 
-	publish: function(exchange, topic, payload, envelopeOptions) {
-		var parsedArgs = parsePublishArgs([].slice.call(arguments,0));
-		var channel = this.channel(parsedArgs.envelope.exchange, parsedArgs.envelope.topic);
-		channel.publish(parsedArgs.payload, parsedArgs.envelope);
+	publish: function() {
+		var len = arguments.length;
+		if(publishPicker[len]) {
+			publishPicker[len].apply(this, arguments);
+		}
 	},
 
 	addWireTap: function(callback) {
@@ -29,21 +41,28 @@ var postal = {
 	},
 
 	bindExchanges: function(sources, destinations) {
-		var subscriptions = [];
+		var subscriptions;
 		if(!_.isArray(sources)) {
 			sources = [sources];
 		}
 		if(!_.isArray(destinations)) {
 			destinations = [destinations];
 		}
+		subscriptions = new Array(sources.length * destinations.length);
 		_.each(sources, function(source){
 			var sourceTopic = source.topic || "*";
 			_.each(destinations, function(destination) {
 				var destExchange = destination.exchange || DEFAULT_EXCHANGE;
 				subscriptions.push(
-					postal.subscribe(source.exchange || DEFAULT_EXCHANGE, source.topic || "*", function(msg, env) {
-						var destTopic = _.isFunction(destination.topic) ? destination.topic(env.topic) : destination.topic || env.topic;
-						postal.publish(destExchange, destTopic, msg);
+					postal.subscribe({
+							exchange: source.exchange || DEFAULT_EXCHANGE,
+							topic: source.topic || "*",
+							callback : function(msg, env) {
+								var newEnv = env;
+								newEnv.topic = _.isFunction(destination.topic) ? destination.topic(env.topic) : destination.topic || env.topic;
+								newEnv.exchange = destExchange;
+								postal.publish(newEnv, msg);
+							}
 					})
 				);
 			});

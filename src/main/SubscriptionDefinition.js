@@ -3,25 +3,29 @@ var SubscriptionDefinition = function(exchange, topic, callback) {
     this.topic = topic;
     this.callback = callback;
     this.priority = DEFAULT_PRIORITY;
-    this.constraints = [];
+    this.constraints = new Array(0);
     this.maxCalls = DEFAULT_DISPOSEAFTER;
     this.onHandled = NO_OP;
     this.context = null;
 
-    _.defer(function() {
-	    postal.publish(SYSTEM_EXCHANGE, "subscription.created",
-		    {
-			    event: "subscription.created",
-			    exchange: exchange,
-			    topic: topic
-		    })
-    });
+    postal.publish({
+		    exchange: SYSTEM_EXCHANGE,
+		    topic: "subscription.created"
+	    },
+        {
+            event: "subscription.created",
+            exchange: exchange,
+            topic: topic
+        });
 };
 
 SubscriptionDefinition.prototype = {
     unsubscribe: function() {
         postal.configuration.bus.unsubscribe(this);
-        postal.publish(SYSTEM_EXCHANGE, "subscription.removed",
+        postal.publish({
+		        exchange: SYSTEM_EXCHANGE,
+	            topic: "subscription.removed"
+            },
             {
                 event: "subscription.removed",
                 exchange: this.exchange,
