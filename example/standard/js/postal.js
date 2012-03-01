@@ -10,39 +10,7 @@ var DEFAULT_EXCHANGE = "/",
     DEFAULT_PRIORITY = 50,
     DEFAULT_DISPOSEAFTER = 0,
     SYSTEM_EXCHANGE = "postal",
-    NO_OP = function() { },
-    parsePublishArgs = function(args) {
-        var parsed = { envelope: { } }, env;
-        switch(args.length) {
-            case 3:
-                if(typeof args[1] === "Object" && typeof args[2] === "Object") {
-                    parsed.envelope.exchange = DEFAULT_EXCHANGE;
-                    parsed.envelope.topic = args[0];
-                    parsed.payload = args[1];
-                    env = parsed.envelope;
-                    parsed.envelope = _.extend(env, args[2]);
-                }
-                else {
-                    parsed.envelope.exchange = args[0];
-                    parsed.envelope.topic = args[1];
-                    parsed.payload = args[2];
-                }
-                break;
-            case 4:
-                parsed.envelope.exchange = args[0];
-                parsed.envelope.topic = args[1];
-                parsed.payload = args[2];
-                env = parsed.envelope;
-                parsed.envelope = _.extend(env, args[3]);
-                break;
-            default:
-                parsed.envelope.exchange = DEFAULT_EXCHANGE;
-                parsed.envelope.topic = args[0];
-                parsed.payload = args[1];
-                break;
-        }
-        return parsed;
-    };
+    NO_OP = function() { };
 
 var DistinctPredicate = function() {
     var previous;
@@ -73,12 +41,11 @@ ChannelDefinition.prototype = {
     },
 
     publish: function(data, envelope) {
-        var env = _.extend({
-            exchange: this.exchange,
-            timeStamp: new Date(),
-            topic: this.topic
-        }, envelope);
-        postal.configuration.bus.publish(data, env);
+        var env = envelope || {};
+	    env.exchange = this.exchange;
+	    env.timeStamp = new Date();
+	    env.topic = this.topic;
+        postal.configuration.bus.publish(env, data);
     }
 };
 
@@ -87,12 +54,15 @@ var SubscriptionDefinition = function(exchange, topic, callback) {
     this.topic = topic;
     this.callback = callback;
     this.priority = DEFAULT_PRIORITY;
-    this.constraints = [];
+    this.constraints = new Array(0);
     this.maxCalls = DEFAULT_DISPOSEAFTER;
     this.onHandled = NO_OP;
     this.context = null;
 
-    postal.publish(SYSTEM_EXCHANGE, "subscription.created",
+    postal.publish({
+		    exchange: SYSTEM_EXCHANGE,
+		    topic: "subscription.created"
+	    },
         {
             event: "subscription.created",
             exchange: exchange,
@@ -103,7 +73,10 @@ var SubscriptionDefinition = function(exchange, topic, callback) {
 SubscriptionDefinition.prototype = {
     unsubscribe: function() {
         postal.configuration.bus.unsubscribe(this);
-        postal.publish(SYSTEM_EXCHANGE, "subscription.removed",
+        postal.publish({
+		        exchange: SYSTEM_EXCHANGE,
+	            topic: "subscription.removed"
+            },
             {
                 event: "subscription.removed",
                 exchange: this.exchange,
@@ -215,7 +188,10 @@ var bindingsResolver = {
         if(this.cache[topic] && this.cache[topic][binding]) {
             return true;
         }
-        var rgx = new RegExp("^" + this.regexify(binding) + "$"), // match from start to end of string
+	    //  binding.replace(/\./g,"\\.")             // escape actual periods
+	    //         .replace(/\*/g, ".*")             // asterisks match any value
+	    //         .replace(/#/g, "[A-Z,a-z,0-9]*"); // hash matches any alpha-numeric 'word'
+        var rgx = new RegExp("^" + binding.replace(/\./g,"\\.").replace(/\*/g, ".*").replace(/#/g, "[A-Z,a-z,0-9]*") + "$"),
             result = rgx.test(topic);
         if(result) {
             if(!this.cache[topic]) {
@@ -224,12 +200,6 @@ var bindingsResolver = {
             this.cache[topic][binding] = true;
         }
         return result;
-    },
-
-    regexify: function(binding) {
-        return binding.replace(/\./g,"\\.") // escape actual periods
-                      .replace(/\*/g, ".*") // asterisks match any value
-                      .replace(/#/g, "[A-Z,a-z,0-9]*"); // hash matches any alpha-numeric 'word'
     }
 };
 
@@ -237,10 +207,12 @@ var localBus = {
 
 	subscriptions: {},
 
-	wireTaps: [],
+	wireTaps: new Array(0),
 
-	publish: function(data, envelope) {
-		this.notifyTaps(data, envelope);
+	publish: function(envelope, data) {
+		_.each(this.wireTaps,function(tap) {
+			tap(envelope, data);
+		});
 
 		_.each(this.subscriptions[envelope.exchange], function(topic) {
 			_.each(topic, function(binding){
@@ -257,10 +229,15 @@ var localBus = {
 	},
 
 	subscribe: function(subDef) {
-		var idx, found, fn, exch, subs;
+		var idx, found, fn, exch = this.subscriptions[subDef.exchange], subs;
 
-		exch = this.subscriptions[subDef.exchange] = this.subscriptions[subDef.exchange] || {};
-		subs = this.subscriptions[subDef.exchange][subDef.topic] = this.subscriptions[subDef.exchange][subDef.topic] || [];
+		if(!exch) {
+			exch = this.subscriptions[subDef.exchange] = {};
+		}
+		subs = this.subscriptions[subDef.exchange][subDef.topic]
+		if(!subs) {
+			subs = this.subscriptions[subDef.exchange][subDef.topic] = new Array(0);
+		}
 
 		idx = subs.length - 1;
 		//if(!_.any(subs, function(cfg) { return cfg === subDef; })) {
@@ -275,12 +252,6 @@ var localBus = {
 				subs.unshift(subDef);
 			}
 		//}
-	},
-
-	notifyTaps: function(data, envelope) {
-		_.each(this.wireTaps,function(tap) {
-			tap(data, envelope);
-		});
 	},
 
 	unsubscribe: function(config) {
@@ -308,30 +279,42 @@ var localBus = {
 	}
 };
 
+var publishPicker = {
+	"2" : function(envelope, payload) {
+		if(!envelope.exchange) {
+			envelope.exchange = DEFAULT_EXCHANGE;
+		}
+		postal.configuration.bus.publish(envelope, payload);
+	},
+	"3" : function(exchange, topic, payload) {
+		postal.configuration.bus.publish({ exchange: exchange, topic: topic }, payload);
+	}
+};
+
 var postal = {
 	configuration: {
 		bus: localBus,
 		resolver: bindingsResolver
 	},
 
-	channel: function(exchange, topic) {
-		var exch = topic ? exchange : DEFAULT_EXCHANGE,
-			tpc = topic || exchange;
+	channel: function(options) {
+		var exch = options.exchange || DEFAULT_EXCHANGE,
+			tpc = options.topic;
 		return new ChannelDefinition(exch, tpc);
 	},
 
-	subscribe: function(exchange, topic, callback) {
-		var callbk = callback || topic,
-			tpc = callback ? topic : exchange,
-			exch = callback ? exchange : DEFAULT_EXCHANGE;
-		var channel = this.channel(exch, tpc);
-		return channel.subscribe(callbk);
+	subscribe: function(options) {
+		var callback = options.callback,
+			topic = options.topic,
+			exchange = options.exchange || DEFAULT_EXCHANGE;
+		return new ChannelDefinition(exchange, topic).subscribe(callback);
 	},
 
-	publish: function(exchange, topic, payload, envelopeOptions) {
-		var parsedArgs = parsePublishArgs([].slice.call(arguments,0));
-		var channel = this.channel(parsedArgs.envelope.exchange, parsedArgs.envelope.topic);
-		channel.publish(parsedArgs.payload, parsedArgs.envelope);
+	publish: function() {
+		var len = arguments.length;
+		if(publishPicker[len]) {
+			publishPicker[len].apply(this, arguments);
+		}
 	},
 
 	addWireTap: function(callback) {
@@ -339,21 +322,28 @@ var postal = {
 	},
 
 	bindExchanges: function(sources, destinations) {
-		var subscriptions = [];
+		var subscriptions;
 		if(!_.isArray(sources)) {
 			sources = [sources];
 		}
 		if(!_.isArray(destinations)) {
 			destinations = [destinations];
 		}
+		subscriptions = new Array(sources.length * destinations.length);
 		_.each(sources, function(source){
 			var sourceTopic = source.topic || "*";
 			_.each(destinations, function(destination) {
 				var destExchange = destination.exchange || DEFAULT_EXCHANGE;
 				subscriptions.push(
-					postal.subscribe(source.exchange || DEFAULT_EXCHANGE, source.topic || "*", function(msg, env) {
-						var destTopic = _.isFunction(destination.topic) ? destination.topic(env.topic) : destination.topic || env.topic;
-						postal.publish(destExchange, destTopic, msg);
+					postal.subscribe({
+							exchange: source.exchange || DEFAULT_EXCHANGE,
+							topic: source.topic || "*",
+							callback : function(msg, env) {
+								var newEnv = env;
+								newEnv.topic = _.isFunction(destination.topic) ? destination.topic(env.topic) : destination.topic || env.topic;
+								newEnv.exchange = destExchange;
+								postal.publish(newEnv, msg);
+							}
 					})
 				);
 			});
