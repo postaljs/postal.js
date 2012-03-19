@@ -1,5 +1,5 @@
-var DEFAULT_EXCHANGE = "/",
+var DEFAULT_CHANNEL = "/",
     DEFAULT_PRIORITY = 50,
     DEFAULT_DISPOSEAFTER = 0,
-    SYSTEM_EXCHANGE = "postal",
+    SYSTEM_CHANNEL = "postal",
     NO_OP = function() { };

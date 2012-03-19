@@ -1,9 +1,9 @@
 QUnit.specify("postal.js", function(){
     describe("SubscriptionDefinition", function(){
         describe("When initializing SubscriptionDefinition", function() {
-            var sDef = new SubscriptionDefinition("TestExchange", "TestTopic", NO_OP);
-            it("should set the exchange to TestExchange", function() {
-                assert(sDef.exchange).equals("TestExchange");
+            var sDef = new SubscriptionDefinition("TestChannel", "TestTopic", NO_OP);
+            it("should set the channel to TestChannel", function() {
+                assert(sDef.channel).equals("TestChannel");
             });
             it("should set the topic to TestTopic", function() {
                 assert(sDef.topic).equals("TestTopic");
@@ -29,7 +29,7 @@ QUnit.specify("postal.js", function(){
         });
 
         describe("When setting ignoreDuplicates", function(){
-            var sDefa = new SubscriptionDefinition("TestExchange", "TestTopic", NO_OP).ignoreDuplicates();
+            var sDefa = new SubscriptionDefinition("TestChannel", "TestTopic", NO_OP).ignoreDuplicates();
 
             it("Should add a DistinctPredicate constraint to the configuration constraints", function() {
                 assert(sDefa.constraints.length).equals(1);
@@ -37,7 +37,7 @@ QUnit.specify("postal.js", function(){
         });
 
         describe("When adding a constraint", function(){
-            var sDefb = new SubscriptionDefinition("TestExchange", "TestTopic", NO_OP).withConstraint(function() { });
+            var sDefb = new SubscriptionDefinition("TestChannel", "TestTopic", NO_OP).withConstraint(function() { });
 
             it("Should add a constraint", function() {
                 assert(sDefb.constraints.length).equals(1);
@@ -45,7 +45,7 @@ QUnit.specify("postal.js", function(){
         });
 
         describe("When adding multiple constraints", function(){
-            var sDefc = new SubscriptionDefinition("TestExchange", "TestTopic", NO_OP).withConstraints([function() { }, function() { }, function() { }]);
+            var sDefc = new SubscriptionDefinition("TestChannel", "TestTopic", NO_OP).withConstraints([function() { }, function() { }, function() { }]);
 
             it("Should add a constraint", function() {
                 assert(sDefc.constraints.length).equals(3);
@@ -54,7 +54,7 @@ QUnit.specify("postal.js", function(){
 
         describe("When setting the context", function(){
             var obj = {},
-                sDefd = new SubscriptionDefinition("TestExchange", "TestTopic", NO_OP).withContext(obj);
+                sDefd = new SubscriptionDefinition("TestChannel", "TestTopic", NO_OP).withContext(obj);
 
             it("Should set context", function() {
                 assert(sDefd.context).equals(obj);
@@ -62,7 +62,7 @@ QUnit.specify("postal.js", function(){
         });
 
         describe("When setting priority", function(){
-            var sDefe = new SubscriptionDefinition("TestExchange", "TestTopic", NO_OP).withPriority(10);
+            var sDefe = new SubscriptionDefinition("TestChannel", "TestTopic", NO_OP).withPriority(10);
 
             it("Should set priority", function() {
                 assert(sDefe.priority).equals(10);
@@ -70,7 +70,7 @@ QUnit.specify("postal.js", function(){
         });
 
         describe("When setting whenHandledThenExecute", function(){
-            var sDeff = new SubscriptionDefinition("TestExchange", "TestTopic", NO_OP).whenHandledThenExecute(function() { });
+            var sDeff = new SubscriptionDefinition("TestChannel", "TestTopic", NO_OP).whenHandledThenExecute(function() { });
 
             it("Should add an onHandled callback", function() {
                 assert(typeof sDeff.onHandled).equals("function");

@@ -6,10 +6,10 @@ define(['underscore'], function(_) {
     Version 0.4.0
 */
 
-var DEFAULT_EXCHANGE = "/",
+var DEFAULT_CHANNEL = "/",
     DEFAULT_PRIORITY = 50,
     DEFAULT_DISPOSEAFTER = 0,
-    SYSTEM_EXCHANGE = "postal",
+    SYSTEM_CHANNEL = "postal",
     NO_OP = function() { };
 
 var DistinctPredicate = function() {
@@ -28,27 +28,27 @@ var DistinctPredicate = function() {
     };
 };
 
-var ChannelDefinition = function(exchange, topic) {
-    this.exchange = exchange;
-    this.topic = topic;
+var ChannelDefinition = function(channelName, defaultTopic) {
+    this.channel = channelName;
+    this.topic = defaultTopic || "";
 };
 
 ChannelDefinition.prototype = {
     subscribe: function(callback) {
-	    return postal.configuration.bus.subscribe(new SubscriptionDefinition(this.exchange, this.topic, callback));
+	    return new SubscriptionDefinition(this.channel, this.topic, callback);
     },
 
     publish: function(data, envelope) {
-        var env = envelope || {};
-	    env.exchange = this.exchange;
+	    var env = envelope || {};
+	    env.channel = this.channel;
 	    env.timeStamp = new Date();
-	    env.topic = this.topic;
+	    env.topic = env.topic || this.topic;
         postal.configuration.bus.publish(env, data);
     }
 };
 
-var SubscriptionDefinition = function(exchange, topic, callback) {
-    this.exchange = exchange;
+var SubscriptionDefinition = function(channel, topic, callback) {
+    this.channel = channel;
     this.topic = topic;
     this.callback = callback;
     this.priority = DEFAULT_PRIORITY;
@@ -57,13 +57,15 @@ var SubscriptionDefinition = function(exchange, topic, callback) {
     this.onHandled = NO_OP;
     this.context = null;
 
+	postal.configuration.bus.subscribe(this);
+
     postal.publish({
-		    exchange: SYSTEM_EXCHANGE,
+		    channel: SYSTEM_CHANNEL,
 		    topic: "subscription.created"
 	    },
         {
             event: "subscription.created",
-            exchange: exchange,
+            channel: channel,
             topic: topic
         });
 };
@@ -72,12 +74,12 @@ SubscriptionDefinition.prototype = {
     unsubscribe: function() {
         postal.configuration.bus.unsubscribe(this);
         postal.publish({
-		        exchange: SYSTEM_EXCHANGE,
+		        channel: SYSTEM_CHANNEL,
 	            topic: "subscription.removed"
             },
             {
                 event: "subscription.removed",
-                exchange: this.exchange,
+                channel: this.channel,
                 topic: this.topic
             });
     },
@@ -212,7 +214,7 @@ var localBus = {
 			tap(envelope, data);
 		});
 
-		_.each(this.subscriptions[envelope.exchange], function(topic) {
+		_.each(this.subscriptions[envelope.channel], function(topic) {
 			_.each(topic, function(binding){
 				if(postal.configuration.resolver.compare(binding.topic, envelope.topic)) {
 					if(_.all(binding.constraints, function(constraint) { return constraint(data); })) {
@@ -227,39 +229,37 @@ var localBus = {
 	},
 
 	subscribe: function(subDef) {
-		var idx, found, fn, exch = this.subscriptions[subDef.exchange], subs;
+		var idx, found, fn, channel = this.subscriptions[subDef.channel], subs;
 
-		if(!exch) {
-			exch = this.subscriptions[subDef.exchange] = {};
+		if(!channel) {
+			channel = this.subscriptions[subDef.channel] = {};
 		}
-		subs = this.subscriptions[subDef.exchange][subDef.topic]
+		subs = this.subscriptions[subDef.channel][subDef.topic];
 		if(!subs) {
-			subs = this.subscriptions[subDef.exchange][subDef.topic] = new Array(0);
+			subs = this.subscriptions[subDef.channel][subDef.topic] = new Array(0);
 		}
 
 		idx = subs.length - 1;
-		//if(!_.any(subs, function(cfg) { return cfg === subDef; })) {
-			for(; idx >= 0; idx--) {
-				if(subs[idx].priority <= subDef.priority) {
-					subs.splice(idx + 1, 0, subDef);
-					found = true;
-					break;
-				}
+		for(; idx >= 0; idx--) {
+			if(subs[idx].priority <= subDef.priority) {
+				subs.splice(idx + 1, 0, subDef);
+				found = true;
+				break;
 			}
-			if(!found) {
-				subs.unshift(subDef);
-			}
-		//}
+		}
+		if(!found) {
+			subs.unshift(subDef);
+		}
 		return subDef;
 	},
 
 	unsubscribe: function(config) {
-		if(this.subscriptions[config.exchange][config.topic]) {
-			var len = this.subscriptions[config.exchange][config.topic].length,
+		if(this.subscriptions[config.channel][config.topic]) {
+			var len = this.subscriptions[config.channel][config.topic].length,
 				idx = 0;
 			for ( ; idx < len; idx++ ) {
-				if (this.subscriptions[config.exchange][config.topic][idx] === config) {
-					this.subscriptions[config.exchange][config.topic].splice( idx, 1 );
+				if (this.subscriptions[config.channel][config.topic][idx] === config) {
+					this.subscriptions[config.channel][config.topic].splice( idx, 1 );
 					break;
 				}
 			}
@@ -280,15 +280,18 @@ var localBus = {
 
 var publishPicker = {
 	"2" : function(envelope, payload) {
-		if(!envelope.exchange) {
-			envelope.exchange = DEFAULT_EXCHANGE;
+		if(!envelope.channel) {
+			envelope.channel = DEFAULT_CHANNEL;
 		}
 		postal.configuration.bus.publish(envelope, payload);
 	},
-	"3" : function(exchange, topic, payload) {
-		postal.configuration.bus.publish({ exchange: exchange, topic: topic }, payload);
+	"3" : function(channel, topic, payload) {
+		postal.configuration.bus.publish({ channel: channel, topic: topic }, payload);
 	}
 };
+
+// save some setup time, albeit tiny
+localBus.subscriptions[SYSTEM_CHANNEL] = {};
 
 var postal = {
 	configuration: {
@@ -297,16 +300,16 @@ var postal = {
 	},
 
 	channel: function(options) {
-		var exch = options.exchange || DEFAULT_EXCHANGE,
+		var channel = options.channel || DEFAULT_CHANNEL,
 			tpc = options.topic;
-		return new ChannelDefinition(exch, tpc);
+		return new ChannelDefinition(channel, tpc);
 	},
 
 	subscribe: function(options) {
 		var callback = options.callback,
 			topic = options.topic,
-			exchange = options.exchange || DEFAULT_EXCHANGE;
-		return new SubscriptionDefinition(exchange, topic, callback);
+			channel = options.channel || DEFAULT_CHANNEL;
+		return new SubscriptionDefinition(channel, topic, callback);
 	},
 
 	publish: function() {
@@ -320,34 +323,33 @@ var postal = {
 		return this.configuration.bus.addWireTap(callback);
 	},
 
-	bindExchanges: function(sources, destinations) {
-		var subscriptions;
+	linkChannels: function(sources, destinations) {
+		var result = [];
 		if(!_.isArray(sources)) {
 			sources = [sources];
 		}
 		if(!_.isArray(destinations)) {
 			destinations = [destinations];
 		}
-		subscriptions = new Array(sources.length * destinations.length);
 		_.each(sources, function(source){
 			var sourceTopic = source.topic || "*";
 			_.each(destinations, function(destination) {
-				var destExchange = destination.exchange || DEFAULT_EXCHANGE;
-				subscriptions.push(
+				var destChannel = destination.channel || DEFAULT_CHANNEL;
+				result.push(
 					postal.subscribe({
-							exchange: source.exchange || DEFAULT_EXCHANGE,
-							topic: source.topic || "*",
-							callback : function(msg, env) {
-								var newEnv = env;
-								newEnv.topic = _.isFunction(destination.topic) ? destination.topic(env.topic) : destination.topic || env.topic;
-								newEnv.exchange = destExchange;
-								postal.publish(newEnv, msg);
-							}
+						channel: source.channel || DEFAULT_CHANNEL,
+						topic: source.topic || "*",
+						callback : function(msg, env) {
+							var newEnv = env;
+							newEnv.topic = _.isFunction(destination.topic) ? destination.topic(env.topic) : destination.topic || env.topic;
+							newEnv.channel = destChannel;
+							postal.publish(newEnv, msg);
+						}
 					})
 				);
 			});
 		});
-		return subscriptions;
+		return result;
 	}
 };
 

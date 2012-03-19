@@ -1,18 +1,18 @@
-var ChannelDefinition = function(exchange, topic) {
-    this.exchange = exchange;
-    this.topic = topic;
+var ChannelDefinition = function(channelName, defaultTopic) {
+    this.channel = channelName;
+    this.topic = defaultTopic || "";
 };
 
 ChannelDefinition.prototype = {
     subscribe: function(callback) {
-	    return postal.configuration.bus.subscribe(new SubscriptionDefinition(this.exchange, this.topic, callback));
+	    return new SubscriptionDefinition(this.channel, this.topic, callback);
     },
 
     publish: function(data, envelope) {
-        var env = envelope || {};
-	    env.exchange = this.exchange;
+	    var env = envelope || {};
+	    env.channel = this.channel;
 	    env.timeStamp = new Date();
-	    env.topic = this.topic;
+	    env.topic = env.topic || this.topic;
         postal.configuration.bus.publish(env, data);
     }
 };

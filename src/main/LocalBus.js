@@ -9,7 +9,7 @@ var localBus = {
 			tap(envelope, data);
 		});
 
-		_.each(this.subscriptions[envelope.exchange], function(topic) {
+		_.each(this.subscriptions[envelope.channel], function(topic) {
 			_.each(topic, function(binding){
 				if(postal.configuration.resolver.compare(binding.topic, envelope.topic)) {
 					if(_.all(binding.constraints, function(constraint) { return constraint(data); })) {
@@ -24,39 +24,37 @@ var localBus = {
 	},
 
 	subscribe: function(subDef) {
-		var idx, found, fn, exch = this.subscriptions[subDef.exchange], subs;
+		var idx, found, fn, channel = this.subscriptions[subDef.channel], subs;
 
-		if(!exch) {
-			exch = this.subscriptions[subDef.exchange] = {};
+		if(!channel) {
+			channel = this.subscriptions[subDef.channel] = {};
 		}
-		subs = this.subscriptions[subDef.exchange][subDef.topic]
+		subs = this.subscriptions[subDef.channel][subDef.topic];
 		if(!subs) {
-			subs = this.subscriptions[subDef.exchange][subDef.topic] = new Array(0);
+			subs = this.subscriptions[subDef.channel][subDef.topic] = new Array(0);
 		}
 
 		idx = subs.length - 1;
-		//if(!_.any(subs, function(cfg) { return cfg === subDef; })) {
-			for(; idx >= 0; idx--) {
-				if(subs[idx].priority <= subDef.priority) {
-					subs.splice(idx + 1, 0, subDef);
-					found = true;
-					break;
-				}
+		for(; idx >= 0; idx--) {
+			if(subs[idx].priority <= subDef.priority) {
+				subs.splice(idx + 1, 0, subDef);
+				found = true;
+				break;
 			}
-			if(!found) {
-				subs.unshift(subDef);
-			}
-		//}
+		}
+		if(!found) {
+			subs.unshift(subDef);
+		}
 		return subDef;
 	},
 
 	unsubscribe: function(config) {
-		if(this.subscriptions[config.exchange][config.topic]) {
-			var len = this.subscriptions[config.exchange][config.topic].length,
+		if(this.subscriptions[config.channel][config.topic]) {
+			var len = this.subscriptions[config.channel][config.topic].length,
 				idx = 0;
 			for ( ; idx < len; idx++ ) {
-				if (this.subscriptions[config.exchange][config.topic][idx] === config) {
-					this.subscriptions[config.exchange][config.topic].splice( idx, 1 );
+				if (this.subscriptions[config.channel][config.topic][idx] === config) {
+					this.subscriptions[config.channel][config.topic].splice( idx, 1 );
 					break;
 				}
 			}
