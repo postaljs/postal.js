@@ -20,8 +20,9 @@ var postal = {
 	},
 
 	channel: function(options) {
-		var channel = options.channel || DEFAULT_CHANNEL,
-			tpc = options.topic;
+		var channel, tpc;
+		tpc = (Object.prototype.toString.call(options) === "[object String]") ? options : options.topic;
+		channel = options.channel || DEFAULT_CHANNEL;
 		return new ChannelDefinition(channel, tpc);
 	},
 
