@@ -15,7 +15,7 @@ ChannelDefinition.prototype = {
     },
 
     publish: function(data, envelope) {
-	    var env = envelope || {};
+	    var env = (Object.prototype.toString.call(envelope) === "[object String]") ? { topic: envelope } : envelope || {};
 	    env.channel = this.channel;
 	    env.timeStamp = new Date();
 	    env.topic = env.topic || this.topic;
