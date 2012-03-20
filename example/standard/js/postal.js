@@ -3,12 +3,13 @@
     postal.js
     Author: Jim Cowart
     License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
-    Version 0.4.0
+    Version 0.4.4
 */
 
 var DEFAULT_EXCHANGE = "/",
     DEFAULT_PRIORITY = 50,
     DEFAULT_DISPOSEAFTER = 0,
+    SYSTEM_EXCHANGE = "postal",
     NO_OP = function() { },
     parsePublishArgs = function(args) {
         var parsed = { envelope: { } }, env;
@@ -90,11 +91,24 @@ var SubscriptionDefinition = function(exchange, topic, callback) {
     this.maxCalls = DEFAULT_DISPOSEAFTER;
     this.onHandled = NO_OP;
     this.context = null;
+
+    postal.publish(SYSTEM_EXCHANGE, "subscription.created",
+        {
+            event: "subscription.created",
+            exchange: exchange,
+            topic: topic
+        });
 };
 
 SubscriptionDefinition.prototype = {
     unsubscribe: function() {
         postal.configuration.bus.unsubscribe(this);
+        postal.publish(SYSTEM_EXCHANGE, "subscription.removed",
+            {
+                event: "subscription.removed",
+                exchange: this.exchange,
+                topic: this.topic
+            });
     },
 
     defer: function() {
@@ -226,9 +240,7 @@ var localBus = {
     wireTaps: [],
 
     publish: function(data, envelope) {
-        _.each(this.wireTaps,function(tap) {
-            tap(data, envelope);
-        });
+        this.notifyTaps(data, envelope);
 
         _.each(this.subscriptions[envelope.exchange], function(topic) {
             _.each(topic, function(binding){
@@ -269,6 +281,12 @@ var localBus = {
         }
 
         return _.bind(function() { this.unsubscribe(subDef); }, this);
+    },
+
+    notifyTaps: function(data, envelope) {
+        _.each(this.wireTaps,function(tap) {
+            tap(data, envelope);
+        });
     },
 
     unsubscribe: function(config) {
@@ -322,7 +340,7 @@ var postal = {
     },
 
     addWireTap: function(callback) {
-        this.configuration.bus.addWireTap(callback);
+        return this.configuration.bus.addWireTap(callback);
     }
 };
 
