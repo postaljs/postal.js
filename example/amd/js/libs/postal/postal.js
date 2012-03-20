@@ -1,10 +1,21 @@
-define(['underscore'], function(_) {
 /*
     postal.js
     Author: Jim Cowart
     License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
     Version 0.4.0
 */
+
+(function(root, doc, factory) {
+	if (typeof define === "function" && define.amd) {
+		// AMD. Register as an anonymous module.
+		define(["underscore"], function(_) {
+			return factory(_, root, doc);
+		});
+	} else {
+		// Browser globals
+		factory(root._, root, doc);
+	}
+}(this, document, function(_, global, document, undefined) {
 
 var DEFAULT_CHANNEL = "/",
     DEFAULT_PRIORITY = 50,
@@ -34,8 +45,14 @@ var ChannelDefinition = function(channelName, defaultTopic) {
 };
 
 ChannelDefinition.prototype = {
-    subscribe: function(callback) {
-	    return new SubscriptionDefinition(this.channel, this.topic, callback);
+    subscribe: function() {
+        var len = arguments.length;
+	    if(len === 1) {
+		    return new SubscriptionDefinition(this.channel, this.topic, arguments[0]);
+	    }
+	    else if (len === 2) {
+		    return new SubscriptionDefinition(this.channel, arguments[0], arguments[1]);
+	    }
     },
 
     publish: function(data, envelope) {
@@ -43,142 +60,140 @@ ChannelDefinition.prototype = {
 	    env.channel = this.channel;
 	    env.timeStamp = new Date();
 	    env.topic = env.topic || this.topic;
-        postal.configuration.bus.publish(env, data);
+        postal.configuration.bus.publish(data, env);
     }
 };
 
 var SubscriptionDefinition = function(channel, topic, callback) {
-    this.channel = channel;
-    this.topic = topic;
-    this.callback = callback;
-    this.priority = DEFAULT_PRIORITY;
-    this.constraints = new Array(0);
-    this.maxCalls = DEFAULT_DISPOSEAFTER;
-    this.onHandled = NO_OP;
-    this.context = null;
+	this.channel = channel;
+	this.topic = topic;
+	this.callback = callback;
+	this.priority = DEFAULT_PRIORITY;
+	this.constraints = new Array(0);
+	this.maxCalls = DEFAULT_DISPOSEAFTER;
+	this.onHandled = NO_OP;
+	this.context = null;
+	postal.publish({
+			event: "subscription.created",
+			channel: channel,
+			topic: topic
+		},{
+		channel: SYSTEM_CHANNEL,
+		topic: "subscription.created"
+	});
 
 	postal.configuration.bus.subscribe(this);
 
-    postal.publish({
-		    channel: SYSTEM_CHANNEL,
-		    topic: "subscription.created"
-	    },
-        {
-            event: "subscription.created",
-            channel: channel,
-            topic: topic
-        });
 };
 
 SubscriptionDefinition.prototype = {
-    unsubscribe: function() {
-        postal.configuration.bus.unsubscribe(this);
-        postal.publish({
-		        channel: SYSTEM_CHANNEL,
-	            topic: "subscription.removed"
-            },
-            {
-                event: "subscription.removed",
-                channel: this.channel,
-                topic: this.topic
-            });
-    },
+	unsubscribe: function() {
+		postal.configuration.bus.unsubscribe(this);
+		postal.publish({
+				event: "subscription.removed",
+				channel: this.channel,
+				topic: this.topic
+			},{
+			channel: SYSTEM_CHANNEL,
+			topic: "subscription.removed"
+		});
+	},
 
-    defer: function() {
-        var fn = this.callback;
-        this.callback = function(data) {
-            setTimeout(fn,0,data);
-        };
-        return this;
-    },
+	defer: function() {
+		var fn = this.callback;
+		this.callback = function(data) {
+			setTimeout(fn,0,data);
+		};
+		return this;
+	},
 
-    disposeAfter: function(maxCalls) {
-        if(_.isNaN(maxCalls) || maxCalls <= 0) {
-            throw "The value provided to disposeAfter (maxCalls) must be a number greater than zero.";
-        }
+	disposeAfter: function(maxCalls) {
+		if(_.isNaN(maxCalls) || maxCalls <= 0) {
+			throw "The value provided to disposeAfter (maxCalls) must be a number greater than zero.";
+		}
 
-        var fn = this.onHandled;
-        var dispose = _.after(maxCalls, _.bind(function() {
-                this.unsubscribe(this);
-            }, this));
+		var fn = this.onHandled;
+		var dispose = _.after(maxCalls, _.bind(function() {
+			this.unsubscribe(this);
+		}, this));
 
-        this.onHandled = function() {
-            fn.apply(this.context, arguments);
-            dispose();
-        };
-        return this;
-    },
+		this.onHandled = function() {
+			fn.apply(this.context, arguments);
+			dispose();
+		};
+		return this;
+	},
 
-    ignoreDuplicates: function() {
-        this.withConstraint(new DistinctPredicate());
-        return this;
-    },
+	ignoreDuplicates: function() {
+		this.withConstraint(new DistinctPredicate());
+		return this;
+	},
 
-    whenHandledThenExecute: function(callback) {
-        if(! _.isFunction(callback)) {
-            throw "Value provided to 'whenHandledThenExecute' must be a function";
-        }
-        this.onHandled = callback;
-        return this;
-    },
+	whenHandledThenExecute: function(callback) {
+		if(! _.isFunction(callback)) {
+			throw "Value provided to 'whenHandledThenExecute' must be a function";
+		}
+		this.onHandled = callback;
+		return this;
+	},
 
-    withConstraint: function(predicate) {
-        if(! _.isFunction(predicate)) {
-            throw "Predicate constraint must be a function";
-        }
-        this.constraints.push(predicate);
-        return this;
-    },
+	withConstraint: function(predicate) {
+		if(! _.isFunction(predicate)) {
+			throw "Predicate constraint must be a function";
+		}
+		this.constraints.push(predicate);
+		return this;
+	},
 
-    withConstraints: function(predicates) {
-        var self = this;
-        if(_.isArray(predicates)) {
-            _.each(predicates, function(predicate) { self.withConstraint(predicate); } );
-        }
-        return self;
-    },
+	withConstraints: function(predicates) {
+		var self = this;
+		if(_.isArray(predicates)) {
+			_.each(predicates, function(predicate) { self.withConstraint(predicate); } );
+		}
+		return self;
+	},
 
-    withContext: function(context) {
-        this.context = context;
-        return this;
-    },
+	withContext: function(context) {
+		this.context = context;
+		return this;
+	},
 
-    withDebounce: function(milliseconds) {
-        if(_.isNaN(milliseconds)) {
-            throw "Milliseconds must be a number";
-        }
-        var fn = this.callback;
-        this.callback = _.debounce(fn, milliseconds);
-        return this;
-    },
+	withDebounce: function(milliseconds) {
+		if(_.isNaN(milliseconds)) {
+			throw "Milliseconds must be a number";
+		}
+		var fn = this.callback;
+		this.callback = _.debounce(fn, milliseconds);
+		return this;
+	},
 
-    withDelay: function(milliseconds) {
-        if(_.isNaN(milliseconds)) {
-            throw "Milliseconds must be a number";
-        }
-        var fn = this.callback;
-        this.callback = function(data) {
-            setTimeout(fn, milliseconds, data);
-        };
-        return this;
-    },
+	withDelay: function(milliseconds) {
+		if(_.isNaN(milliseconds)) {
+			throw "Milliseconds must be a number";
+		}
+		var fn = this.callback;
+		this.callback = function(data) {
+			setTimeout(fn, milliseconds, data);
+		};
+		return this;
+	},
 
-    withPriority: function(priority) {
-        if(_.isNaN(priority)) {
-            throw "Priority must be a number";
-        }
-        this.priority = priority;
-        return this;
-    },
+	withPriority: function(priority) {
+		if(_.isNaN(priority)) {
+			throw "Priority must be a number";
+		}
+		this.priority = priority;
+		return this;
+	},
 
-    withThrottle: function(milliseconds) {
-        if(_.isNaN(milliseconds)) {
-            throw "Milliseconds must be a number";
-        }
-        var fn = this.callback;
-        this.callback = _.throttle(fn, milliseconds);
-        return this;
-    }
+	withThrottle: function(milliseconds) {
+		if(_.isNaN(milliseconds)) {
+			throw "Milliseconds must be a number";
+		}
+		var fn = this.callback;
+		this.callback = _.throttle(fn, milliseconds);
+		return this;
+	}
 };
 
 var bindingsResolver = {
@@ -209,9 +224,9 @@ var localBus = {
 
 	wireTaps: new Array(0),
 
-	publish: function(envelope, data) {
+	publish: function(data, envelope) {
 		_.each(this.wireTaps,function(tap) {
-			tap(envelope, data);
+			tap(data, envelope);
 		});
 
 		_.each(this.subscriptions[envelope.channel], function(topic) {
@@ -279,14 +294,14 @@ var localBus = {
 };
 
 var publishPicker = {
-	"2" : function(envelope, payload) {
+	"2" : function(data, envelope) {
 		if(!envelope.channel) {
 			envelope.channel = DEFAULT_CHANNEL;
 		}
-		postal.configuration.bus.publish(envelope, payload);
+		postal.configuration.bus.publish(data, envelope);
 	},
 	"3" : function(channel, topic, payload) {
-		postal.configuration.bus.publish({ channel: channel, topic: topic }, payload);
+		postal.configuration.bus.publish(payload, { channel: channel, topic: topic });
 	}
 };
 
@@ -343,7 +358,7 @@ var postal = {
 							var newEnv = env;
 							newEnv.topic = _.isFunction(destination.topic) ? destination.topic(env.topic) : destination.topic || env.topic;
 							newEnv.channel = destChannel;
-							postal.publish(newEnv, msg);
+							postal.publish(msg, newEnv);
 						}
 					})
 				);
@@ -353,4 +368,7 @@ var postal = {
 	}
 };
 
-return postal; });
+
+	global.postal = postal;
+	return postal;
+}));

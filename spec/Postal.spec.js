@@ -445,7 +445,6 @@ QUnit.specify("postal.js", function(){
 			    assert(wireTapData[0].data).equals("I'm in yer bus, tappin' yer subscriptionz...");
 		    });
 		    it("wireTap envelope should match expected results", function() {
-			    console.log("ONOES! " + JSON.stringify(wireTapEnvelope));
 			    assert(wireTapEnvelope[0].channel).equals(DEFAULT_CHANNEL);
 			    assert(wireTapEnvelope[0].topic).equals("Oh.Hai.There");
 		    });

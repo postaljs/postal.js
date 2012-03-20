@@ -1,9 +1,5 @@
 {
     "source": "src/main",
     "output": "lib/node",
-    "lint": {},
-    "wrap": {
-        "prefix": "var _ = require('underscore');",
-        "suffix": "module.exports = postal;"
-    }
+    "lint": {}
 }

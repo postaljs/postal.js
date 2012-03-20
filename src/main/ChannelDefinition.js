@@ -1,5 +1,5 @@
 var ChannelDefinition = function(channelName, defaultTopic) {
-    this.channel = channelName;
+    this.channel = channelName || DEFAULT_CHANNEL;
     this.topic = defaultTopic || "";
 };
 

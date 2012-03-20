@@ -22,13 +22,16 @@ JavaScript:
 
 ```javascript
 // The world's simplest subscription
-var channel = postal.channel("Name.Changed");
+// doesn't specify a channel name, so it defaults to "/" (DEFAULT_CHANNEL)
+var channel = postal.channel( { topic: "Name.Changed" } );
 
 // subscribe
-var subscription = channel.subscribe(function(data) { $("#example1").html("Name: " + data.name); });
+var subscription = channel.subscribe( function( data, envelope ) {
+	$( "#example1" ).html( "Name: " + data.name );
+});
 
 // And someone publishes a first name change:
-channel.publish({ name: "Dr. Who" });
+channel.publish( { name: "Dr. Who" } );
 subscription.unsubscribe();
 ```
 
@@ -37,14 +40,14 @@ subscription.unsubscribe();
 The `#` symbol represents "one word" in a topic (i.e - the text between two periods of a topic). By subscribing to `"#.Changed"`, the binding will match `Name.Changed` & `Location.Changed` but *not* for `Changed.Companion`
 
 ```javascript
-var hashChannel = postal.channel("#.Changed"),
-    chgSubscription = hashChannel.subscribe(function(data) {
-        $('<li>' + data.type + " Changed: " + data.value + '</li>').appendTo("#example2");
+var hashChannel = postal.channel( { topic: "#.Changed" } ),
+    chgSubscription = hashChannel.subscribe( function( data ) {
+        $( '<li>' + data.type + " Changed: " + data.value + '</li>' ).appendTo( "#example2" );
     });
-postal.channel("Name.Changed")
-      .publish({ type: "Name", value:"John Smith" });
-postal.channel("Location.Changed")
-      .publish({ type: "Location", value: "Early 20th Century England" });
+postal.channel( { topic: "Name.Changed" } )
+      .publish( { type: "Name", value:"John Smith" } );
+postal.channel( "Location.Changed" )
+      .publish( { type: "Location", value: "Early 20th Century England" } );
 chgSubscription.unsubscribe();
 ```
 
@@ -53,40 +56,38 @@ chgSubscription.unsubscribe();
 The `*` symbol represents any number of characters/words in a topic string. By subscribing to ``"DrWho.*.Changed"``, the binding will match `DrWho.NinthDoctor.Companion.Changed` & `DrWho.Location.Changed` but *not* `Changed`
 
 ```javascript
-var starChannel = postal.channel("DrWho.*.Changed"),
-    starSubscription = starChannel.subscribe(function(data) {
-        $('<li>' + data.type + " Changed: " + data.value + '</li>').appendTo("#example3");
+var starChannel = postal.channel( { channel: "Doctor.Who", topic: "DrWho.*.Changed" } ),
+    starSubscription = starChannel.subscribe( function( data ) {
+        $( '<li>' + data.type + " Changed: " + data.value + '</li>' ).appendTo( "#example3" );
     });
-postal.channel("DrWho.NinthDoctor.Companion.Changed")
-      .publish({ type: "Name", value:"Rose" });
-postal.channel("DrWho.TenthDoctor.Companion.Changed")
-      .publish({ type: "Name", value:"Martha" });
-postal.channel("DrWho.Eleventh.Companion.Changed")
-      .publish({ type: "Name", value:"Amy" });
-postal.channel("DrWho.Location.Changed")
-      .publish({ type: "Location", value: "The Library" });
-postal.channel("TheMaster.DrumBeat.Changed")
-      .publish({ type: "DrumBeat", value: "This won't trigger any subscriptions" });
-postal.channel("Changed")
-      .publish({ type: "Useless", value: "This won't trigger any subscriptions either" });
+// demonstrating how we're re-using the channel delcared above to publish, but overriding the topic in the second argument
+starChannel.publish( { type: "Name", value:"Rose"   }, { topic: "DrWho.NinthDoctor.Companion.Changed" } );
+starChannel.publish( { type: "Name", value:"Martha" }, { topic: "DrWho.TenthDoctor.Companion.Changed" } );
+starChannel.publish( { type: "Name", value:"Amy"    }, { topic: "DrWho.Eleventh.Companion.Changed" } );
+starChannel.publish( { type: "Location", value: "The Library" }, { topic: "DrWho.Location.Changed" } );
+starChannel.publish( { type: "DrumBeat", value: "This won't trigger any subscriptions" }, { topic: "TheMaster.DrumBeat.Changed" } );
+starChannel.publish( { type: "Useless", value: "This won't trigger any subscriptions either" }, { topic: "Changed" } );
+
 starSubscription.unsubscribe();
 ```
 
 ### Applying ignoreDuplicates to a subscription
 
 ```javascript
-var dupChannel = postal.channel("WeepingAngel.*"),
-    dupSubscription = dupChannel.subscribe(function(data) {
-                          $('<li>' + data.value + '</li>').appendTo("#example4");
+var dupChannel = postal.channel( { topic: "WeepingAngel.*" } ),
+    dupSubscription = dupChannel.subscribe( function( data ) {
+                          $( '<li>' + data.value + '</li>' ).appendTo( "#example4" );
                       }).ignoreDuplicates();
-postal.channel("WeepingAngel.DontBlink")
-      .publish({ value:"Don't Blink" });
-postal.channel("WeepingAngel.DontBlink")
-      .publish({ value:"Don't Blink" });
-postal.channel("WeepingAngel.DontEvenBlink")
-      .publish({ value:"Don't Even Blink" });
-postal.channel("WeepingAngel.DontBlink")
-      .publish({ value:"Don't Close Your Eyes" });
+// demonstrating multiple channels per topic being used
+// You can do it this way if you like, but the example above has nicer syntax (and less overhead)
+postal.channel( { topic: "WeepingAngel.DontBlink" } )
+      .publish( { value:"Don't Blink" } );
+postal.channel( { topic: "WeepingAngel.DontBlink" } )
+      .publish( { value:"Don't Blink" } );
+postal.channel( { topic: "WeepingAngel.DontEvenBlink" } )
+      .publish( { value:"Don't Even Blink" } );
+postal.channel( { topic: "WeepingAngel.DontBlink" } )
+      .publish( { value:"Don't Close Your Eyes" } );
 dupSubscription.unsubscribe();
 ```
 
@@ -104,7 +105,5 @@ Please - by all means!  While I hope the API is relatively stable, I'm open to p
 ## Roadmap for the Future
 Here's where Postal is headed:
 
-* The original proof-of-concept version of postal supported the ability to capture messages and replay them.  This functionality will be added soon.
-* The ability to 'join' two (or more) subscriptions, so that the original subscription will only fire once the second "joined" subscription has also fired.  Think of it as a message-based version of a compound promise.
 * I haven't yet thoroughly tested Postal on Node.js - that is high on my list as well.
 * What else would you like to see?
