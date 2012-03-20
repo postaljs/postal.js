@@ -4,9 +4,9 @@ var localBus = {
 
 	wireTaps: new Array(0),
 
-	publish: function(envelope, data) {
+	publish: function(data, envelope) {
 		_.each(this.wireTaps,function(tap) {
-			tap(envelope, data);
+			tap(data, envelope);
 		});
 
 		_.each(this.subscriptions[envelope.channel], function(topic) {

@@ -1,12 +1,12 @@
 var publishPicker = {
-	"2" : function(envelope, payload) {
+	"2" : function(data, envelope) {
 		if(!envelope.channel) {
 			envelope.channel = DEFAULT_CHANNEL;
 		}
-		postal.configuration.bus.publish(envelope, payload);
+		postal.configuration.bus.publish(data, envelope);
 	},
 	"3" : function(channel, topic, payload) {
-		postal.configuration.bus.publish({ channel: channel, topic: topic }, payload);
+		postal.configuration.bus.publish(payload, { channel: channel, topic: topic });
 	}
 };
 
@@ -63,7 +63,7 @@ var postal = {
 							var newEnv = env;
 							newEnv.topic = _.isFunction(destination.topic) ? destination.topic(env.topic) : destination.topic || env.topic;
 							newEnv.channel = destChannel;
-							postal.publish(newEnv, msg);
+							postal.publish(msg, newEnv);
 						}
 					})
 				);

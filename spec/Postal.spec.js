@@ -9,21 +9,19 @@ QUnit.specify("postal.js", function(){
         describe("when creating basic subscription", function() {
             var systemSubscription = {};
             before(function(){
-
                 systemSubscription = postal.subscribe({
 	                channel: "postal",
 	                topic: "subscription.created",
-	                callback: function(x){
-	                    console.log("on subscription " + JSON.stringify(x));
-	                    if( x.event &&
-	                        x.event == "subscription.created" &&
-	                        x.channel == "MyChannel" &&
-	                        x.topic == "MyTopic") {
+	                callback: function(data, env){
+	                    console.log("on subscription " + JSON.stringify(data));
+	                    if( data.event &&
+	                        data.event == "subscription.created" &&
+	                        data.channel == "MyChannel" &&
+	                        data.topic == "MyTopic") {
 	                        caughtSubscribeEvent = true;
 	                    }
 	                }
                 });
-
                 subscription = postal.channel({ channel: "MyChannel", topic: "MyTopic" })
                                      .subscribe(function() { });
                 sub = postal.configuration.bus.subscriptions.MyChannel.MyTopic[0];
@@ -56,7 +54,7 @@ QUnit.specify("postal.js", function(){
             it("should have defaulted the subscription context value", function() {
                 assert(sub.context).isNull();
             });
-            it("should have captured subscription creation event in wire-tap", function() {
+            it("should have captured subscription creation event", function() {
                 assert(caughtSubscribeEvent).isTrue();
             });
         });
@@ -68,11 +66,11 @@ QUnit.specify("postal.js", function(){
                 systemSubscription = postal.subscribe({
 	                channel: "postal",
 	                topic: "subscription.*",
-	                callback: function(x){
-	                    if( x.event &&
-	                        x.event == "subscription.removed" &&
-	                        x.channel == "MyChannel" &&
-	                        x.topic == "MyTopic") {
+	                callback: function(data, env){
+	                    if( data.event &&
+	                        data.event == "subscription.removed" &&
+	                        data.channel == "MyChannel" &&
+	                        data.topic == "MyTopic") {
 	                        caughtUnsubscribeEvent = true;
 	                    };
 	                }
@@ -93,7 +91,7 @@ QUnit.specify("postal.js", function(){
             it("subscription should not exist after unsubscribe", function(){
                 assert(subExistsAfter).isFalse();
             });
-            it("should have captured unsubscription creation event in wire-tap", function() {
+            it("should have captured unsubscription creation event", function() {
                 assert(caughtUnsubscribeEvent).isTrue();
             });
         });
@@ -180,7 +178,7 @@ QUnit.specify("postal.js", function(){
                 assert(whte).isTrue();
             });
         });
-        describe("When subscribing with one constraint returning true", function(){
+	    describe("When subscribing with one constraint returning true", function(){
             var recvd = false;
             before(function(){
                 channel = postal.channel({ channel: "MyChannel", topic: "MyTopic" });
@@ -428,13 +426,13 @@ QUnit.specify("postal.js", function(){
 			    caughtUnsubscribeEvent = false;
 			    wireTapData = [];
 			    wireTapEnvelope = [];
-			    wiretap = postal.addWireTap(function(envelope, msg) {
+			    wiretap = postal.addWireTap(function(msg, envelope) {
 				    wireTapData.push(msg);
 				    wireTapEnvelope.push(envelope);
 			    });
-			    postal.publish({ topic: "Oh.Hai.There" }, { data: "I'm in yer bus, tappin' yer subscriptionz..."});
+			    postal.publish({ data: "I'm in yer bus, tappin' yer subscriptionz..."}, { topic: "Oh.Hai.There" });
 			    wiretap();
-			    postal.publish({ topic: "Oh.Hai.There" }, { data: "I'm in yer bus, tappin' yer subscriptionz..."});
+			    postal.publish({ data: "I'm in yer bus, tappin' yer subscriptionz..."}, { topic: "Oh.Hai.There" });
 		    });
 		    after(function(){
 			    postal.configuration.bus.subscriptions = {};

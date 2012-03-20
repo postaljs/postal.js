@@ -93,10 +93,10 @@ dupSubscription.unsubscribe();
 ## How can I extend it?
 There are two main ways you can extend Postal:
 
-* First, you can write an entirely new bus implementation (want to tie into a real broker like AMQP, and wrap it with Postal's API?  This is how you'd do it.).  If you want to do this, look over the `localBus` implementation to see how the core version works.  Then, you can simply swap the bus implementation out by calling: `postal.configuration.bus = myWayBetterBusImplementation`.
+* First, you can write an entirely new bus implementation (want to tie into a real broker like RabbitMQ by hitting the [experimental] JSON RPC endpoints and wrap it with Postal's API?  This is how you'd do it.).  If you want to do this, look over the `localBus` implementation to see how the core version works.  Then, you can simply swap the bus implementation out by calling: `postal.configuration.bus = myWayBetterBusImplementation`.
 * The second way you can extend Postal is to change how the `bindingResolver` works.  You may not care for the RabbitMQ-style bindings functionality.  No problem!  Write your own resolver object that implements a `compare` method and swap the core version out with your implementation by calling: `postal.configuration.resolver = myWayBetterResolver`.
 
-It's also possible to extend the monitoring of messages passing through Postal by adding a "wire tap".  A wire tap is a callback that will get invoked for any published message (even if no actual subscriptions would bind to the message's topic).  Wire taps should _not_ be used in lieu of an actual subscription - but instead should be used for diagnostics, logging, forwarding or other concerns that fall along those lines.
+It's also possible to extend the monitoring of messages passing through Postal by adding a "wire tap".  A wire tap is a callback that will get invoked for any published message (even if no actual subscriptions would bind to the message's topic).  Wire taps should _not_ be used in lieu of an actual subscription - but instead should be used for diagnostics, logging, forwarding (to a websocket publisher, for example) or other concerns that fall along those lines.
 
 ## Can I contribute?
 Please - by all means!  While I hope the API is relatively stable, I'm open to pull requests.  (Hint - if you want a feature implemented, a pull request gives it a much higher probability of being included than simply asking me.)  As I said, pull requests are most certainly welcome - but please include tests for your additions.  Otherwise, it will disappear into the ether.
