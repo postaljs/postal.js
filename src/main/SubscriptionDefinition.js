@@ -133,7 +133,7 @@ SubscriptionDefinition.prototype = {
 		return this;
 	},
 
-	subscribe: function(callbacl) {
+	subscribe: function(callback) {
 		this.callback = callback;
 		return this;
 	}
