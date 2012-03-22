@@ -69,10 +69,14 @@ var starChannel = postal.channel( { channel: "Doctor.Who", topic: "DrWho.*.Chang
         $( '<li>' + data.type + " Changed: " + data.value + '</li>' ).appendTo( "#example3" );
     });
 /*
-	demonstrating how we're re-using the channel delcared above to publish, but overriding the topic in the second argument
-	note to override the topic, you have to use the "envelope" structure, which means an object like:
-	{ channel: "myChannel", topic: "myTopic", data: { someProp: "SomeVal, moarData: "MoarValue" } };
-	The only thing to note is that since we are publishing from a channel definition, you don't need to pass "channel" (in fact, it would be ignored)
+  Demonstrating how we're re-using the channel delcared above to publish, but overriding the topic
+  in the second argument.  Note to override the topic, you have to use the "envelope" structure,
+  which means an object like:
+
+  { channel: "myChannel", topic: "myTopic", data: { someProp: "SomeVal, moarData: "MoarValue" } };
+
+  The only thing to note is that since we are publishing from a channel definition, you don't need
+  to pass "channel" (in fact, it would be ignored)
 */
 starChannel.publish( { topic: "DrWho.NinthDoctor.Companion.Changed", data: { type: "Name", value:"Rose"   } } );
 starChannel.publish( { topic: "DrWho.TenthDoctor.Companion.Changed", data: { type: "Name", value:"Martha" } } );
