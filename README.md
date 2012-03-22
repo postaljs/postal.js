@@ -1,5 +1,7 @@
 # Postal.js
 
+## Version 0.6.0 Release Candidate
+
 ## What is it?
 Postal.js is a JavaScript pub/sub library that can be used in the browser, or on the server-side using Node.js. It extends the "eventing" paradigm most JavaScript developers are already familiar with by providing an in-memory message bus to which your code/components/modules/etc can subscribe & publish.
 
@@ -16,7 +18,7 @@ Why, yes.  There are great alternatives to Postal.  If you need something leaner
 ## How do I use it?
 In a nutshell, Postal provides an in-memory message bus, where clients subscribe to a topic (which can include wildcards, as we'll see), and publishers publish messages (passing a topic along with it).  Postal's "bindingResolver" handles matching a published message's topic to subscribers who should be notified of the message.  When a client subscribes, they pass a callback that should be invoked whenever a message comes through.  This callback takes one argument - the "data" payload of the message.  (Messages do not *have* to include data - they can simply be used to indicate an event, and not transmit additional state).  Additional options/constraints can be set on a subscription (see examples below, and check out the fluent calls available on the SubscriptionDefinition prototype).
 
-Here are four examples of using Postal.  All of these examples - AND MORE! - can be run live here: [http://jsfiddle.net/ifandelse/NTPcT/](http://jsfiddle.net/ifandelse/NTPcT/)
+Here are four examples of using Postal.  All of these examples - AND MORE! - can be run live here: [http://jsfiddle.net/ifandelse/FdFM3/](http://jsfiddle.net/ifandelse/FdFM3/)
 
 JavaScript:
 
