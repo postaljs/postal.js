@@ -1,24 +1,38 @@
 var ChannelDefinition = function(channelName, defaultTopic) {
     this.channel = channelName || DEFAULT_CHANNEL;
-    this.topic = defaultTopic || "";
+    this._topic = defaultTopic || "";
 };
 
 ChannelDefinition.prototype = {
     subscribe: function() {
         var len = arguments.length;
 	    if(len === 1) {
-		    return new SubscriptionDefinition(this.channel, this.topic, arguments[0]);
+		    return new SubscriptionDefinition(this.channel, this._topic, arguments[0]);
 	    }
 	    else if (len === 2) {
 		    return new SubscriptionDefinition(this.channel, arguments[0], arguments[1]);
 	    }
     },
 
-    publish: function(data, envelope) {
-	    var env = (Object.prototype.toString.call(envelope) === "[object String]") ? { topic: envelope } : envelope || {};
-	    env.channel = this.channel;
-	    env.timeStamp = new Date();
-	    env.topic = env.topic || this.topic;
-        postal.configuration.bus.publish(data, env);
-    }
+    publish: function(obj) {
+	    var envelope = {
+		    channel: this.channel,
+		    topic: this._topic,
+		    data: obj
+	    };
+	    // If this is an envelope....
+	    if( obj.topic && obj.data ) {
+		    envelope = obj;
+		    envelope.channel = envelope.channel || this.channel;
+	    }
+	    envelope.timeStamp = new Date();
+		postal.configuration.bus.publish(envelope);
+    },
+
+	topic: function(topic) {
+		if(topic === this._topic) {
+			return this;
+		}
+		return new ChannelDefinition(this.channel, topic);
+	}
 };

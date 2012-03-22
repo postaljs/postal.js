@@ -12,7 +12,7 @@ QUnit.specify("postal.js", function(){
                 systemSubscription = postal.subscribe({
 	                channel: "postal",
 	                topic: "subscription.created",
-	                callback: function(data, env){
+	                callback: function(data, envelope){
 	                    console.log("on subscription " + JSON.stringify(data));
 	                    if( data.event &&
 	                        data.event == "subscription.created" &&
@@ -39,19 +39,19 @@ QUnit.specify("postal.js", function(){
             it("should have set subscription channel value", function() {
                 assert(sub.channel).equals("MyChannel");
             });
-            it("should have set subscription topic value", function() {
+	        it("should have set subscription topic value", function() {
                 assert(sub.topic).equals("MyTopic");
             });
-            it("should have set subscription priority value", function() {
+	        it("should have set subscription priority value", function() {
                 assert(sub.priority).equals(50);
             });
-            it("should have defaulted the subscription constraints array", function() {
+	        it("should have defaulted the subscription constraints array", function() {
                 assert(sub.constraints.length).equals(0);
             });
-            it("should have defaulted the subscription disposeAfter value", function() {
+	        it("should have defaulted the subscription disposeAfter value", function() {
                 assert(sub.maxCalls).equals(0);
             });
-            it("should have defaulted the subscription context value", function() {
+	        it("should have defaulted the subscription context value", function() {
                 assert(sub.context).isNull();
             });
             it("should have captured subscription creation event", function() {
@@ -430,9 +430,9 @@ QUnit.specify("postal.js", function(){
 				    wireTapData.push(msg);
 				    wireTapEnvelope.push(envelope);
 			    });
-			    postal.publish({ data: "I'm in yer bus, tappin' yer subscriptionz..."}, { topic: "Oh.Hai.There" });
+			    postal.publish({ topic: "Oh.Hai.There", data: "I'm in yer bus, tappin' yer subscriptionz..."});
 			    wiretap();
-			    postal.publish({ data: "I'm in yer bus, tappin' yer subscriptionz..."}, { topic: "Oh.Hai.There" });
+			    postal.publish({ topic: "Oh.Hai.There", data: "I'm in yer bus, tappin' yer subscriptionz..."});
 		    });
 		    after(function(){
 			    postal.configuration.bus.subscriptions = {};
@@ -442,7 +442,7 @@ QUnit.specify("postal.js", function(){
 			    assert(wireTapEnvelope.length).equals(1);
 		    });
 		    it("wireTap data should match expected results", function(){
-			    assert(wireTapData[0].data).equals("I'm in yer bus, tappin' yer subscriptionz...");
+			    assert(wireTapData[0]).equals("I'm in yer bus, tappin' yer subscriptionz...");
 		    });
 		    it("wireTap envelope should match expected results", function() {
 			    assert(wireTapEnvelope[0].channel).equals(DEFAULT_CHANNEL);

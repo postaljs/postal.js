@@ -6,7 +6,7 @@ QUnit.specify("postal.js", function(){
                 assert(chDef.channel).equals("TestChannel");
             });
             it("should set topic to TestTopic", function(){
-                assert(chDef.topic).equals("TestTopic");
+                assert(chDef._topic).equals("TestTopic");
             });
         });
         describe("When calling subscribe", function() {

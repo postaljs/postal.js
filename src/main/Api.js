@@ -1,12 +1,17 @@
 var publishPicker = {
-	"2" : function(data, envelope) {
-		if(!envelope.channel) {
-			envelope.channel = DEFAULT_CHANNEL;
+	"1" : function(envelope) {
+		if(!envelope) {
+			throw new Error("publishing from the 'global' postal.publish call requires a valid envelope.");
 		}
-		postal.configuration.bus.publish(data, envelope);
+		envelope.channel = envelope.channel || DEFAULT_CHANNEL;
+		envelope.timeStamp = new Date();
+		postal.configuration.bus.publish(envelope);
 	},
-	"3" : function(channel, topic, payload) {
-		postal.configuration.bus.publish(payload, { channel: channel, topic: topic });
+	"2" : function(topic, data) {
+		postal.configuration.bus.publish({ channel: DEFAULT_CHANNEL, topic: topic, timeStamp: new Date(), data: data });
+	},
+	"3" : function(channel, topic, data) {
+		postal.configuration.bus.publish({ channel: channel, topic: topic, timeStamp: new Date(), data: data });
 	}
 };
 
@@ -19,10 +24,20 @@ var postal = {
 		resolver: bindingsResolver
 	},
 
-	channel: function(options) {
-		var channel, tpc;
-		tpc = (Object.prototype.toString.call(options) === "[object String]") ? options : options.topic;
-		channel = options.channel || DEFAULT_CHANNEL;
+	channel: function() {
+		var len = arguments.length,
+			channel = arguments[0],
+			tpc = arguments[1];
+		if(len === 1) {
+			if(Object.prototype.toString.call(channel) === "[object String]") {
+				channel = DEFAULT_CHANNEL;
+				tpc = arguments[0];
+			}
+			else {
+				channel = arguments[0].channel || DEFAULT_CHANNEL;
+				tpc = arguments[0].topic;
+			}
+		}
 		return new ChannelDefinition(channel, tpc);
 	},
 
@@ -60,11 +75,12 @@ var postal = {
 					postal.subscribe({
 						channel: source.channel || DEFAULT_CHANNEL,
 						topic: source.topic || "*",
-						callback : function(msg, env) {
+						callback : function(data, env) {
 							var newEnv = env;
 							newEnv.topic = _.isFunction(destination.topic) ? destination.topic(env.topic) : destination.topic || env.topic;
 							newEnv.channel = destChannel;
-							postal.publish(msg, newEnv);
+							newEnv.data = data;
+							postal.publish(newEnv);
 						}
 					})
 				);

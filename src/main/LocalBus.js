@@ -4,18 +4,18 @@ var localBus = {
 
 	wireTaps: new Array(0),
 
-	publish: function(data, envelope) {
+	publish: function(envelope) {
 		_.each(this.wireTaps,function(tap) {
-			tap(data, envelope);
+			tap(envelope.data, envelope);
 		});
 
 		_.each(this.subscriptions[envelope.channel], function(topic) {
-			_.each(topic, function(binding){
-				if(postal.configuration.resolver.compare(binding.topic, envelope.topic)) {
-					if(_.all(binding.constraints, function(constraint) { return constraint(data); })) {
-						if(typeof binding.callback === 'function') {
-							binding.callback.apply(binding.context, [data, envelope]);
-							binding.onHandled();
+			_.each(topic, function(subDef){
+				if(postal.configuration.resolver.compare(subDef.topic, envelope.topic)) {
+					if(_.all(subDef.constraints, function(constraint) { return constraint(envelope.data); })) {
+						if(typeof subDef.callback === 'function') {
+							subDef.callback.apply(subDef.context, [envelope.data, envelope]);
+							subDef.onHandled();
 						}
 					}
 				}

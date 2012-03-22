@@ -7,13 +7,15 @@ var SubscriptionDefinition = function(channel, topic, callback) {
 	this.maxCalls = DEFAULT_DISPOSEAFTER;
 	this.onHandled = NO_OP;
 	this.context = null;
-	postal.publish({
-			event: "subscription.created",
-			channel: channel,
-			topic: topic
-		},{
-		channel: SYSTEM_CHANNEL,
-		topic: "subscription.created"
+	postal.configuration.bus.publish({
+			channel: SYSTEM_CHANNEL,
+			topic: "subscription.created",
+			timeStamp: new Date(),
+			data: {
+				event: "subscription.created",
+				channel: channel,
+				topic: topic
+			}
 	});
 
 	postal.configuration.bus.subscribe(this);
@@ -23,13 +25,15 @@ var SubscriptionDefinition = function(channel, topic, callback) {
 SubscriptionDefinition.prototype = {
 	unsubscribe: function() {
 		postal.configuration.bus.unsubscribe(this);
-		postal.publish({
+		postal.configuration.bus.publish({
+			channel: SYSTEM_CHANNEL,
+			topic: "subscription.removed",
+			timeStamp: new Date(),
+			data: {
 				event: "subscription.removed",
 				channel: this.channel,
 				topic: this.topic
-			},{
-			channel: SYSTEM_CHANNEL,
-			topic: "subscription.removed"
+			}
 		});
 	},
 
@@ -126,6 +130,11 @@ SubscriptionDefinition.prototype = {
 		}
 		var fn = this.callback;
 		this.callback = _.throttle(fn, milliseconds);
+		return this;
+	},
+
+	subscribe: function(callbacl) {
+		this.callback = callback;
 		return this;
 	}
 };
