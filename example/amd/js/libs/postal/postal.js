@@ -1,9 +1,9 @@
 /*
-    postal.js
-    Author: Jim Cowart
-    License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
-    Version 0.6.0
-*/
+	postal.js
+	Author: Jim Cowart
+	License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
+	Version 0.6.0
+ */
 
 (function(root, doc, factory) {
 	if (typeof define === "function" && define.amd) {
@@ -18,57 +18,57 @@
 }(this, document, function(_, global, document, undefined) {
 
 var DEFAULT_CHANNEL = "/",
-    DEFAULT_PRIORITY = 50,
-    DEFAULT_DISPOSEAFTER = 0,
-    SYSTEM_CHANNEL = "postal",
-    NO_OP = function() { };
+	DEFAULT_PRIORITY = 50,
+	DEFAULT_DISPOSEAFTER = 0,
+	SYSTEM_CHANNEL = "postal",
+	NO_OP = function() { };
 
 var DistinctPredicate = function() {
-    var previous;
-    return function(data) {
-        var eq = false;
-        if(_.isString(data)) {
-            eq = data === previous;
-            previous = data;
-        }
-        else {
-            eq = _.isEqual(data, previous);
-            previous = _.clone(data);
-        }
-        return !eq;
-    };
+	var previous;
+	return function(data) {
+		var eq = false;
+		if(_.isString(data)) {
+			eq = data === previous;
+			previous = data;
+		}
+		else {
+			eq = _.isEqual(data, previous);
+			previous = _.clone(data);
+		}
+		return !eq;
+	};
 };
 
 var ChannelDefinition = function(channelName, defaultTopic) {
-    this.channel = channelName || DEFAULT_CHANNEL;
-    this._topic = defaultTopic || "";
+	this.channel = channelName || DEFAULT_CHANNEL;
+	this._topic = defaultTopic || "";
 };
 
 ChannelDefinition.prototype = {
-    subscribe: function() {
-        var len = arguments.length;
-	    if(len === 1) {
-		    return new SubscriptionDefinition(this.channel, this._topic, arguments[0]);
-	    }
-	    else if (len === 2) {
-		    return new SubscriptionDefinition(this.channel, arguments[0], arguments[1]);
-	    }
-    },
+	subscribe: function() {
+		var len = arguments.length;
+		if(len === 1) {
+			return new SubscriptionDefinition(this.channel, this._topic, arguments[0]);
+		}
+		else if (len === 2) {
+			return new SubscriptionDefinition(this.channel, arguments[0], arguments[1]);
+		}
+	},
 
-    publish: function(obj) {
-	    var envelope = {
-		    channel: this.channel,
-		    topic: this._topic,
-		    data: obj
-	    };
-	    // If this is an envelope....
-	    if( obj.topic && obj.data ) {
-		    envelope = obj;
-		    envelope.channel = envelope.channel || this.channel;
-	    }
-	    envelope.timeStamp = new Date();
+	publish: function(obj) {
+		var envelope = {
+			channel: this.channel,
+			topic: this._topic,
+			data: obj
+		};
+		// If this is an envelope....
+		if( obj.topic && obj.data ) {
+			envelope = obj;
+			envelope.channel = envelope.channel || this.channel;
+		}
+		envelope.timeStamp = new Date();
 		postal.configuration.bus.publish(envelope);
-    },
+	},
 
 	topic: function(topic) {
 		if(topic === this._topic) {
@@ -88,14 +88,14 @@ var SubscriptionDefinition = function(channel, topic, callback) {
 	this.onHandled = NO_OP;
 	this.context = null;
 	postal.configuration.bus.publish({
-			channel: SYSTEM_CHANNEL,
-			topic: "subscription.created",
-			timeStamp: new Date(),
-			data: {
-				event: "subscription.created",
-				channel: channel,
-				topic: topic
-			}
+		channel: SYSTEM_CHANNEL,
+		topic: "subscription.created",
+		timeStamp: new Date(),
+		data: {
+			event: "subscription.created",
+			channel: channel,
+			topic: topic
+		}
 	});
 
 	postal.configuration.bus.subscribe(this);
@@ -220,25 +220,25 @@ SubscriptionDefinition.prototype = {
 };
 
 var bindingsResolver = {
-    cache: { },
+	cache: { },
 
-    compare: function(binding, topic) {
-        if(this.cache[topic] && this.cache[topic][binding]) {
-            return true;
-        }
-	    //  binding.replace(/\./g,"\\.")             // escape actual periods
-	    //         .replace(/\*/g, ".*")             // asterisks match any value
-	    //         .replace(/#/g, "[A-Z,a-z,0-9]*"); // hash matches any alpha-numeric 'word'
-        var rgx = new RegExp("^" + binding.replace(/\./g,"\\.").replace(/\*/g, ".*").replace(/#/g, "[A-Z,a-z,0-9]*") + "$"),
-            result = rgx.test(topic);
-        if(result) {
-            if(!this.cache[topic]) {
-                this.cache[topic] = {};
-            }
-            this.cache[topic][binding] = true;
-        }
-        return result;
-    }
+	compare: function(binding, topic) {
+		if(this.cache[topic] && this.cache[topic][binding]) {
+			return true;
+		}
+		//  binding.replace(/\./g,"\\.")             // escape actual periods
+		//         .replace(/\*/g, ".*")             // asterisks match any value
+		//         .replace(/#/g, "[A-Z,a-z,0-9]*"); // hash matches any alpha-numeric 'word'
+		var rgx = new RegExp("^" + binding.replace(/\./g,"\\.").replace(/\*/g, ".*").replace(/#/g, "[A-Z,a-z,0-9]*") + "$"),
+			result = rgx.test(topic);
+		if(result) {
+			if(!this.cache[topic]) {
+				this.cache[topic] = {};
+			}
+			this.cache[topic][binding] = true;
+		}
+		return result;
+	}
 };
 
 var localBus = {
