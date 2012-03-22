@@ -8,14 +8,14 @@ var SubscriptionDefinition = function(channel, topic, callback) {
 	this.onHandled = NO_OP;
 	this.context = null;
 	postal.configuration.bus.publish({
-			channel: SYSTEM_CHANNEL,
-			topic: "subscription.created",
-			timeStamp: new Date(),
-			data: {
-				event: "subscription.created",
-				channel: channel,
-				topic: topic
-			}
+		channel: SYSTEM_CHANNEL,
+		topic: "subscription.created",
+		timeStamp: new Date(),
+		data: {
+			event: "subscription.created",
+			channel: channel,
+			topic: topic
+		}
 	});
 
 	postal.configuration.bus.subscribe(this);

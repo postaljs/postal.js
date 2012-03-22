@@ -25,6 +25,14 @@ JavaScript:
 // doesn't specify a channel name, so it defaults to "/" (DEFAULT_CHANNEL)
 var channel = postal.channel( { topic: "Name.Changed" } );
 
+// this call is identical to the one above
+var channel = postal.channel( "Name.Changed" )
+
+// To specify a channel name you can do one of the following
+var channel = postal.channel( { channel: "MyChannel", topic: "MyTopic" } );
+var channel = postal.channel( "MyChannel","MyTopic" );
+
+
 // subscribe
 var subscription = channel.subscribe( function( data, envelope ) {
 	$( "#example1" ).html( "Name: " + data.name );
@@ -60,13 +68,18 @@ var starChannel = postal.channel( { channel: "Doctor.Who", topic: "DrWho.*.Chang
     starSubscription = starChannel.subscribe( function( data ) {
         $( '<li>' + data.type + " Changed: " + data.value + '</li>' ).appendTo( "#example3" );
     });
-// demonstrating how we're re-using the channel delcared above to publish, but overriding the topic in the second argument
-starChannel.publish( { type: "Name", value:"Rose"   }, { topic: "DrWho.NinthDoctor.Companion.Changed" } );
-starChannel.publish( { type: "Name", value:"Martha" }, { topic: "DrWho.TenthDoctor.Companion.Changed" } );
-starChannel.publish( { type: "Name", value:"Amy"    }, { topic: "DrWho.Eleventh.Companion.Changed" } );
-starChannel.publish( { type: "Location", value: "The Library" }, { topic: "DrWho.Location.Changed" } );
-starChannel.publish( { type: "DrumBeat", value: "This won't trigger any subscriptions" }, { topic: "TheMaster.DrumBeat.Changed" } );
-starChannel.publish( { type: "Useless", value: "This won't trigger any subscriptions either" }, { topic: "Changed" } );
+/*
+	demonstrating how we're re-using the channel delcared above to publish, but overriding the topic in the second argument
+	note to override the topic, you have to use the "envelope" structure, which means an object like:
+	{ channel: "myChannel", topic: "myTopic", data: { someProp: "SomeVal, moarData: "MoarValue" } };
+	The only thing to note is that since we are publishing from a channel definition, you don't need to pass "channel" (in fact, it would be ignored)
+*/
+starChannel.publish( { topic: "DrWho.NinthDoctor.Companion.Changed", data: { type: "Name", value:"Rose"   } } );
+starChannel.publish( { topic: "DrWho.TenthDoctor.Companion.Changed", data: { type: "Name", value:"Martha" } } );
+starChannel.publish( { topic: "DrWho.Eleventh.Companion.Changed",    data: { type: "Name", value:"Amy"    } } );
+starChannel.publish( { topic: "DrWho.Location.Changed",              data: { type: "Location", value: "The Library" } } );
+starChannel.publish( { topic: "TheMaster.DrumBeat.Changed",          data: { type: "DrumBeat", value: "This won't trigger any subscriptions" } } );
+starChannel.publish( { topic: "Changed",                             data: { type: "Useless", value: "This won't trigger any subscriptions either" } } );
 
 starSubscription.unsubscribe();
 ```
@@ -79,7 +92,7 @@ var dupChannel = postal.channel( { topic: "WeepingAngel.*" } ),
                           $( '<li>' + data.value + '</li>' ).appendTo( "#example4" );
                       }).ignoreDuplicates();
 // demonstrating multiple channels per topic being used
-// You can do it this way if you like, but the example above has nicer syntax (and less overhead)
+// You can do it this way if you like, but the example above has nicer syntax (and *much* less overhead)
 postal.channel( { topic: "WeepingAngel.DontBlink" } )
       .publish( { value:"Don't Blink" } );
 postal.channel( { topic: "WeepingAngel.DontBlink" } )
