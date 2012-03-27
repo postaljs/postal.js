@@ -77,22 +77,11 @@ define(['postal', 'postaldiags'], function(postal, diags){
 		.publish({ value:"Donna Noble has left the library." });
 	daSubscription.unsubscribe();
 
-	// Using whenHandledThenExecute() to invoke a function after handling a message
-	var whteChannel = postal.channel("Donna.Noble.*"),
-		whteSubscription = whteChannel.subscribe(function(data) {
-			$('<li>' + data.value + '</li>').appendTo("#example6");
-		}).whenHandledThenExecute(function() {
-				$('<li>[Kind of a frivolous example...but this line resulted from the whenHandledThenExecute() callback]</li>').appendTo("#example6");
-			});
-	postal.channel("Donna.Noble.*")
-		.publish({ value:"Donna Noble has left the library." });
-	whteSubscription.unsubscribe();
-
 	// Using withConstraint to apply a predicate to the subscription
 	var drIsInTheTardis = false,
 		wcChannel = postal.channel("Tardis.Depart"),
 		wcSubscription = wcChannel.subscribe(function(data) {
-			$('<li>' + data.value + '</li>').appendTo("#example7");
+			$('<li>' + data.value + '</li>').appendTo("#example6");
 		}).withConstraint(function() { return drIsInTheTardis; } );
 	postal.channel("Tardis.Depart")
 		.publish({ value:"Time for time travel....fantastic!" });
@@ -107,7 +96,7 @@ define(['postal', 'postaldiags'], function(postal, diags){
 	var ctxChannel = postal.channel("Dalek.Meet.CyberMen"),
 		ctxSubscription = ctxChannel.subscribe(function(data) {
 			$('<li>' + data.value + '</li>').appendTo(this);
-		}).withContext($("#example8"));
+		}).withContext($("#example7"));
 	postal.channel("Dalek.Meet.CyberMen")
 		.publish({ value:"Exterminate!" });
 	postal.channel("Dalek.Meet.CyberMen")
@@ -117,7 +106,7 @@ define(['postal', 'postaldiags'], function(postal, diags){
 	// Using withDelay() to delay the subscription evaluation
 	var wdChannel = postal.channel("He.Will.Knock.Four.Times"),
 		wdSubscription = wdChannel.subscribe(function(data) {
-			$('<li>' + data.value + '</li>').appendTo($("#example9"));
+			$('<li>' + data.value + '</li>').appendTo($("#example8"));
 		}).withDelay(5000);
 	postal.channel("He.Will.Knock.Four.Times")
 		.publish({ value:"Knock!" });

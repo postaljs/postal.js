@@ -6,17 +6,25 @@
 Postal.js is a JavaScript pub/sub library that can be used in the browser, or on the server-side using Node.js. It extends the "eventing" paradigm most JavaScript developers are already familiar with by providing an in-memory message bus to which your code/components/modules/etc can subscribe & publish.
 
 ## Why would I use it?
-If you are looking to decouple the various components/libraries/plugins you use (client-or-server-side), applying messaging can enable you to not only easily separate concerns, but also enable you to more painlessly plug in additional components/functionality in the future.  A pub/sub library like Postal.js can assist you in picking & choosing the libraries that best address the problems you're trying to solve, without burdening you with the requirement that those libraries have to be natively interoperable.  For example:
+If you are looking to decouple the various components/libraries/plugins you use (client-or-server-side), applying messaging can enable you to not only easily separate concerns, but also enable you to more painlessly plug in additional components/functionality in the future.  A pub/sub library like postal.js can assist you in picking & choosing the libraries that best address the problems you're trying to solve, without burdening you with the requirement that those libraries have to be natively interoperable.  For example:
 
 * If you're using a client-side binding framework, and either don't have - or don't like - the request/communication abstractions provided, then grab a library like [amplify.js](http://amplifyjs.com) or [reqwest](https://github.com/ded/reqwest).  Then, instead of tightly coupling the two, have the request success/error callbacks publish messages with the appropriate data and any subscribers you've wired up can handle applying the data to the specific objects/elements they're concerned with.
 * Do you need two view models to communicate, but you don't want them to need to know about each other?  Have them subscribe to the topics about which they are interested in receiving messages.  From there, whenever a view model needs to alert any listeners of specific data/events, just publish a message to the bus.  If the other view model is present, it will receive the notification.
 * Want to wire up your own binding framework?  Want to control the number of times subscription callbacks get invoked within a given time frame? Want to keep subscriptions from being fired until after data stops arriving? Want to keep events from being acted upon until the UI event loop is done processing other events?  These - and more - are all things Postal can do for you.
 
-## Wut?  Another pub/sub library?
-Why, yes.  There are great alternatives to Postal.  If you need something leaner for client-side development, look at amplify.js.  If you're in Node.js and can get by with EventEmitter, great.  However, I discovered that as my needs quickly grew, I wanted something that was as lean as possible, without sacrificing some of the more complex functionality that's not provided by libraries like amplify.js, and the EventEmitter object in Node.
+## Philosophy
+Postal.js is in good company - there are many options for pub/sub in the browser.  However, I grew frustrated with most of them because they often closely followed a DOM-eventing-paradigm, instead of providing a more substantial in-memory message bus.  Central to postal.js are two things:
+
+* channels
+* hierarchical topics (which allow plan string or wildcard bindings)
+
+### Channels? WAT?
+A channel is a logical partition of topics.  Conceptually, it's like a dedicated highway for a specific set of communication.  At first glance it might seem like that's overkill for an environment that runs in an event loop, but it actually proves to be quite useful.  Every library has architectural opinions that it either imposes or nudges you toward.  Channel-oriented messaging nudges you to separate your communication by bounded context, and enables you the kind of fine-tuned visibility you need into the interactions between components as your application grows.
+
+### Hierarchical Topics
+In my experience, seeing publish and subscribe calls all over application logic is usually strong code smell.  Ideally, the majority of message-bus integration should be concealed within app infrastructure.  Have a hierarchical-wildcard-bindable topic system makes it very easy to keep things concise (especially subscribe calls!).  For example, if you have a module that needs to listen to ever message published on the ShoppingCart channel, you'd simply subscribe to "*", and never have to worry about additional subscribes on that channel again - even if you add new messages in the future.  If you need to capture all messages with ".validation" at the end of the topic, you'd simply subscribe to "*.validation".
 
 ## How do I use it?
-In a nutshell, Postal provides an in-memory message bus, where clients subscribe to a topic (which can include wildcards, as we'll see), and publishers publish messages (passing a topic along with it).  Postal's "bindingResolver" handles matching a published message's topic to subscribers who should be notified of the message.  When a client subscribes, they pass a callback that should be invoked whenever a message comes through.  This callback takes one argument - the "data" payload of the message.  (Messages do not *have* to include data - they can simply be used to indicate an event, and not transmit additional state).  Additional options/constraints can be set on a subscription (see examples below, and check out the fluent calls available on the SubscriptionDefinition prototype).
 
 Here are four examples of using Postal.  All of these examples - AND MORE! - can be run live here: [http://jsfiddle.net/ifandelse/FdFM3/](http://jsfiddle.net/ifandelse/FdFM3/)
 
@@ -111,8 +119,9 @@ dupSubscription.unsubscribe();
 ```
 
 ## How can I extend it?
-There are two main ways you can extend Postal:
+There are three main ways you can extend Postal:
 
+* Write a plugin.  Need more complex behavior that the built-in SubscriptionDefinition doesn't offer?  Write a plugin that you can attach to the global postal object.  See [postal.when]() for an example of how to do this.
 * First, you can write an entirely new bus implementation (want to tie into a real broker like RabbitMQ by hitting the [experimental] JSON RPC endpoints and wrap it with Postal's API?  This is how you'd do it.).  If you want to do this, look over the `localBus` implementation to see how the core version works.  Then, you can simply swap the bus implementation out by calling: `postal.configuration.bus = myWayBetterBusImplementation`.
 * The second way you can extend Postal is to change how the `bindingResolver` works.  You may not care for the RabbitMQ-style bindings functionality.  No problem!  Write your own resolver object that implements a `compare` method and swap the core version out with your implementation by calling: `postal.configuration.resolver = myWayBetterResolver`.
 

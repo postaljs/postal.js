@@ -87,5 +87,16 @@ var postal = {
 			});
 		});
 		return result;
+	},
+
+	reset: function() {
+		// we check first in case a custom bus or resolver
+		// doesn't expose subscriptions or a resolver cache
+		if(postal.configuration.bus.subscriptions) {
+			postal.configuration.bus.subscriptions = {};
+		}
+		if(postal.configuration.resolver.cache) {
+			postal.configuration.resolver.cache = {};
+		}
 	}
 };

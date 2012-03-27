@@ -69,17 +69,10 @@ QUnit.specify("postal.js", function(){
 			});
 		});
 
-		describe("When setting whenHandledThenExecute", function(){
-			var sDeff = new SubscriptionDefinition("TestChannel", "TestTopic", NO_OP).whenHandledThenExecute(function() { });
-
-			it("Should add an onHandled callback", function() {
-				assert(typeof sDeff.onHandled).equals("function");
-			});
-			it("Should not equal NO_OP", function() {
-				assert(sDeff.onHandled).isNotEqualTo(NO_OP);
-			});
-		});
-
-		//TODO:  need to determine best way to add tests for defer, debounce, throttle, delay & disposeAfter
+		// TODO: Add test for defer
+		// TODO: Add test for debounce
+		// TODO: Add test for throttle
+		// TODO: Add test for delay
+		// TODO: Add test for disposeAfter
 	});
 });

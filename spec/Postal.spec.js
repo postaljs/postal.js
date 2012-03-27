@@ -28,7 +28,7 @@ QUnit.specify("postal.js", function(){
 			});
 			after(function(){
 				systemSubscription.unsubscribe();
-				postal.configuration.bus.subscriptions = {};
+				postal.reset();
 			});
 			it("should create an channel called MyChannel", function(){
 				assert(postal.configuration.bus.subscriptions["MyChannel"] !== undefined).isTrue();
@@ -83,7 +83,7 @@ QUnit.specify("postal.js", function(){
 			});
 			after(function(){
 				systemSubscription.unsubscribe();
-				postal.configuration.bus.subscriptions = {};
+				postal.reset();
 			});
 			it("subscription should exist before unsubscribe", function(){
 				assert(subExistsBefore).isTrue();
@@ -106,7 +106,7 @@ QUnit.specify("postal.js", function(){
 				channel.publish("Testing123");
 			});
 			after(function(){
-				postal.configuration.bus.subscriptions = {};
+				postal.reset();
 			});
 			it("subscription callback should be invoked once", function(){
 				assert(msgReceivedCnt).equals(1);
@@ -129,7 +129,7 @@ QUnit.specify("postal.js", function(){
 				channel.publish("Testing123");
 			});
 			after(function(){
-				postal.configuration.bus.subscriptions = {};
+				postal.reset();
 			});
 			it("subscription callback should be invoked 5 times", function(){
 				assert(msgReceivedCnt).equals(5);
@@ -149,7 +149,7 @@ QUnit.specify("postal.js", function(){
 				channel.publish("Testing123");
 			});
 			after(function(){
-				postal.configuration.bus.subscriptions = {};
+				postal.reset();
 				subInvokedCnt = 0;
 			});
 			it("should have a constraint on the subscription", function() {
@@ -157,25 +157,6 @@ QUnit.specify("postal.js", function(){
 			});
 			it("subscription callback should be invoked once", function(){
 				assert(subInvokedCnt).equals(1);
-			});
-		});
-		describe("When subscribing and passing onHandled callback", function(){
-			var whte = false;
-			before(function(){
-				channel = postal.channel({ channel: "MyChannel", topic: "MyTopic" });
-				subscription = channel.subscribe(function(data) {  })
-					.whenHandledThenExecute(function() { whte = true; });
-				channel.publish("Testing123");
-			});
-			after(function(){
-				postal.configuration.bus.subscriptions = {};
-				whte = false;
-			});
-			it("should have an onHandled callback on the subscription", function() {
-				assert(typeof postal.configuration.bus.subscriptions.MyChannel.MyTopic[0].onHandled).equals("function");
-			});
-			it("should have invoked the onHandled callback", function() {
-				assert(whte).isTrue();
 			});
 		});
 		describe("When subscribing with one constraint returning true", function(){
@@ -187,7 +168,7 @@ QUnit.specify("postal.js", function(){
 				channel.publish("Testing123");
 			});
 			after(function(){
-				postal.configuration.bus.subscriptions = {};
+				postal.reset();
 				recvd = false;
 			});
 			it("should have a constraint on the subscription", function() {
@@ -206,7 +187,7 @@ QUnit.specify("postal.js", function(){
 				channel.publish("Testing123");
 			});
 			after(function(){
-				postal.configuration.bus.subscriptions = {};
+				postal.reset();
 				recvd = false;
 			});
 			it("should have a constraint on the subscription", function() {
@@ -227,13 +208,13 @@ QUnit.specify("postal.js", function(){
 				channel.publish("Testing123");
 			});
 			after(function(){
-				postal.configuration.bus.subscriptions = {};
+				postal.reset();
 				recvd = false;
 			});
 			it("should have a constraint on the subscription", function() {
 				assert(postal.configuration.bus.subscriptions.MyChannel.MyTopic[0].constraints.length).equals(3);
 			});
-			it("should have invoked the onHandled callback", function() {
+			it("should have invoked the callback", function() {
 				assert(recvd).isTrue();
 			});
 		});
@@ -248,13 +229,13 @@ QUnit.specify("postal.js", function(){
 				channel.publish("Testing123");
 			});
 			after(function(){
-				postal.configuration.bus.subscriptions = {};
+				postal.reset();
 				recvd = false;
 			});
 			it("should have a constraint on the subscription", function() {
 				assert(postal.configuration.bus.subscriptions.MyChannel.MyTopic[0].constraints.length).equals(3);
 			});
-			it("should not have invoked the onHandled callback", function() {
+			it("should not have invoked the callback", function() {
 				assert(recvd).isFalse();
 			});
 		});
@@ -272,12 +253,50 @@ QUnit.specify("postal.js", function(){
 				channel.publish("Testing123");
 			});
 			after(function(){
-				postal.configuration.bus.subscriptions = {};
+				postal.reset();
 			});
 			it("should have called obj.increment", function() {
 				assert(count).equals(1);
 			});
 		});
+		describe("When subscribing with defer", function(){
+			var results = [];
+			before(function(){
+				channel = postal.channel({ channel: "MyChannel", topic: "MyTopic" });
+				subscription = channel.subscribe(function(data) { results.push("second"); }).defer();
+			});
+			after(function(){
+				postal.reset();
+			});
+			it("should have called obj.increment", function() {
+				channel.publish("Testing123");
+				results.push("first");
+				wait(500, function(){
+					assert(results[0]).equals("first");
+					assert(results[1]).equals("second");
+				});
+			});
+		});
+		describe("When subscribing with delay", function(){
+			var results = [];
+			before(function(){
+				channel = postal.channel({ channel: "MyChannel", topic: "MyTopic" });
+				subscription = channel.subscribe(function(data) { results.push("second"); }).withDelay(500);
+			});
+			after(function(){
+				postal.reset();
+			});
+			it("should have called obj.increment", function() {
+				channel.publish("Testing123");
+				results.push("first");
+				wait(1000, function(){
+					assert(results[0]).equals("first");
+					assert(results[1]).equals("second");
+				});
+			});
+		});
+		// TODO: Add test for debounce
+		// TODO: Add test for throttle
 		describe("When subscribing with a hierarchical binding, no wildcards", function(){
 			var count = 0, channelB, channelC;
 			before(function(){
@@ -290,7 +309,7 @@ QUnit.specify("postal.js", function(){
 				channelC.publish("Testing123");
 			});
 			after(function(){
-				postal.configuration.bus.subscriptions = {};
+				postal.reset();
 				count = 0;
 			});
 			it("should have invoked subscription callback only once", function() {
@@ -310,7 +329,7 @@ QUnit.specify("postal.js", function(){
 				channelD.publish({channel: "MyChannel", topic: "MyTopic.MiddleTopic.SubTopic.YetAnother", data: "Testing123"});
 			});
 			after(function(){
-				postal.configuration.bus.subscriptions = {};
+				postal.reset();
 				count = 0;
 			});
 			it("should have invoked subscription callback only once", function() {
@@ -331,7 +350,7 @@ QUnit.specify("postal.js", function(){
 				channelD.publish("Testing123");
 			});
 			after(function(){
-				postal.configuration.bus.subscriptions = {};
+				postal.reset();
 				count = 0;
 			});
 			it("should have invoked subscription callback twice", function() {
@@ -354,7 +373,7 @@ QUnit.specify("postal.js", function(){
 				channelE.publish({channel: "MyChannel", topic: "OtherTopic.MiddleTopic.SubTopic.YetAnother", data: "Testing123"});
 			});
 			after(function(){
-				postal.configuration.bus.subscriptions = {};
+				postal.reset();
 				count = 0;
 			});
 			it("should have invoked subscription callback twice", function() {
@@ -372,7 +391,7 @@ QUnit.specify("postal.js", function(){
 				postal.publish("MyChannel", "MyTopic", "Testing123");
 			});
 			after(function(){
-				postal.configuration.bus.subscriptions = {};
+				postal.reset();
 			});
 			it("subscription callback should be invoked once", function(){
 				assert(msgReceivedCnt).equals(1);
@@ -391,7 +410,7 @@ QUnit.specify("postal.js", function(){
 				sub = postal.configuration.bus.subscriptions.MyChannel.MyTopic[0];
 			});
 			after(function(){
-				postal.configuration.bus.subscriptions = {};
+				postal.reset();
 			});
 			it("should create an channel called MyChannel", function(){
 				assert(postal.configuration.bus.subscriptions["MyChannel"] !== undefined).isTrue();
@@ -435,7 +454,7 @@ QUnit.specify("postal.js", function(){
 				postal.publish({ topic: "Oh.Hai.There", data: "I'm in yer bus, tappin' yer subscriptionz..."});
 			});
 			after(function(){
-				postal.configuration.bus.subscriptions = {};
+				postal.reset();
 			});
 			it("wire tap should have been invoked only once", function(){
 				assert(wireTapData.length).equals(1);
@@ -466,7 +485,7 @@ QUnit.specify("postal.js", function(){
 					postal.publish("sourceChannel", "Oh.Hai.There", { data: "I'm in yer bus, linkin' to yer subscriptionz..."});
 				});
 				after(function(){
-					postal.configuration.bus.subscriptions = {};
+					postal.reset();
 				});
 				it("linked subscription should only have been invoked once", function(){
 					assert(destData.length).equals(1);
@@ -495,7 +514,7 @@ QUnit.specify("postal.js", function(){
 					postal.publish("sourceChannel", "Oh.Hai.There", { data: "I'm in yer bus, linkin' to yer subscriptionz..."});
 				});
 				after(function(){
-					postal.configuration.bus.subscriptions = {};
+					postal.reset();
 				});
 				it("linked subscription should only have been invoked once", function(){
 					assert(destData.length).equals(1);
@@ -524,7 +543,7 @@ QUnit.specify("postal.js", function(){
 					postal.publish("sourceChannel", "Oh.Hai.There", { data: "I'm in yer bus, linkin' to yer subscriptionz..."});
 				});
 				after(function(){
-					postal.configuration.bus.subscriptions = {};
+					postal.reset();
 				});
 				it("linked subscription should only have been invoked once", function(){
 					assert(destData.length).equals(1);

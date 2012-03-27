@@ -147,14 +147,6 @@ SubscriptionDefinition.prototype = {
 		return this;
 	},
 
-	whenHandledThenExecute: function(callback) {
-		if(! _.isFunction(callback)) {
-			throw "Value provided to 'whenHandledThenExecute' must be a function";
-		}
-		this.onHandled = callback;
-		return this;
-	},
-
 	withConstraint: function(predicate) {
 		if(! _.isFunction(predicate)) {
 			throw "Predicate constraint must be a function";
@@ -191,7 +183,9 @@ SubscriptionDefinition.prototype = {
 		}
 		var fn = this.callback;
 		this.callback = function(data) {
-			setTimeout(fn, milliseconds, data);
+			setTimeout(function(){
+				fn(data);
+			}, milliseconds);
 		};
 		return this;
 	},
@@ -405,6 +399,17 @@ var postal = {
 			});
 		});
 		return result;
+	},
+
+	reset: function() {
+		// we check first in case a custom bus or resolver
+		// doesn't expose subscriptions or a resolver cache
+		if(postal.configuration.bus.subscriptions) {
+			postal.configuration.bus.subscriptions = {};
+		}
+		if(postal.configuration.resolver.cache) {
+			postal.configuration.resolver.cache = {};
+		}
 	}
 };
 
