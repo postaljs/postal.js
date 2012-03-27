@@ -68,11 +68,5 @@ QUnit.specify("postal.js", function(){
 				assert(sDefe.priority).equals(10);
 			});
 		});
-
-		// TODO: Add test for defer
-		// TODO: Add test for debounce
-		// TODO: Add test for throttle
-		// TODO: Add test for delay
-		// TODO: Add test for disposeAfter
 	});
 });

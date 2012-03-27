@@ -13,7 +13,6 @@ QUnit.specify("postal.js", function(){
 					channel: "postal",
 					topic: "subscription.created",
 					callback: function(data, envelope){
-						console.log("on subscription " + JSON.stringify(data));
 						if( data.event &&
 							data.event == "subscription.created" &&
 							data.channel == "MyChannel" &&
@@ -268,7 +267,7 @@ QUnit.specify("postal.js", function(){
 			after(function(){
 				postal.reset();
 			});
-			it("should have called obj.increment", function() {
+			it("should have met expected results", function() {
 				channel.publish("Testing123");
 				results.push("first");
 				wait(500, function(){
@@ -286,7 +285,7 @@ QUnit.specify("postal.js", function(){
 			after(function(){
 				postal.reset();
 			});
-			it("should have called obj.increment", function() {
+			it("should have met expected results", function() {
 				channel.publish("Testing123");
 				results.push("first");
 				wait(1000, function(){
@@ -295,8 +294,53 @@ QUnit.specify("postal.js", function(){
 				});
 			});
 		});
-		// TODO: Add test for debounce
-		// TODO: Add test for throttle
+		describe("When subscribing with debounce", function(){
+			var results = [], debouncedChannel;
+			before(function(){
+				debouncedChannel = postal.channel({ channel: "DebouncedChannel", topic: "MyTopic" });
+				subscription = debouncedChannel.subscribe(function(data) { results.push(data); }).withDebounce(800);
+			});
+			after(function(){
+				postal.reset();
+			});
+			it("should have only invoked debounced callback once", async(function() {
+				debouncedChannel.publish(1); // starts the two second clock on debounce
+				setTimeout(function() { debouncedChannel.publish(2); },   20); // should not invoke callback
+				setTimeout(function() { debouncedChannel.publish(3); },   80); // should not invoke callback
+				setTimeout(function() { debouncedChannel.publish(4); },  250); // should not invoke callback
+				setTimeout(function() { debouncedChannel.publish(5); },  500); // should not invoke callback
+				setTimeout(function() { debouncedChannel.publish(6); }, 1000); // should invoke callback
+				setTimeout(function() {
+					assert(results[0]).equals(6);
+					assert(results.length).equals(1);
+					resume();
+				}, 2400);
+			}));
+		});
+		describe("When subscribing with throttle", function(){
+			var results = [], throttledChannel;
+			before(function(){
+				throttledChannel = postal.channel({ channel: "ThrottledChannel", topic: "MyTopic" });
+				subscription = throttledChannel.subscribe(function(data) { results.push(data); }).withThrottle(500);
+			});
+			after(function(){
+				postal.reset();
+			});
+			it("should have only invoked throttled callback twice", async(function() {
+				throttledChannel.publish(1); // starts the two second clock on debounce
+				setTimeout(function() { throttledChannel.publish(800); }, 800); // should invoke callback
+				for(var i = 0; i < 20; i++) {
+					(function(x) { throttledChannel.publish(x); })(i);
+				}
+				setTimeout(function() {
+					assert(results[0]).equals(1);
+					assert(results[1]).equals(800);
+					assert(results.length).equals(2);
+					resume();
+				}, 1500);
+			}));
+		});
+
 		describe("When subscribing with a hierarchical binding, no wildcards", function(){
 			var count = 0, channelB, channelC;
 			before(function(){
@@ -475,7 +519,6 @@ QUnit.specify("postal.js", function(){
 					linkages;
 				before(function(){
 					linkages = postal.linkChannels({ channel: "sourceChannel" }, { channel: "destinationChannel" });
-					console.log(JSON.stringify(linkages));
 					subscription = postal.subscribe({ channel: "destinationChannel", topic: "Oh.Hai.There", callback: function(data, env) {
 						destData.push(data);
 						destEnv.push(env);
