@@ -174,15 +174,6 @@ SubscriptionDefinition.prototype = {
 		}
 		var fn = this.callback;
 		this.callback = _.debounce(fn, milliseconds);
-		/*this.callback = (function(){
-			var debounced;
-			return function(data) {
-				if(!debounced) {
-					debounced = _.debounce(function() { fn(data); }, milliseconds);
-				}
-				debounced();
-			};
-		})();*/
 		return this;
 	},
 

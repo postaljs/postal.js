@@ -6,7 +6,7 @@ QUnit.specify("postal.js", function(){
 			caughtSubscribeEvent = false,
 			caughtUnsubscribeEvent = false;
 
-		describe("when creating basic subscription", function() {
+		describe("When creating basic subscription", function() {
 			var systemSubscription = {};
 			before(function(){
 				systemSubscription = postal.subscribe({
@@ -57,7 +57,7 @@ QUnit.specify("postal.js", function(){
 				assert(caughtSubscribeEvent).isTrue();
 			});
 		});
-		describe("when unsubscribing", function() {
+		describe("When unsubscribing", function() {
 			var subExistsBefore = false,
 				subExistsAfter = true;
 			var systemSubscription = {};
@@ -270,7 +270,7 @@ QUnit.specify("postal.js", function(){
 			it("should have met expected results", function() {
 				channel.publish("Testing123");
 				results.push("first");
-				wait(500, function(){
+				wait(1, function(){
 					assert(results[0]).equals("first");
 					assert(results[1]).equals("second");
 				});
@@ -340,7 +340,6 @@ QUnit.specify("postal.js", function(){
 				}, 1500);
 			}));
 		});
-
 		describe("When subscribing with a hierarchical binding, no wildcards", function(){
 			var count = 0, channelB, channelC;
 			before(function(){
@@ -424,18 +423,22 @@ QUnit.specify("postal.js", function(){
 				assert(count).equals(2);
 			});
 		});
-		describe("When using shortcut publish api", function(){
+		describe("When using global publish api", function(){
 			var msgReceivedCnt = 0,
 				msgData;
 			before(function(){
-				channel = postal.channel({ channel: "MyChannel", topic: "MyTopic" });
+				channel = postal.channel({ channel: "MyGlobalChannel", topic: "MyTopic" });
 				subscription = channel.subscribe(function(data) { msgReceivedCnt++; msgData = data;});
-				postal.publish("MyChannel", "MyTopic", "Testing123");
+				postal.publish("MyGlobalChannel", "MyTopic", "Testing123");
 				subscription.unsubscribe();
-				postal.publish("MyChannel", "MyTopic", "Testing123");
+				postal.publish("MyGlobalChannel", "MyTopic", "Testing123");
 			});
 			after(function(){
 				postal.reset();
+				msgReceivedCnt = 0;
+			});
+			it("channel should be of type ChannelDefinition", function(){
+				assert(channel instanceof ChannelDefinition).isTrue();
 			});
 			it("subscription callback should be invoked once", function(){
 				assert(msgReceivedCnt).equals(1);
@@ -444,7 +447,7 @@ QUnit.specify("postal.js", function(){
 				assert(msgData).equals("Testing123");
 			});
 		});
-		describe("When using shortcut subscribe api", function(){
+		describe("When using global subscribe api", function(){
 			before(function(){
 				subscription = postal.subscribe({
 					channel: "MyChannel",
@@ -455,6 +458,9 @@ QUnit.specify("postal.js", function(){
 			});
 			after(function(){
 				postal.reset();
+			});
+			it("subscription should be of type SubscriptionDefinition", function(){
+				assert(subscription instanceof SubscriptionDefinition).isTrue();
 			});
 			it("should create an channel called MyChannel", function(){
 				assert(postal.configuration.bus.subscriptions["MyChannel"] !== undefined).isTrue();
@@ -481,7 +487,82 @@ QUnit.specify("postal.js", function(){
 				assert(sub.context).isNull();
 			});
 		});
-		describe("when subscribing and unsubscribing a wire tap", function() {
+		describe("When using global channel api", function(){
+			var gch;
+			describe("With no channel name provided", function(){
+				describe("Using string argument", function(){
+					before(function(){
+						gch = postal.channel("SomeTopic");
+					});
+					after(function(){
+						gch = undefined;
+					});
+					it("channel should be of type ChannelDefinition", function(){
+						assert(gch instanceof ChannelDefinition).isTrue();
+					});
+					it("should set channel name to DEFAULT_CHANNEL", function(){
+						assert(gch.channel).equals(DEFAULT_CHANNEL);
+					});
+					it("should set topic to SomeTopic", function(){
+						assert(gch._topic).equals("SomeTopic");
+					});
+				});
+				describe("Using options (object) argument", function(){
+					before(function(){
+						gch = postal.channel({ topic: "SomeTopic" });
+					});
+					after(function(){
+						gch = undefined;
+					});
+					it("channel should be of type ChannelDefinition", function(){
+						assert(gch instanceof ChannelDefinition).isTrue();
+					});
+					it("should set channel name to DEFAULT_CHANNEL", function(){
+						assert(gch.channel).equals(DEFAULT_CHANNEL);
+					});
+					it("should set topic to SomeTopic", function(){
+						assert(gch._topic).equals("SomeTopic");
+					});
+				});
+			});
+			describe("With channel name provided", function(){
+				describe("Using string arguments", function() {
+					before(function(){
+						gch = postal.channel("SomeChannel", "SomeTopic");
+					});
+					after(function(){
+						gch = undefined;
+					});
+					it("channel should be of type ChannelDefinition", function(){
+						assert(gch instanceof ChannelDefinition).isTrue();
+					});
+					it("should set channel name to SomeChannel", function(){
+						assert(gch.channel).equals("SomeChannel");
+					});
+					it("should set topic to SomeTopic", function(){
+						assert(gch._topic).equals("SomeTopic");
+					});
+				});
+				describe("Using options (object) argument", function() {
+					before(function(){
+						gch = postal.channel({ channel: "SomeChannel", topic: "SomeTopic" });
+					});
+					after(function(){
+						gch = undefined;
+					});
+					it("channel should be of type ChannelDefinition", function(){
+						assert(gch instanceof ChannelDefinition).isTrue();
+					});
+					it("should set channel name to SomeChannel", function(){
+						assert(gch.channel).equals("SomeChannel");
+					});
+					it("should set topic to SomeTopic", function(){
+						assert(gch._topic).equals("SomeTopic");
+					});
+				});
+			});
+		});
+		describe("When subscribing and unsubscribing a wire tap", function() {
 			var wireTapData,
 				wireTapEnvelope,
 				wiretap;
@@ -512,7 +593,7 @@ QUnit.specify("postal.js", function(){
 				assert(wireTapEnvelope[0].topic).equals("Oh.Hai.There");
 			});
 		});
-		describe("when binding channel - one source to one destination", function(){
+		describe("When binding channel - one source to one destination", function(){
 			describe("with only channel values provided", function(){
 				var destData = [],
 					destEnv = [],
@@ -599,6 +680,37 @@ QUnit.specify("postal.js", function(){
 					assert(destEnv[0].channel).equals("destinationChannel");
 					assert(destEnv[0].topic).equals("NewTopic.Oh.Hai.There");
 				});
+			});
+		});
+		describe("When calling postal.reset", function(){
+			var resolver;
+			before(function(){
+				postal.reset();
+				subscription = postal.channel({ channel: "MyChannel", topic: "MyTopic" }).subscribe(function() { });
+				postal.channel({ channel: "MyChannel", topic: "MyTopic" }).publish("Oh Hai!");
+				sub = postal.configuration.bus.subscriptions.MyChannel.MyTopic[0];
+				resolver = postal.configuration.resolver.cache["MyTopic"];
+				postal.reset();
+			});
+			after(function(){
+			});
+			it("should have created a subscription definition", function() {
+				assert(sub.channel).equals("MyChannel");
+				assert(sub.topic).equals("MyTopic");
+				assert(sub.priority).equals(50);
+				assert(sub.constraints.length).equals(0);
+				assert(sub.maxCalls).equals(0);
+				assert(sub.context).isNull();
+			});
+			it("should have created a resolver cache entry", function(){
+				assert(_.isEmpty(resolver)).isFalse();
+				assert(resolver["MyTopic"]).isTrue();
+			});
+			it("subscriptions cache should now be empty", function() {
+				assert(_.isEmpty(postal.configuration.bus.subscriptions)).isTrue();
+			});
+			it("resolver cache should now be empty", function() {
+				assert(_.isEmpty(postal.configuration.resolver.cache)).isTrue();
 			});
 		});
 	});
