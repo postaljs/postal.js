@@ -16,7 +16,7 @@ If you are looking to decouple the various components/libraries/plugins you use 
 Postal.js is in good company - there are many options for pub/sub in the browser.  However, I grew frustrated with most of them because they often closely followed a DOM-eventing-paradigm, instead of providing a more substantial in-memory message bus.  Central to postal.js are two things:
 
 * channels
-* hierarchical topics (which allow plan string or wildcard bindings)
+* hierarchical topics (which allow plain string or wildcard bindings)
 
 ### Channels? WAT?
 A channel is a logical partition of topics.  Conceptually, it's like a dedicated highway for a specific set of communication.  At first glance it might seem like that's overkill for an environment that runs in an event loop, but it actually proves to be quite useful.  Every library has architectural opinions that it either imposes or nudges you toward.  Channel-oriented messaging nudges you to separate your communication by bounded context, and enables the kind of fine-tuned visibility you need into the interactions between components as your application grows.
