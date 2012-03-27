@@ -3,7 +3,7 @@
 ## Version 0.6.0 Release Candidate
 
 ## What is it?
-Postal.js is a JavaScript pub/sub library that can be used in the browser, or on the server-side using Node.js. It extends the "eventing" paradigm most JavaScript developers are already familiar with by providing an in-memory message bus to which your code/components/modules/etc can subscribe & publish.
+Postal.js is a JavaScript pub/sub library that can be used in the browser, or on the server-side using Node.js. It extends the "eventing-style" paradigm most JavaScript developers are already familiar with by providing an in-memory message bus to which your code/components/modules/etc can subscribe & publish.
 
 ## Why would I use it?
 If you are looking to decouple the various components/libraries/plugins you use (client-or-server-side), applying messaging can enable you to not only easily separate concerns, but also enable you to more painlessly plug in additional components/functionality in the future.  A pub/sub library like postal.js can assist you in picking & choosing the libraries that best address the problems you're trying to solve, without burdening you with the requirement that those libraries have to be natively interoperable.  For example:
@@ -19,10 +19,10 @@ Postal.js is in good company - there are many options for pub/sub in the browser
 * hierarchical topics (which allow plan string or wildcard bindings)
 
 ### Channels? WAT?
-A channel is a logical partition of topics.  Conceptually, it's like a dedicated highway for a specific set of communication.  At first glance it might seem like that's overkill for an environment that runs in an event loop, but it actually proves to be quite useful.  Every library has architectural opinions that it either imposes or nudges you toward.  Channel-oriented messaging nudges you to separate your communication by bounded context, and enables you the kind of fine-tuned visibility you need into the interactions between components as your application grows.
+A channel is a logical partition of topics.  Conceptually, it's like a dedicated highway for a specific set of communication.  At first glance it might seem like that's overkill for an environment that runs in an event loop, but it actually proves to be quite useful.  Every library has architectural opinions that it either imposes or nudges you toward.  Channel-oriented messaging nudges you to separate your communication by bounded context, and enables the kind of fine-tuned visibility you need into the interactions between components as your application grows.
 
 ### Hierarchical Topics
-In my experience, seeing publish and subscribe calls all over application logic is usually strong code smell.  Ideally, the majority of message-bus integration should be concealed within app infrastructure.  Have a hierarchical-wildcard-bindable topic system makes it very easy to keep things concise (especially subscribe calls!).  For example, if you have a module that needs to listen to ever message published on the ShoppingCart channel, you'd simply subscribe to "*", and never have to worry about additional subscribes on that channel again - even if you add new messages in the future.  If you need to capture all messages with ".validation" at the end of the topic, you'd simply subscribe to "*.validation".
+In my experience, seeing publish and subscribe calls all over application logic is usually strong code smell.  Ideally, the majority of message-bus integration should be concealed within app infrastructure.  Having a hierarchical-wildcard-bindable topic system makes it very easy to keep things concise (especially subscribe calls!).  For example, if you have a module that needs to listen to ever message published on the ShoppingCart channel, you'd simply subscribe to "*", and never have to worry about additional subscribes on that channel again - even if you add new messages in the future.  If you need to capture all messages with ".validation" at the end of the topic, you'd simply subscribe to "*.validation".
 
 ## How do I use it?
 
