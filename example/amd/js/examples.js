@@ -1,4 +1,5 @@
 define(['postal', 'postaldiags'], function(postal, diags){
+
 	// The world's simplest subscription
 	var channel = postal.channel("Name.Changed");
 	// subscribe

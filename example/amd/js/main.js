@@ -7,8 +7,8 @@ require.config({
 	}
 });
 
-require(['jquery'], function($){
+require( [ 'jquery' ], function( $ ){
 	$(function(){
-		require(['examples']);
+		require( [ 'examples' ] );
 	});
 });

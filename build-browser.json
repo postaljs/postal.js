@@ -1,6 +1,6 @@
 {
     "source": "src/main",
-    "output": "lib/browser",
+    "output": "lib/standard",
     "lint": {},
     "uglify": {},
     "gzip": {},

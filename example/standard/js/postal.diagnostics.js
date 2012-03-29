@@ -1,17 +1,10 @@
-(function(root, doc, factory) {
-	if (typeof define === "function" && define.amd) {
-		// AMD. Register as an anonymous module.
-		define(["postal", "underscore"], function(postal, _) {
-			return factory(postal, _, root, doc);
-		});
-	} else {
-		// Browser globals
-		factory(root.postal, root._, root, doc);
-	}
-}(this, document, function(postal, _, global, document, undefined) {
+// This is the standard lib version of postal.diagnostics.js
+// If you need the amd-module style version, go to http://github.com/ifandelse/postal.js
+(function(postal, _, undefined) {
+
 
 	// this returns a callback that, if invoked, removes the wireTap
-	return postal.addWireTap(function(data, envelope) {
+	postal.diagnostics = postal.addWireTap(function(data, envelope) {
 		var all = _.extend(envelope, { data: data });
 		if(!JSON) {
 			throw "This browser or environment does not provide JSON support";
@@ -30,4 +23,5 @@
 		}
 	});
 
-}));
+
+})( postal, _ );
