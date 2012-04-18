@@ -1,0 +1,51 @@
+body {
+    font-family: Tahoma, Arial;
+    font-size: 9pt;
+}
+
+fieldset {
+    width: 285px;
+    float: left;
+}
+
+.images {
+    height: 48px;
+    width: 48px;
+    border: .5pt solid black;
+}
+
+.scrollableDiv {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 570px;
+}
+
+.top-bar {
+    position: relative;
+    left: 0px;
+    top: 0px;
+    margin-bottom: 25px;
+}
+
+.nav-menu {
+    float: left;
+    margin: 0px;
+    margin-right: 30px;
+}
+
+.nav-menu li {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.search {
+    float: left;
+}
+
+.search input[type='text'] {
+    margin-left: 5px;
+}
+
+#stats {
+
+}

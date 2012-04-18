@@ -18,7 +18,7 @@ ChannelDefinition.prototype = {
 		var envelope = {
 			channel: this.channel,
 			topic: this._topic,
-			data: obj
+			data: obj || {}
 		};
 		// If this is an envelope....
 		if( obj.topic && obj.data ) {
@@ -27,6 +27,7 @@ ChannelDefinition.prototype = {
 		}
 		envelope.timeStamp = new Date();
 		postal.configuration.bus.publish(envelope);
+		return envelope;
 	},
 
 	topic: function(topic) {

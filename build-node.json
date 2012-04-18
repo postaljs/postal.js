@@ -1,5 +1,0 @@
-{
-    "source": "src/main",
-    "output": "lib/node",
-    "lint": {}
-}

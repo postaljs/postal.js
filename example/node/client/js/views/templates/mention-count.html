@@ -1,0 +1,14 @@
+<fieldset>
+	<legend><span>Top Mentioned:</span></legend>
+	<div class="scrollableDiv">
+		<table cellspacing="0">
+			<% _.each( mentions, function( mention ) { %>
+			<tr>
+				<td><img class="images" src="<%= mention.image %>" /></td>
+				<td><span><%= mention.user %></span></td>
+				<td><span><%= mention.count %></span></td>
+			</tr>
+			<% }) %>
+		</table>
+	</div>
+</fieldset>

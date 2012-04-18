@@ -3,6 +3,5 @@
     "output": "lib/standard",
     "lint": {},
     "uglify": {},
-    "gzip": {},
-    "extensions": { "uglify": "min", "gzip": "gz" }
+    "extensions": { "uglify": "min" }
 }

@@ -12,7 +12,7 @@ var localBus = {
 		_.each(this.subscriptions[envelope.channel], function(topic) {
 			_.each(topic, function(subDef){
 				if(postal.configuration.resolver.compare(subDef.topic, envelope.topic)) {
-					if(_.all(subDef.constraints, function(constraint) { return constraint(envelope.data); })) {
+					if(_.all(subDef.constraints, function(constraint) { return constraint(envelope.data,envelope); })) {
 						if(typeof subDef.callback === 'function') {
 							subDef.callback.apply(subDef.context, [envelope.data, envelope]);
 							subDef.onHandled();

@@ -1,0 +1,15 @@
+<div class="top-bar">
+	<ul class="nav-menu">
+		<li><a class="ps-nav" href="">Home</a></li>
+		<li><a class="ps-nav" href="select">Requested Searches<span id="request-indicator"></span></a></li>
+		<li><a class="ps-nav" href="wiretap">Show Wiretap</a></li>
+	</ul>
+
+	<div class="search">Searching Twitter for: <span id="currentSearch"><%= searchTerm %></span></div>
+	<div class="search">
+		<input type="text" id="searchTerm">
+		<input id="btnSearch" type="button" value="Search">
+	</div>
+	<div class="search" id="search-ownership"><%= searchOwnership %></div>
+	<div style="clear:both"></div>
+</div>
