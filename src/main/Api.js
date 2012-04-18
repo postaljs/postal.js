@@ -31,7 +31,7 @@ var publishPicker = {
 				topic   = chn.topic;
 				options = chn.options || options;
 			}
-			return new postal.channelTypes[ options.type || "LocalChannel" ]( channel, topic );
+			return new postal.channelTypes[ options.type || "local" ]( channel, topic );
 		},
 		"2" : function( chn, tpc ) {
 			var channel = chn, topic = tpc, options = {};
@@ -40,12 +40,14 @@ var publishPicker = {
 				topic   = chn;
 				options = tpc;
 			}
-			return new postal.channelTypes[ options.type || "LocalChannel" ]( channel, topic );
+			return new postal.channelTypes[ options.type || "local" ]( channel, topic );
 		},
 		"3" : function( channel, topic, options ) {
-			return new postal.channelTypes[ options.type || "LocalChannel" ]( channel, topic );
+			return new postal.channelTypes[ options.type || "local" ]( channel, topic );
 		}
-	};
+	},
+	sessionId = undefined,
+	lastSessionId = undefined;
 
 // save some setup time, albeit tiny
 localBus.subscriptions[SYSTEM_CHANNEL] = {};
@@ -61,7 +63,7 @@ var postal = {
 	},
 
 	channelTypes: {
-		LocalChannel: ChannelDefinition
+		local: ChannelDefinition
 	},
 
 	channel: function() {
@@ -119,14 +121,60 @@ var postal = {
 		return result;
 	},
 
-	reset: function() {
-		// we check first in case a custom bus or resolver
-		// doesn't expose subscriptions or a resolver cache
-		if(postal.configuration.bus.subscriptions) {
-			postal.configuration.bus.subscriptions = {};
-		}
-		if(postal.configuration.resolver.cache) {
-			postal.configuration.resolver.cache = {};
+	utils: {
+		getSessionId: function( callback ) {
+			callback( sessionId );
+		},
+
+		getLastSessionId: function( callback ) {
+			callback( lastSessionId );
+		},
+
+		setSessionId: function( value, callback ) {
+			lastSessionId = sessionId;
+			sessionId = value;
+			if( callback ) {
+				callback();
+			}
+		},
+
+		getSubscribersFor: function() {
+			var channel = arguments[ 0 ],
+				tpc = arguments[ 1 ],
+				result = [];
+			if( arguments.length === 1 ) {
+				if( Object.prototype.toString.call( channel ) === "[object String]" ) {
+					channel = postal.configuration.DEFAULT_CHANNEL;
+					tpc = arguments[ 0 ];
+				}
+				else {
+					channel = arguments[ 0 ].channel || postal.configuration.DEFAULT_CHANNEL;
+					tpc = arguments[ 0 ].topic;
+				}
+			}
+			if( postal.configuration.bus.subscriptions[ channel ] &&
+				postal.configuration.bus.subscriptions[ channel ].hasOwnProperty( tpc )) {
+				result = postal.configuration.bus.subscriptions[ channel ][ tpc ];
+			}
+			return result;
+		},
+
+		reset: function( callback ) {
+			// we check first in case a custom bus or resolver
+			// doesn't expose subscriptions or a resolver cache
+			if(postal.configuration.bus.subscriptions) {
+				_.each( postal.configuration.bus.subscriptions , function( channel ){
+					_.each( channel, function( topic ){
+						while( topic.length ) {
+							topic.pop().unsubscribe();
+						}
+					});
+				});
+				postal.configuration.bus.subscriptions = {};
+			}
+			if(postal.configuration.resolver.cache) {
+				postal.configuration.resolver.cache = {};
+			}
 		}
 	}
 };

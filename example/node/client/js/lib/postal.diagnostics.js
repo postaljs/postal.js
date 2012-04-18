@@ -10,15 +10,15 @@ define(["postal", "underscore"], function(postal, _, undefined) {
 			throw "This browser or environment does not provide JSON support";
 		}
 		try {
-			//console.log(JSON.stringify(all));
+			console.log(JSON.stringify(all));
 		}
 		catch(exception) {
 			try {
 				all.data = "ERROR: " + exception.message;
-				//console.log(JSON.stringify(all));
+				console.log(JSON.stringify(all));
 			}
 			catch(ex) {
-				//console.log("Unable to parse data to JSON: " + exception);
+				console.log("Unable to parse data to JSON: " + exception);
 			}
 		}
 	});

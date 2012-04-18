@@ -27,9 +27,9 @@ QUnit.specify("postal.js", function(){
 			});
 			after(function(){
 				systemSubscription.unsubscribe();
-				postal.reset();
+				postal.utils.reset();
 			});
-			it("should create an channel called MyChannel", function(){
+			it("should create a channel called MyChannel", function(){
 				assert(postal.configuration.bus.subscriptions["MyChannel"] !== undefined).isTrue();
 			});
 			it("should create a topic under MyChannel called MyTopic", function(){
@@ -82,7 +82,7 @@ QUnit.specify("postal.js", function(){
 			});
 			after(function(){
 				systemSubscription.unsubscribe();
-				postal.reset();
+				postal.utils.reset();
 			});
 			it("subscription should exist before unsubscribe", function(){
 				assert(subExistsBefore).isTrue();
@@ -105,7 +105,7 @@ QUnit.specify("postal.js", function(){
 				channel.publish("Testing123");
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 			});
 			it("subscription callback should be invoked once", function(){
 				assert(msgReceivedCnt).equals(1);
@@ -128,7 +128,7 @@ QUnit.specify("postal.js", function(){
 				channel.publish("Testing123");
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 			});
 			it("subscription callback should be invoked 5 times", function(){
 				assert(msgReceivedCnt).equals(5);
@@ -148,7 +148,7 @@ QUnit.specify("postal.js", function(){
 				channel.publish("Testing123");
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 				subInvokedCnt = 0;
 			});
 			it("should have a constraint on the subscription", function() {
@@ -167,7 +167,7 @@ QUnit.specify("postal.js", function(){
 				channel.publish("Testing123");
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 				recvd = false;
 			});
 			it("should have a constraint on the subscription", function() {
@@ -186,7 +186,7 @@ QUnit.specify("postal.js", function(){
 				channel.publish("Testing123");
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 				recvd = false;
 			});
 			it("should have a constraint on the subscription", function() {
@@ -207,7 +207,7 @@ QUnit.specify("postal.js", function(){
 				channel.publish("Testing123");
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 				recvd = false;
 			});
 			it("should have a constraint on the subscription", function() {
@@ -228,7 +228,7 @@ QUnit.specify("postal.js", function(){
 				channel.publish("Testing123");
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 				recvd = false;
 			});
 			it("should have a constraint on the subscription", function() {
@@ -252,7 +252,7 @@ QUnit.specify("postal.js", function(){
 				channel.publish("Testing123");
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 			});
 			it("should have called obj.increment", function() {
 				assert(count).equals(1);
@@ -265,7 +265,7 @@ QUnit.specify("postal.js", function(){
 				subscription = channel.subscribe(function(data) { results.push("second"); }).defer();
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 			});
 			it("should have met expected results", function() {
 				channel.publish("Testing123");
@@ -283,7 +283,7 @@ QUnit.specify("postal.js", function(){
 				subscription = channel.subscribe(function(data) { results.push("second"); }).withDelay(500);
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 			});
 			it("should have met expected results", function() {
 				channel.publish("Testing123");
@@ -301,7 +301,7 @@ QUnit.specify("postal.js", function(){
 				subscription = debouncedChannel.subscribe(function(data) { results.push(data); }).withDebounce(800);
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 			});
 			it("should have only invoked debounced callback once", async(function() {
 				debouncedChannel.publish(1); // starts the two second clock on debounce
@@ -324,7 +324,7 @@ QUnit.specify("postal.js", function(){
 				subscription = throttledChannel.subscribe(function(data) { results.push(data); }).withThrottle(500);
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 			});
 			it("should have only invoked throttled callback twice", async(function() {
 				throttledChannel.publish(1); // starts the two second clock on debounce
@@ -352,7 +352,7 @@ QUnit.specify("postal.js", function(){
 				channelC.publish("Testing123");
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 				count = 0;
 			});
 			it("should have invoked subscription callback only once", function() {
@@ -372,7 +372,7 @@ QUnit.specify("postal.js", function(){
 				channelD.publish({channel: "MyChannel", topic: "MyTopic.MiddleTopic.SubTopic.YetAnother", data: "Testing123"});
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 				count = 0;
 			});
 			it("should have invoked subscription callback only once", function() {
@@ -393,7 +393,7 @@ QUnit.specify("postal.js", function(){
 				channelD.publish("Testing123");
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 				count = 0;
 			});
 			it("should have invoked subscription callback twice", function() {
@@ -416,7 +416,7 @@ QUnit.specify("postal.js", function(){
 				channelE.publish({channel: "MyChannel", topic: "OtherTopic.MiddleTopic.SubTopic.YetAnother", data: "Testing123"});
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 				count = 0;
 			});
 			it("should have invoked subscription callback twice", function() {
@@ -434,7 +434,7 @@ QUnit.specify("postal.js", function(){
 				postal.publish("MyGlobalChannel", "MyTopic", "Testing123");
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 				msgReceivedCnt = 0;
 			});
 			it("channel should be of type ChannelDefinition", function(){
@@ -457,7 +457,7 @@ QUnit.specify("postal.js", function(){
 				sub = postal.configuration.bus.subscriptions.MyChannel.MyTopic[0];
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 			});
 			it("subscription should be of type SubscriptionDefinition", function(){
 				assert(subscription instanceof SubscriptionDefinition).isTrue();
@@ -579,7 +579,7 @@ QUnit.specify("postal.js", function(){
 				postal.publish({ topic: "Oh.Hai.There", data: "I'm in yer bus, tappin' yer subscriptionz..."});
 			});
 			after(function(){
-				postal.reset();
+				postal.utils.reset();
 			});
 			it("wire tap should have been invoked only once", function(){
 				assert(wireTapData.length).equals(1);
@@ -609,7 +609,7 @@ QUnit.specify("postal.js", function(){
 					postal.publish("sourceChannel", "Oh.Hai.There", { data: "I'm in yer bus, linkin' to yer subscriptionz..."});
 				});
 				after(function(){
-					postal.reset();
+					postal.utils.reset();
 				});
 				it("linked subscription should only have been invoked once", function(){
 					assert(destData.length).equals(1);
@@ -638,7 +638,7 @@ QUnit.specify("postal.js", function(){
 					postal.publish("sourceChannel", "Oh.Hai.There", { data: "I'm in yer bus, linkin' to yer subscriptionz..."});
 				});
 				after(function(){
-					postal.reset();
+					postal.utils.reset();
 				});
 				it("linked subscription should only have been invoked once", function(){
 					assert(destData.length).equals(1);
@@ -667,7 +667,7 @@ QUnit.specify("postal.js", function(){
 					postal.publish("sourceChannel", "Oh.Hai.There", { data: "I'm in yer bus, linkin' to yer subscriptionz..."});
 				});
 				after(function(){
-					postal.reset();
+					postal.utils.reset();
 				});
 				it("linked subscription should only have been invoked once", function(){
 					assert(destData.length).equals(1);
@@ -682,15 +682,15 @@ QUnit.specify("postal.js", function(){
 				});
 			});
 		});
-		describe("When calling postal.reset", function(){
+		describe("When calling postal.utils.reset", function(){
 			var resolver;
 			before(function(){
-				postal.reset();
+				postal.utils.reset();
 				subscription = postal.channel({ channel: "MyChannel", topic: "MyTopic" }).subscribe(function() { });
 				postal.channel({ channel: "MyChannel", topic: "MyTopic" }).publish("Oh Hai!");
 				sub = postal.configuration.bus.subscriptions.MyChannel.MyTopic[0];
 				resolver = postal.configuration.resolver.cache["MyTopic"];
-				postal.reset();
+				postal.utils.reset();
 			});
 			after(function(){
 			});
@@ -711,6 +711,73 @@ QUnit.specify("postal.js", function(){
 			});
 			it("resolver cache should now be empty", function() {
 				assert(_.isEmpty(postal.configuration.resolver.cache)).isTrue();
+			});
+		});
+		describe("When calling postal.utils.getSessionId", function() {
+			var sid, last;
+			describe("with default implementation", function() {
+				describe("before any value is set", function() {
+					it("should have an initial value of undefined", async(function(){
+						postal.utils.getSessionId(function(id){
+							sid = id;
+							assert(sid == undefined).isTrue();
+							resume();
+						})
+					}));
+				});
+				describe("after a value is set", function(){
+					it("should have a value matching expected result", async(function(){
+						postal.utils.setSessionId("123456", function() {
+							postal.utils.getSessionId(function(id){
+								sid = id;
+								postal.utils.getLastSessionId(function(last){
+									assert(last == undefined).isTrue();
+									assert(sid).equals("123456");
+									resume();
+								});
+							});
+						});
+					}));
+				});
+				describe( "after a value is set a second time", function(){
+					it( "should have a value matching expected result", async( function(){
+						postal.utils.setSessionId( "98765", function() {
+							postal.utils.getSessionId( function( id ){
+								sid = id;
+								postal.utils.getLastSessionId( function( last ){
+									assert( last ).equals( "123456" );
+									assert( sid ).equals( "98765" );
+									resume();
+								});
+							});
+						});
+					}));
+				});
+			});
+		});
+		describe("When calling utils.getSubscribersFor", function() {
+			var subs = [], i;
+			before(function(){
+				i = 10;
+				var ch1 = postal.channel({ channel: "MyChannel", topic: "MyTopic" }),
+					ch2 = postal.channel({ channel: "MyChannel2", topic: "MyTopic2" });
+				while(i) {
+					subs.push(ch1.subscribe(function() { }));
+					subs.push(ch2.subscribe(function() { }));
+					i--;
+				}
+			});
+			after(function(){
+				sub = [];
+				postal.utils.reset();
+			});
+			it("should return expected results for MyChannel/MyTopic", function(){
+				var results = postal.utils.getSubscribersFor({ channel: "MyChannel", topic: "MyTopic" });
+				assert(results.length).equals(10);
+			});
+			it("should return expected results for MyChannel2/MyTopic2", function(){
+				var results = postal.utils.getSubscribersFor({ channel: "MyChannel2", topic: "MyTopic2" });
+				assert(results.length).equals(10);
 			});
 		});
 	});
