@@ -17,5 +17,9 @@ var bindingsResolver = {
 			this.cache[topic][binding] = true;
 		}
 		return result;
+	},
+
+	reset: function() {
+		this.cache = {};
 	}
 };

@@ -60,10 +60,10 @@ var RemoteClientProxy = function( postal, socketClient, bridge ) {
 					"*" : function() {
 						this.deferUntilTransition();
 					},
-					clientId : function( data ) {
-						this.sessionId = data.sessionId;
-						if( bridge.enableMigration && data.lastSessionId && data.lastSessionId !== data.sessionId ) {
-							this.lastSessionId = data.lastSessionId;
+					clientId : function( session ) {
+						this.sessionId = session.id;
+						if( bridge.enableMigration && session.lastId && session.lastId !== session.id ) {
+							this.lastSessionId = session.lastId;
 							this.transition( "migrating" );
 						}
 						else {

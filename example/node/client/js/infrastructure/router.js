@@ -7,7 +7,7 @@ define([
 	return Backbone.Router.extend({
 		routes: {
 			""          : "home",
-			"select"    : "select",
+			"requests"  : "requests",
 			"wiretap"   : "wiretap",
 			"*anything" : "redirect"
 		},
@@ -37,8 +37,8 @@ define([
 			this.activateUI( "homeUI" );
 		},
 
-		select: function() {
-			this.activateUI( "statSelectionUI" );
+		requests: function() {
+			this.activateUI( "searchRequestUI" );
 		},
 
 		wiretap: function() {

@@ -10,14 +10,15 @@ define( [
 				sessionId: "",
 				searchOwnership: "",
 				searchTerm: "",
-				requests: []
+				requests: false
 			},
 
 			initialize: function() {
 				_.bindAll( this );
 				this.subscriptions = [
-					bus.app.subscribe( "search.info", this.setCurrentSearch ),
-					bus.app.subscribe( "search.new.ask", this.updateRequests )
+					bus.app.subscribe( "search.info", this.setCurrentSearch ).defer(),
+					bus.app.subscribe( "search.new.ask", this.updateReqCount).defer(),
+					bus.app.subscribe( "search.requests", this.updateReqCount ).defer()
 				];
 				bus.app.publish({
 					topic: "get.search.info",
@@ -35,11 +36,11 @@ define( [
 			setCurrentSearch: function( data, env ) {
 				var self = this;
 				self.set( "searchTerm", data.searchTerm );
-				postal.configuration.getSessionIdentifier(
-					function( id ) {
-						self.set( "sessionId", id, { silent: true } );
+				postal.utils.getSessionId(
+					function( session ) {
+						self.set( "sessionId", session.id, { silent: true } );
 						self.set( "searchOwnership",
-							(id === data.id)
+							(session.id === data.id)
 								? "You own the search."
 								: "You do not own the search."
 						);
@@ -47,15 +48,14 @@ define( [
 				);
 			},
 
-			updateRequests: function( data, env ) {
-				var reqs = this.get( "requests" );
-				if( !_.any( reqs, function( req ){
-					return req.correlationId === data.correlationId &&
-						req.searchTerm === data.searchTerm
-				})) {
-					reqs.push( data );
-					this.set( "requests", _.sortBy( reqs, function( item ) { return item.searchTerm; } ) );
+			updateReqCount: function( data, env ) {
+				if((_.isArray(data) && data.length) || data.searchTerm) {
+					this.set("requests", true);
 				}
+				else {
+					this.set("requests", false);
+				}
+				this.change("requests");
 			}
 		});
 	});

@@ -54,6 +54,8 @@ var TwitterSocketStats = function( port, refreshinterval ) {
 
 		searchAgent: new BusAdapter(new TwitterSearch( refreshinterval), searchChannel, searchChannel ),
 
+		requestedSearches: [],
+
 		stats: collectors.load( searchChannel, statsChannel ),
 
 		postal: postal,
@@ -75,7 +77,8 @@ var TwitterSocketStats = function( port, refreshinterval ) {
 				id: correlationId,
 				searchTerm: searchTerm
 			};
-			this.searchAgent.search(searchTerm);
+			this.searchAgent.search( searchTerm );
+			this.removeSearchRequest( correlationId, searchTerm );
 			this.appChannel.publish({
 				topic: "search.info",
 				data: this.currentSearch
@@ -88,6 +91,35 @@ var TwitterSocketStats = function( port, refreshinterval ) {
 				correlationId: env.correlationId,
 				data: this.currentSearch
 			});
+		},
+
+		getSearchRequests: function ( env ) {
+			env || (env = {});
+			this.appChannel.publish({
+				topic: "search.requests",
+				correlationId: env.correlationId,
+				data: this.requestedSearches
+			});
+		},
+
+		addSearchRequest: function(  correlationId, searchTerm  ) {
+			if( !_.any( this.searchRequests, function( item ) {
+				return item.correlationId === request.correlationId &&
+					item.searchTerm === request.searchTerm;
+			})) {
+				this.requestedSearches.push( { correlationId: correlationId, searchTerm: searchTerm } );
+			}
+		},
+
+		removeSearchRequest: function ( correlationId, searchTerm ) {
+			if(_.any( this.requestedSearches, function ( item ) {
+				return item.correlationId = correlationId && item.searchTerm === searchTerm;
+			})) {
+				this.requestedSearches = _.filter( this.requestedSearches, function ( item ){
+					return item.correlationId !== correlationId && item.searchTerm !== searchTerm;
+				});
+				this.getSearchRequests();
+			}
 		},
 
 		states: {
@@ -113,14 +145,15 @@ var TwitterSocketStats = function( port, refreshinterval ) {
 			},
 			searching: {
 				"search.new.request" : function( data, envelope ) {
-					if(envelope.correlationId === this.currentSearch.id) {
+					if( envelope.correlationId === this.currentSearch.id ) {
 						this.setSearch( envelope.correlationId, data.searchTerm );
 					}
 					else {
+						this.addSearchRequest( envelope.correlationId, data.searchTerm );
 						this.appChannel.publish({
 							topic: "search.new.ask",
 							data: {
-								correlationId: this.currentSearch.id,
+								correlationId: envelope.correlationId,
 								searchTerm: data.searchTerm
 							}
 						});
@@ -133,6 +166,9 @@ var TwitterSocketStats = function( port, refreshinterval ) {
 				},
 				"get.search.info": function( data, env ) {
 					this.getSearchInfo( env );
+				},
+				"get.search.requests": function( data, env ) {
+					this.getSearchRequests( env );
 				},
 				"get.available" : function( data, envelope ) {
 					this.getAvailableStats( envelope.correlationId );

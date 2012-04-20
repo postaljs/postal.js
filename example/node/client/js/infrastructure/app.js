@@ -10,19 +10,14 @@ define([
 	'views/mention-count',
 	'views/mentioner-count',
 	'views/hash-tag-count',
-	'views/profanity-percentage'
+	'views/profanity-percentage',
+	'views/search-requests'
 ], function( $, Backbone, bus, Router, ViewManager, ContainerView, MenuView, TweetCountView, MentionCountView,
-	MentionerCountView, HashTagCountView, ProfanityPercentage ) {
+	MentionerCountView, HashTagCountView, ProfanityPercentage, SearchRequestView ) {
 	var app = {
 		bus: bus,
 		router: new Router()
 	};
-
-	postal.configuration.getSessionIdentifier(
-		function( id ) {
-			console.log("SessionID: " + id);
-		}
-	);
 
 	// Set up UI concerns
 	app.viewManager = new ViewManager();
@@ -37,11 +32,12 @@ define([
 		{ name:  "mentionCount",        ctor: MentionCountView    },
 		{ name:  "mentionerCount",      ctor: MentionerCountView  },
 		{ name:  "hashTagCount",        ctor: HashTagCountView    },
-		{ name:  "profanityPercentage", ctor: ProfanityPercentage }
+		{ name:  "profanityPercentage", ctor: ProfanityPercentage },
+		{ name:  "searchRequests",      ctor: SearchRequestView   }
 	]);
 	app.viewManager.defineUIs([
 		{ name: "homeUI",          dependencies: [ "container", "menu", "tweetCount", "mentionCount", "mentionerCount", "hashTagCount", "profanityPercentage" ] },
-		{ name: "statSelectionUI", dependencies: [ "container", "menu" ] },
+		{ name: "searchRequestUI", dependencies: [ "container", "menu", "searchRequests" ] },
 		{ name: "wireTapLogUI",    dependencies: [ "menu" ], options: { noHide: true } }
 	]);
 

@@ -17,40 +17,6 @@
 	}
 }(this, document, function( _, machina, postal, global, document, undefined ) {
 
-	var sessionId = undefined;
-
-	// Default implementation passes back undefined, which means
-	// the socket.io socket sessionid will be used....
-	postal.configuration.getSessionIdentifier = function( callback ) {
-		callback( sessionId );
-	};
-
-	postal.configuration.setSessionIdentifier = function( value ) {
-		sessionId = value;
-	};
-	
-	postal.configuration.lastSessionId = null;
-	
-	postal.getSubscribersFor = function() {
-		var channel = arguments[ 0 ],
-			tpc = arguments[ 1 ],
-			result = [];
-		if( arguments.length === 1 ) {
-			if( Object.prototype.toString.call( channel ) === "[object String]" ) {
-				channel = postal.configuration.DEFAULT_CHANNEL;
-				tpc = arguments[ 0 ];
-			}
-			else {
-				channel = arguments[ 0 ].channel || postal.configuration.DEFAULT_CHANNEL;
-				tpc = arguments[ 0 ].topic;
-			}
-		}
-		if( postal.configuration.bus.subscriptions[ channel ] &&
-			postal.configuration.bus.subscriptions[ channel ].hasOwnProperty( tpc )) {
-			result = postal.configuration.bus.subscriptions[ channel ][ tpc ];
-		}
-		return result;
-	};
 	/*
 		adding a socket namespace to postal
 		which provides the following members:
@@ -84,6 +50,9 @@
 		var socketNamespace,
 			fsm = new machina.Fsm({
 				retryFn: undefined,
+	
+				session: undefined,
+	
 				wireUpSocketEvents: function() {
 					var self = this;
 					_.each([ "connect", "connecting", "connect_failed", "disconnect", "reconnect", "reconnect_failed",
@@ -94,6 +63,7 @@
 							});
 						});
 				},
+	
 				states: {
 					uninitialized: {
 						tryConnect: function() {
@@ -104,7 +74,7 @@
 						_onEnter: function() {
 							socketNamespace = io.connect(postalSocket.config.url, { "auto connect": false });
 							this.wireUpSocketEvents();
-							this.transition("probing");
+							this.transition("probing")
 						},
 						socketTransmit: function() {
 							this.deferUntilTransition("online");
@@ -116,9 +86,12 @@
 							if(!socketNamespace.socket.connecting && !socketNamespace.socket.reconnecting) {
 								socketNamespace.socket.connect();
 							}
+							else {
+								this.transition("settingSessionInfo");
+							}
 						},
 						connect: function(){
-							this.transition("identifying");
+							this.transition("settingSessionInfo");
 						},
 						connect_failed: function() {
 							this.transition("disconnected");
@@ -130,7 +103,7 @@
 							this.deferUntilTransition("online");
 						},
 						reconnect: function(){
-							this.transition("identifying");
+							this.transition("settingSessionInfo");
 						},
 						reconnect_failed: function() {
 							this.transition("disconnected");
@@ -139,24 +112,40 @@
 							this.deferUntilTransition("online");
 						}
 					},
+					settingSessionInfo: {
+						_onEnter: function() {
+							var self = this;
+							postal.utils.getSessionId( function( session ) {
+								if( !session || !session.id ) {
+									self.handle("useFallbackSessionId" );
+								} else {
+									self.session = session;
+									self.transition("identifying");
+								}
+							});
+						},
+						useFallbackSessionId : function () {
+							var self = this;
+							postal.utils.setSessionId( socketNamespace.socket.sessionid , function( session ) {
+								self.session = session;
+								self.transition("identifying");
+							});
+						}
+					},
 					identifying: {
 						_onEnter: function() {
 							var self = this;
 							self.retryFn = setTimeout(function() {
 								self.handle( "timeout.identifying" );
 							},postalSocket.config.reconnectInterval );
-							postal.configuration.getSessionIdentifier( function( id ) {
-								if( !id ) {
-									postal.configuration.setSessionIdentifier( socketNamespace.socket.sessionid );
-								}
-								self.handle( "client.identifier", { sessionId: id || socketNamespace.socket.sessionid } );
-							});
+							self.handle( "client.identifier" );
 						},
-						"client.identifier" : function( data ) {
+						"client.identifier" : function() {
 							clearTimeout( this.retryFn );
-							var lastSessionId = postal.configuration.lastSessionId;
-							postal.configuration.lastSessionId = data.sessionId;
-							socketNamespace.emit( "postal.clientId", { sessionId: postal.configuration.lastSessionId, lastSessionId: lastSessionId } );
+							socketNamespace.emit( "postal.clientId", { sessionId: this.session.id, lastSessionId: this.session.lastId } );
+						},
+						"postal.session.changed" : function() {
+							socketNamespace.socket.disconnect();
 						},
 						connect_failed: function() {
 							this.transition("disconnected");
@@ -184,7 +173,7 @@
 								// we risk mutating the message here, so extend
 								// and add the correlationId to the extended copy
 								var socketEnv = _.extend( {}, envelope );
-								socketEnv.correlationId = postal.configuration.lastSessionId;
+								socketEnv.correlationId = this.session.id;
 								socketNamespace.emit(evntName, socketEnv);
 							}
 							else {
@@ -199,6 +188,9 @@
 						disconnect: function() {
 							this.transition("probing");
 						},
+						"postal.session.changed" : function() {
+							socketNamespace.socket.disconnect();
+						},
 						goOffline: function() {
 							this.transition("offline");
 						},
@@ -209,7 +201,7 @@
 							// we risk mutating the message here, so extend
 							// and add the correlationId to the extended copy
 							var socketEnv = _.extend( {}, envelope );
-							socketEnv.correlationId = postal.configuration.lastSessionId;
+							socketEnv.correlationId = this.session.id;
 							socketNamespace.emit(evntName, socketEnv);
 						}
 					},
@@ -243,6 +235,13 @@
 					}
 				}
 			});
+		postal.subscribe({
+			channel: "postal",
+			topic: "sessionId.changed",
+			callback: function() {
+				fsm.handle("postal.session.changed");
+			}
+		});
 		return {
 			config : {
 				url: window.location.origin,

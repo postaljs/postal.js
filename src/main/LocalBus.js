@@ -1,8 +1,15 @@
 var localBus = {
 
-	subscriptions: {},
-
-	wireTaps: new Array(0),
+	addWireTap: function(callback) {
+		var self = this;
+		self.wireTaps.push(callback);
+		return function() {
+			var idx = self.wireTaps.indexOf(callback);
+			if(idx !== -1) {
+				self.wireTaps.splice(idx,1);
+			}
+		};
+	},
 
 	publish: function(envelope) {
 		_.each(this.wireTaps,function(tap) {
@@ -21,6 +28,19 @@ var localBus = {
 				}
 			});
 		});
+	},
+
+	reset: function() {
+		if( this.subscriptions ) {
+			_.each( this.subscriptions , function( channel ){
+				_.each( channel, function( topic ){
+					while( topic.length ) {
+						topic.pop().unsubscribe();
+					}
+				});
+			});
+			this.subscriptions = {};
+		}
 	},
 
 	subscribe: function(subDef) {
@@ -48,6 +68,10 @@ var localBus = {
 		return subDef;
 	},
 
+	subscriptions: {},
+
+	wireTaps: new Array(0),
+
 	unsubscribe: function(config) {
 		if(this.subscriptions[config.channel][config.topic]) {
 			var len = this.subscriptions[config.channel][config.topic].length,
@@ -59,16 +83,5 @@ var localBus = {
 				}
 			}
 		}
-	},
-
-	addWireTap: function(callback) {
-		var self = this;
-		self.wireTaps.push(callback);
-		return function() {
-			var idx = self.wireTaps.indexOf(callback);
-			if(idx !== -1) {
-				self.wireTaps.splice(idx,1);
-			}
-		};
 	}
 };

@@ -1,3 +1,4 @@
+QUnit.reorder = false;
 QUnit.specify("postal.js", function(){
 	describe("Postal", function(){
 		var subscription,
@@ -713,71 +714,85 @@ QUnit.specify("postal.js", function(){
 				assert(_.isEmpty(postal.configuration.resolver.cache)).isTrue();
 			});
 		});
-		describe("When calling postal.utils.getSessionId", function() {
-			var sid, last;
-			describe("with default implementation", function() {
-				describe("before any value is set", function() {
-					it("should have an initial value of undefined", async(function(){
-						postal.utils.getSessionId(function(id){
-							sid = id;
-							assert(sid == undefined).isTrue();
+		describe( "When calling postal.utils.getSessionInfo", function() {
+			describe( "with default implementation", function() {
+				describe( "before any value is set", function() {
+					it( "should have an initial value of undefined", async( function(){
+						postal.utils.getSessionId( function( info ){
+							assert( _.isEmpty( info ) ).isTrue();
 							resume();
 						})
 					}));
 				});
-				describe("after a value is set", function(){
-					it("should have a value matching expected result", async(function(){
-						postal.utils.setSessionId("123456", function() {
-							postal.utils.getSessionId(function(id){
-								sid = id;
-								postal.utils.getLastSessionId(function(last){
-									assert(last == undefined).isTrue();
-									assert(sid).equals("123456");
-									resume();
-								});
-							});
+				describe( "after a value is set", function(){
+					before(function(){
+						postal.subscribe({
+							channel: SYSTEM_CHANNEL,
+							topic: "sessionId.changed",
+							callback: function( data, env ) {
+								assert( data.lastId == undefined ).isTrue();
+								assert( data.id ).equals( "123456" );
+								resume();
+							}
+						});
+					});
+					after(function() {
+				        postal.utils.reset();
+					});
+					it( "should have a value matching expected result", async( function(){
+						postal.utils.setSessionId( "123456", function( info ) {
+							assert( info.lastId == undefined ).isTrue();
+							assert( info.id ).equals( "123456" );
 						});
 					}));
 				});
 				describe( "after a value is set a second time", function(){
+					before(function(){
+						postal.subscribe({
+							channel: SYSTEM_CHANNEL,
+							topic: "sessionId.changed",
+							callback: function( data, env ) {
+								assert( data.lastId ).equals( "123456" );
+								assert( data.id ).equals( "98765" );
+								resume();
+							}
+						});
+					});
+					after(function() {
+						postal.utils.reset();
+					});
 					it( "should have a value matching expected result", async( function(){
-						postal.utils.setSessionId( "98765", function() {
-							postal.utils.getSessionId( function( id ){
-								sid = id;
-								postal.utils.getLastSessionId( function( last ){
-									assert( last ).equals( "123456" );
-									assert( sid ).equals( "98765" );
-									resume();
-								});
-							});
+						postal.utils.setSessionId( "98765", function( info ) {
+							assert( info.lastId ).equals( "123456" );
+							assert( info.id ).equals( "98765" );
 						});
 					}));
 				});
 			});
 		});
-		describe("When calling utils.getSubscribersFor", function() {
+		describe( "When calling utils.getSubscribersFor", function() {
 			var subs = [], i;
-			before(function(){
+			before( function(){
 				i = 10;
 				var ch1 = postal.channel({ channel: "MyChannel", topic: "MyTopic" }),
 					ch2 = postal.channel({ channel: "MyChannel2", topic: "MyTopic2" });
 				while(i) {
-					subs.push(ch1.subscribe(function() { }));
-					subs.push(ch2.subscribe(function() { }));
+					subs.push( ch1.subscribe( function() { }));
+					subs.push( ch2.subscribe( function() { }));
 					i--;
 				}
 			});
-			after(function(){
+			after( function(){
 				sub = [];
 				postal.utils.reset();
 			});
-			it("should return expected results for MyChannel/MyTopic", function(){
+			it( "should return expected results for MyChannel/MyTopic", function(){
 				var results = postal.utils.getSubscribersFor({ channel: "MyChannel", topic: "MyTopic" });
-				assert(results.length).equals(10);
+				assert( results.length ).equals( 10 );
 			});
-			it("should return expected results for MyChannel2/MyTopic2", function(){
+			it( "should return expected results for MyChannel2/MyTopic2", function(){
 				var results = postal.utils.getSubscribersFor({ channel: "MyChannel2", topic: "MyTopic2" });
-				assert(results.length).equals(10);
+				assert( results.length ).equals( 10 );
 			});
 		});
 	});

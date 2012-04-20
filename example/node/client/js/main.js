@@ -19,12 +19,12 @@ require( [ 'backbone', 'jquery', 'underscore', 'machina', 'postal', 'lib/postal.
 		// for debugging purposes ONLY for now:
 		window.postal = postal;
 
-		postal.addWireTap( function( d, e ){
-			if( e.topic === "search.info" ) {
+		/*postal.addWireTap( function( d, e ){
+			if( /search/.test(e.topic) ) {
 				console.log( JSON.stringify( e ) );
 			}
 		});
-
+*/
 		postal.connections.socket.socketMgr.on( "*", function( evnt, data ){
 			var args = [].slice.call( arguments,1 );
 			if( args[0] === "postal.remote" ) {

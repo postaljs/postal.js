@@ -45,8 +45,7 @@ define( [
 			updateView: function() {
 				this.$el.find( "#currentSearch" ).text( this.model.get("searchTerm") );
 				this.$el.find( "#search-ownership").text( this.model.get("searchOwnership" ));
-				var reqs = this.model.get("requests").length
-				this.$el.find( "#request-indicator").text( reqs ? " *" : "" );
+				this.$el.find( "#request-indicator").text( this.model.get("requests") ? " *" : "" );
 			}
 		} );
 	} );

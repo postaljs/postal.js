@@ -1,5 +1,3 @@
-var _ = require('underscore');
-
-module.exports = function(postal) {
+module.exports = function( _, postal ) {
 	//import("postal.diagnostics.js");
 };
