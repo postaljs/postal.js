@@ -1,10 +1,12 @@
 {
-    "source": "src/main",
-    "output": "lib/standard",
-    "lint": {},
-    "uglify": {},
-    "extensions": { "uglify": "min" },
-	"hosts": {
+	"source" : "src/main",
+	"output" : "lib/standard",
+	"lint" : {},
+	"uglify" : {},
+	"extensions" : {
+		"uglify" : "min"
+	},
+	"hosts" : {
 		"/" : "./"
 	},
 	"port" : 8080

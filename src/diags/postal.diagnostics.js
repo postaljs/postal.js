@@ -58,13 +58,13 @@ postal.diagnostics.console = {
 		if ( !_.isArray( constraint ) ) {
 			constraint = [ constraint ];
 		}
-		_.each( constraint, function( item ){
+		_.each( constraint, function ( item ) {
 			if ( filters.length === 0 || !_.any( filters, function ( filter ) {
 				return _.isEqual( filter, item );
 			} ) ) {
 				filters.push( item );
 			}
-		});
+		} );
 
 	},
 	getCurrentFilters : function () {

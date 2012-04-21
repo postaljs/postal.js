@@ -1,4 +1,4 @@
-define([
+define( [
 	'jquery',
 	'backbone',
 	'bus',
@@ -12,41 +12,40 @@ define([
 	'views/hash-tag-count',
 	'views/profanity-percentage',
 	'views/search-requests'
-], function( $, Backbone, bus, Router, ViewManager, ContainerView, MenuView, TweetCountView, MentionCountView,
-	MentionerCountView, HashTagCountView, ProfanityPercentage, SearchRequestView ) {
+], function ( $, Backbone, bus, Router, ViewManager, ContainerView, MenuView, TweetCountView, MentionCountView, MentionerCountView, HashTagCountView, ProfanityPercentage, SearchRequestView ) {
 	var app = {
-		bus: bus,
-		router: new Router()
+		bus : bus,
+		router : new Router()
 	};
 
 	// Set up UI concerns
 	app.viewManager = new ViewManager();
-	app.bus.viewManager.subscribe( "ui.show", function( data, env ) {
+	app.bus.viewManager.subscribe( "ui.show", function ( data, env ) {
 		app.viewManager.UI[ data.name ].activate( data.context );
-	});
+	} );
 
-	app.viewManager.registerViews([
-		{ name:  "container",           ctor: ContainerView       },
-		{ name:  "menu",                ctor: MenuView            },
-		{ name:  "tweetCount",          ctor: TweetCountView      },
-		{ name:  "mentionCount",        ctor: MentionCountView    },
-		{ name:  "mentionerCount",      ctor: MentionerCountView  },
-		{ name:  "hashTagCount",        ctor: HashTagCountView    },
-		{ name:  "profanityPercentage", ctor: ProfanityPercentage },
-		{ name:  "searchRequests",      ctor: SearchRequestView   }
-	]);
-	app.viewManager.defineUIs([
-		{ name: "homeUI",          dependencies: [ "container", "menu", "tweetCount", "mentionCount", "mentionerCount", "hashTagCount", "profanityPercentage" ] },
-		{ name: "searchRequestUI", dependencies: [ "container", "menu", "searchRequests" ] },
-		{ name: "wireTapLogUI",    dependencies: [ "menu" ], options: { noHide: true } }
-	]);
+	app.viewManager.registerViews( [
+		{ name : "container", ctor : ContainerView       },
+		{ name : "menu", ctor : MenuView            },
+		{ name : "tweetCount", ctor : TweetCountView      },
+		{ name : "mentionCount", ctor : MentionCountView    },
+		{ name : "mentionerCount", ctor : MentionerCountView  },
+		{ name : "hashTagCount", ctor : HashTagCountView    },
+		{ name : "profanityPercentage", ctor : ProfanityPercentage },
+		{ name : "searchRequests", ctor : SearchRequestView   }
+	] );
+	app.viewManager.defineUIs( [
+		{ name : "homeUI", dependencies : [ "container", "menu", "tweetCount", "mentionCount", "mentionerCount", "hashTagCount", "profanityPercentage" ] },
+		{ name : "searchRequestUI", dependencies : [ "container", "menu", "searchRequests" ] },
+		{ name : "wireTapLogUI", dependencies : [ "menu" ], options : { noHide : true } }
+	] );
 
-	$(function() {
-		Backbone.history.start({
-			pushState: true,
-			root: $( "base" ).attr( "href" )
-		});
-	});
+	$( function () {
+		Backbone.history.start( {
+			pushState : true,
+			root : $( "base" ).attr( "href" )
+		} );
+	} );
 
 	return app;
-});
+} );

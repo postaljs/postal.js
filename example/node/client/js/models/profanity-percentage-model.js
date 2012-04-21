@@ -2,35 +2,43 @@ define( [
 	'backbone',
 	'bus'
 ],
-	function( Backbone, bus ) {
+	function ( Backbone, bus ) {
 		"use strict";
 
-		return Backbone.Model.extend({
-			defaults: {
-				percentage: "",
-				clean: "",
-				explicit: "",
-				total: ""
+		return Backbone.Model.extend( {
+			defaults : {
+				percentage : "",
+				clean : "",
+				explicit : "",
+				total : ""
 			},
 
-			initialize: function() {
+			initialize : function () {
 				var self = this;
 				this.subscriptions = [
-					bus.stats.subscribe( "profanity-percentage", function( data, env ){
-						self.set("percentage", data.percentage, { silent: true });
-						self.set("clean", data.clean, { silent: true });
-						self.set("explicit", data.explicit, { silent: true });
-						self.set("total", data.clean + data.explicit, { silent: true });
+					bus.stats.subscribe( "profanity-percentage", function ( data, env ) {
+						self.set( "percentage", data.percentage, { silent : true } );
+						self.set( "clean", data.clean, { silent : true } );
+						self.set( "explicit", data.explicit, { silent : true } );
+						self.set( "total", data.clean + data.explicit, { silent : true } );
 						self.change();
-					})
+					} ),
+					bus.app.subscribe( "search.init", function () {
+						console.log( "PROF PERF - SEARCH INIT!" );
+						self.set( "percentage", "", { silent : true } );
+						self.set( "clean", "", { silent : true } );
+						self.set( "explicit", "", { silent : true } );
+						self.set( "total", "", { silent : true } );
+						self.change();
+					} )
 				];
 			},
 
-			dispose: function(){
-				_.each( this.subscriptions, function( subscription ){
+			dispose : function () {
+				_.each( this.subscriptions, function ( subscription ) {
 					subscription.unsubscribe();
-				});
-				this.clear( { silent: true } );
+				} );
+				this.clear( { silent : true } );
 			}
-		});
-	});
+		} );
+	} );

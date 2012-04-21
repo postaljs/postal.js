@@ -1,1 +1,3 @@
-result=(function(){ return 1;})()
+result = (function () {
+	return 1;
+})()

@@ -1,1 +1,2 @@
-var s,i;s="",i=0
+var s, i;
+s = "", i = 0

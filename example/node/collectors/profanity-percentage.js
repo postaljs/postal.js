@@ -34,70 +34,69 @@ var _badWords = [
 		/\bpiss\b/,
 		/\bpissing\b/
 	],
-	_ = require('underscore'),
-	ProfanityPercentage = function(namespace) {
+	_ = require( 'underscore' ),
+	ProfanityPercentage = function ( namespace ) {
 		this.namespace = namespace;
 
 		this.events = {};
 
-	    this.profanityStats = { clean: 0, explicit: 0 };
+		this.profanityStats = { clean : 0, explicit : 0 };
 
-	    this.lastStats = undefined;
+		this.lastStats = undefined;
 	};
 
 ProfanityPercentage.prototype = {
-	init: function() {
-		this.profanityStats = { clean: 0, explicit: 0 };
+	init : function () {
+		this.profanityStats = { clean : 0, explicit : 0 };
 		this.lastStats = undefined;
 	},
-	on: function( eventName, callback ) {
-		if( !this.events[ eventName ] ) {
+	on : function ( eventName, callback ) {
+		if ( !this.events[ eventName ] ) {
 			this.events[ eventName ] = [];
 		}
 		this.events[ eventName ].push( callback );
-		return function() {
+		return function () {
 			this.events[ eventName ] = _.without( this.events[ eventName ], callback );
 		}.bind( this );
 	},
-	raiseEvent: function( eventName, data ) {
-		if( this.events[ eventName ] ) {
-			this.events[ eventName ].forEach( function( callback ){
+	raiseEvent : function ( eventName, data ) {
+		if ( this.events[ eventName ] ) {
+			this.events[ eventName ].forEach( function ( callback ) {
 				callback( data );
-			});
+			} );
 		}
 	},
-	hasProfanity: function(text) {
-		for(var i = 0; i < _badWords.length; i++) {
-			if(text.search(_badWords[i]) !== -1)
-			{
+	hasProfanity : function ( text ) {
+		for ( var i = 0; i < _badWords.length; i++ ) {
+			if ( text.search( _badWords[i] ) !== -1 ) {
 				return true;
 			}
 		}
 		return false;
 	},
-	getPercentage: function() {
+	getPercentage : function () {
 		var total = (this.profanityStats.clean + this.profanityStats.explicit);
-		if(total === 0) {
+		if ( total === 0 ) {
 			return 0;
 		}
 		else {
-			return ((this.profanityStats.explicit / total) * 100).toFixed(2);
+			return ((this.profanityStats.explicit / total) * 100).toFixed( 2 );
 		}
 	},
-	processNewTweets: function(tweets) {
-		tweets.forEach(function(tweet){
-			this.profanitize(tweet);
-		}, this);
+	processNewTweets : function ( tweets ) {
+		tweets.forEach( function ( tweet ) {
+			this.profanitize( tweet );
+		}, this );
 		this.lastStats = {
-			type: "ProfanityPercentage",
-			percentage: this.getPercentage(),
-			clean: this.profanityStats.clean,
-			explicit: this.profanityStats.explicit
+			type : "ProfanityPercentage",
+			percentage : this.getPercentage(),
+			clean : this.profanityStats.clean,
+			explicit : this.profanityStats.explicit
 		};
 		this.raiseEvent( this.namespace, this.lastStats );
 	},
-	profanitize: function(tweet) {
-		if(this.hasProfanity(tweet.text)) {
+	profanitize : function ( tweet ) {
+		if ( this.hasProfanity( tweet.text ) ) {
 			this.profanityStats.explicit++;
 		}
 		else {

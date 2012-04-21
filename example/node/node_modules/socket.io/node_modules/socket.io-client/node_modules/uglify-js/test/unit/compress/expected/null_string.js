@@ -1,1 +1,1 @@
-var nullString="\0"
+var nullString = "\0"

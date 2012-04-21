@@ -1,14 +1,14 @@
-var DistinctPredicate = function() {
+var DistinctPredicate = function () {
 	var previous;
-	return function(data) {
+	return function ( data ) {
 		var eq = false;
-		if(_.isString(data)) {
+		if ( _.isString( data ) ) {
 			eq = data === previous;
 			previous = data;
 		}
 		else {
-			eq = _.isEqual(data, previous);
-			previous = _.clone(data);
+			eq = _.isEqual( data, previous );
+			previous = _.clone( data );
 		}
 		return !eq;
 	};

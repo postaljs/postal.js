@@ -1,4 +1,4 @@
-var _ = require("underscore"),
+var _ = require( "underscore" ),
 	express = require( 'express' ),
 	app = express.createServer(),
 	postal = require( "./messaging/postal.js" ),
@@ -9,21 +9,21 @@ var _ = require("underscore"),
 	BusAdapter = require( './messaging/bus-adapter.js' ),
 	machina = require( './machina.js' );
 
-postal.addWireTap( function( data, envelope ){
-	if( envelope.channel === "stats" /*|| envelope.channel === "twittersearch"*/ ) {
+postal.addWireTap( function ( data, envelope ) {
+	if ( envelope.channel === "stats" /*|| envelope.channel === "twittersearch"*/ ) {
 		var env = _.extend( {}, envelope );
 		delete env.data;
 		console.log( JSON.stringify( env ) );
 	}
-	else if (_.include(["postal.socket", "postal", "app", "app.events"], envelope.channel) ) {
+	else if ( _.include( ["postal.socket", "postal", "app", "app.events"], envelope.channel ) ) {
 		console.log( JSON.stringify( envelope ) );
 	}
-});
+} );
 
 // wire machina FSMs into postal automagically
 require( './messaging/machina.postal.js' )( postal, machina );
 
-var TwitterSocketStats = function( port, refreshinterval ) {
+var TwitterSocketStats = function ( port, refreshinterval ) {
 	// Stand up our express app
 	app.use( "/", express.static( __dirname + '/client' ) );
 	app.listen( port );
@@ -31,162 +31,164 @@ var TwitterSocketStats = function( port, refreshinterval ) {
 		statsChannel = postal.channel( "stats", "*" ),
 		appChannel = postal.channel( "statsApp", "*" );
 
-	postal.linkChannels( { channel: "postal.socket", topic: "client.migrated"}, { channel: "statsApp", topic: "client.migrated" } );
+	postal.linkChannels( { channel : "postal.socket", topic : "client.migrated"}, { channel : "statsApp", topic : "client.migrated" } );
 
-	return new machina.Fsm({
+	return new machina.Fsm( {
 
-		namespace: "statsApp",
+		namespace : "statsApp",
 
-		currentSearch: {
-			id: null,
-			searchTerm: "{ Search Not Active }"
+		currentSearch : {
+			id : null,
+			searchTerm : "{ Search Not Active }"
 		},
 
-		searchRequests: {},
+		searchRequests : {},
 
-		express: app,
+		express : app,
 
-		appChannel: appChannel,
+		appChannel : appChannel,
 
-		searchChannel: searchChannel,
+		searchChannel : searchChannel,
 
-		statsChannel: statsChannel,
+		statsChannel : statsChannel,
 
-		searchAgent: new BusAdapter(new TwitterSearch( refreshinterval), searchChannel, searchChannel ),
+		searchAgent : new BusAdapter( new TwitterSearch( refreshinterval ), searchChannel, searchChannel ),
 
-		requestedSearches: [],
+		requestedSearches : [],
 
-		stats: collectors.load( searchChannel, statsChannel ),
+		stats : collectors.load( searchChannel, statsChannel ),
 
-		postal: postal,
+		postal : postal,
 
-		bridge: new PostalSocketHost( postal, sockets.getSocketProvider( postal, app ) ),
+		bridge : new PostalSocketHost( postal, sockets.getSocketProvider( postal, app ) ),
 
-		getAvailableStats: function( clientId ) {
-			this.appChannel.publish({
-				topic: "available.topics",
-				correlationId: clientId,
-				data: {
-					topics:_.toArray(this.stats).map(function(stat) { return { channel: "stats", topic: stat.namespace }; })
+		getAvailableStats : function ( clientId ) {
+			this.appChannel.publish( {
+				topic : "available.topics",
+				correlationId : clientId,
+				data : {
+					topics : _.toArray( this.stats ).map( function ( stat ) {
+						return { channel : "stats", topic : stat.namespace };
+					} )
 				}
-			});
+			} );
 		},
 
-		setSearch: function( correlationId, searchTerm ) {
+		setSearch : function ( correlationId, searchTerm ) {
 			this.currentSearch = {
-				id: correlationId,
-				searchTerm: searchTerm
+				id : correlationId,
+				searchTerm : searchTerm
 			};
 			this.searchAgent.search( searchTerm );
 			this.removeSearchRequest( correlationId, searchTerm );
-			this.appChannel.publish({
-				topic: "search.info",
-				data: this.currentSearch
-			});
+			this.appChannel.publish( {
+				topic : "search.info",
+				data : this.currentSearch
+			} );
 		},
 
-		getSearchInfo: function( env ) {
-			this.appChannel.publish({
-				topic: "search.info",
-				correlationId: env.correlationId,
-				data: this.currentSearch
-			});
+		getSearchInfo : function ( env ) {
+			this.appChannel.publish( {
+				topic : "search.info",
+				correlationId : env.correlationId,
+				data : this.currentSearch
+			} );
 		},
 
-		getSearchRequests: function ( env ) {
+		getSearchRequests : function ( env ) {
 			env || (env = {});
-			this.appChannel.publish({
-				topic: "search.requests",
-				correlationId: env.correlationId,
-				data: this.requestedSearches
-			});
+			this.appChannel.publish( {
+				topic : "search.requests",
+				correlationId : env.correlationId,
+				data : this.requestedSearches
+			} );
 		},
 
-		addSearchRequest: function(  correlationId, searchTerm  ) {
-			if( !_.any( this.searchRequests, function( item ) {
+		addSearchRequest : function ( correlationId, searchTerm ) {
+			if ( !_.any( this.searchRequests, function ( item ) {
 				return item.correlationId === request.correlationId &&
-					item.searchTerm === request.searchTerm;
-			})) {
-				this.requestedSearches.push( { correlationId: correlationId, searchTerm: searchTerm } );
+				       item.searchTerm === request.searchTerm;
+			} ) ) {
+				this.requestedSearches.push( { correlationId : correlationId, searchTerm : searchTerm } );
 			}
 		},
 
-		removeSearchRequest: function ( correlationId, searchTerm ) {
-			if(_.any( this.requestedSearches, function ( item ) {
+		removeSearchRequest : function ( correlationId, searchTerm ) {
+			if ( _.any( this.requestedSearches, function ( item ) {
 				return item.correlationId = correlationId && item.searchTerm === searchTerm;
-			})) {
-				this.requestedSearches = _.filter( this.requestedSearches, function ( item ){
+			} ) ) {
+				this.requestedSearches = _.filter( this.requestedSearches, function ( item ) {
 					return item.correlationId !== correlationId && item.searchTerm !== searchTerm;
-				});
+				} );
 				this.getSearchRequests();
 			}
 		},
 
-		states: {
-			uninitialized: {
-				start: function() {
-					this.transition("notSearching");
+		states : {
+			uninitialized : {
+				start : function () {
+					this.transition( "notSearching" );
 				},
-				"*" : function() {
+				"*" : function () {
 					this.deferUntilTransition();
 				}
 			},
-			notSearching: {
-				"search.new.request" : function( data, envelope ) {
+			notSearching : {
+				"search.new.request" : function ( data, envelope ) {
 					this.setSearch( envelope.correlationId, data.searchTerm );
-					this.transition("searching");
+					this.transition( "searching" );
 				},
-				"get.search.info": function( data, env ) {
+				"get.search.info" : function ( data, env ) {
 					this.getSearchInfo( env );
 				},
-				"get.available" : function( data, envelope ) {
+				"get.available" : function ( data, envelope ) {
 					this.getAvailableStats( envelope.correlationId );
 				}
 			},
-			searching: {
-				"search.new.request" : function( data, envelope ) {
-					if( envelope.correlationId === this.currentSearch.id ) {
+			searching : {
+				"search.new.request" : function ( data, envelope ) {
+					if ( envelope.correlationId === this.currentSearch.id ) {
 						this.setSearch( envelope.correlationId, data.searchTerm );
 					}
 					else {
 						this.addSearchRequest( envelope.correlationId, data.searchTerm );
-						this.appChannel.publish({
-							topic: "search.new.ask",
-							data: {
-								correlationId: envelope.correlationId,
-								searchTerm: data.searchTerm
+						this.appChannel.publish( {
+							topic : "search.new.ask",
+							data : {
+								correlationId : envelope.correlationId,
+								searchTerm : data.searchTerm
 							}
-						});
+						} );
 					}
 				},
-				"search.new.confirm" : function( data, envelope ) {
-					if( envelope.correlationId === this.currentSearch.id ) {
+				"search.new.confirm" : function ( data, envelope ) {
+					if ( envelope.correlationId === this.currentSearch.id ) {
 						this.setSearch( data.correlationId, data.searchTerm );
 					}
 				},
-				"get.search.info": function( data, env ) {
+				"get.search.info" : function ( data, env ) {
 					this.getSearchInfo( env );
 				},
-				"get.search.requests": function( data, env ) {
+				"get.search.requests" : function ( data, env ) {
 					this.getSearchRequests( env );
 				},
-				"get.available" : function( data, envelope ) {
+				"get.available" : function ( data, envelope ) {
 					this.getAvailableStats( envelope.correlationId );
 				},
-				"client.migrated" : function( data, envelope ) {
-					if( data.lastSessionId === this.currentSearch.id ) {
+				"client.migrated" : function ( data, envelope ) {
+					if ( data.lastSessionId === this.currentSearch.id ) {
 						this.currentSearch.id = data.sessionId;
 					}
 				}
 			}
 		}
-	});
+	} );
 };
 
 var x = module.exports = new TwitterSocketStats( 8002, 7000 );
 
-x.on("*", function(evnt, data){
-	console.log("FSM Event: " + evnt + " - " + JSON.stringify([].slice.call(arguments,1)));
-});
+x.on( "*", function ( evnt, data ) {
+	console.log( "FSM Event: " + evnt + " - " + JSON.stringify( [].slice.call( arguments, 1 ) ) );
+} );
 
-x.handle("start");
+x.handle( "start" );

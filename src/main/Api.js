@@ -1,48 +1,48 @@
 var publishPicker = {
-		"1" : function(envelope) {
-			if(!envelope) {
-				throw new Error("publishing from the 'global' postal.publish call requires a valid envelope.");
+		"1" : function ( envelope ) {
+			if ( !envelope ) {
+				throw new Error( "publishing from the 'global' postal.publish call requires a valid envelope." );
 			}
 			envelope.channel = envelope.channel || DEFAULT_CHANNEL;
 			envelope.timeStamp = new Date();
-			postal.configuration.bus.publish(envelope);
-			return envelope;
-		},
-		"2" : function(topic, data) {
-			var envelope = { channel: DEFAULT_CHANNEL, topic: topic, timeStamp: new Date(), data: data };
 			postal.configuration.bus.publish( envelope );
 			return envelope;
 		},
-		"3" : function(channel, topic, data) {
-			var envelope = { channel: channel, topic: topic, timeStamp: new Date(), data: data };
+		"2" : function ( topic, data ) {
+			var envelope = { channel : DEFAULT_CHANNEL, topic : topic, timeStamp : new Date(), data : data };
+			postal.configuration.bus.publish( envelope );
+			return envelope;
+		},
+		"3" : function ( channel, topic, data ) {
+			var envelope = { channel : channel, topic : topic, timeStamp : new Date(), data : data };
 			postal.configuration.bus.publish( envelope );
 			return envelope;
 		}
 	},
 	channelPicker = {
-		"1" : function( chn ) {
+		"1" : function ( chn ) {
 			var channel = chn, topic, options = {};
-			if( Object.prototype.toString.call( channel ) === "[object String]" ) {
+			if ( Object.prototype.toString.call( channel ) === "[object String]" ) {
 				channel = DEFAULT_CHANNEL;
-				topic   = chn;
+				topic = chn;
 			}
 			else {
 				channel = chn.channel || DEFAULT_CHANNEL;
-				topic   = chn.topic;
+				topic = chn.topic;
 				options = chn.options || options;
 			}
 			return new postal.channelTypes[ options.type || "local" ]( channel, topic );
 		},
-		"2" : function( chn, tpc ) {
+		"2" : function ( chn, tpc ) {
 			var channel = chn, topic = tpc, options = {};
-			if( Object.prototype.toString.call( tpc ) === "[object Object]" ) {
+			if ( Object.prototype.toString.call( tpc ) === "[object Object]" ) {
 				channel = DEFAULT_CHANNEL;
-				topic   = chn;
+				topic = chn;
 				options = tpc;
 			}
 			return new postal.channelTypes[ options.type || "local" ]( channel, topic );
 		},
-		"3" : function( channel, topic, options ) {
+		"3" : function ( channel, topic, options ) {
 			return new postal.channelTypes[ options.type || "local" ]( channel, topic );
 		}
 	},
@@ -52,110 +52,110 @@ var publishPicker = {
 localBus.subscriptions[SYSTEM_CHANNEL] = {};
 
 var postal = {
-	configuration: {
-		bus: localBus,
-		resolver: bindingsResolver,
-		getSessionIdAction: function( callback ) {
+	configuration : {
+		bus : localBus,
+		resolver : bindingsResolver,
+		getSessionIdAction : function ( callback ) {
 			callback( sessionInfo );
 		},
-		setSessionIdAction: function( info, callback ) {
+		setSessionIdAction : function ( info, callback ) {
 			sessionInfo = info;
 			callback( sessionInfo );
 		},
-		DEFAULT_CHANNEL: DEFAULT_CHANNEL,
-		DEFAULT_PRIORITY: DEFAULT_PRIORITY,
-		DEFAULT_DISPOSEAFTER: DEFAULT_DISPOSEAFTER,
-		SYSTEM_CHANNEL: SYSTEM_CHANNEL
+		DEFAULT_CHANNEL : DEFAULT_CHANNEL,
+		DEFAULT_PRIORITY : DEFAULT_PRIORITY,
+		DEFAULT_DISPOSEAFTER : DEFAULT_DISPOSEAFTER,
+		SYSTEM_CHANNEL : SYSTEM_CHANNEL
 	},
 
-	channelTypes: {
-		local: ChannelDefinition
+	channelTypes : {
+		local : ChannelDefinition
 	},
 
-	channel: function() {
+	channel : function () {
 		var len = arguments.length;
-		if(channelPicker[len]) {
-			return channelPicker[len].apply(this, arguments);
+		if ( channelPicker[len] ) {
+			return channelPicker[len].apply( this, arguments );
 		}
 	},
 
-	subscribe: function(options) {
+	subscribe : function ( options ) {
 		var callback = options.callback,
 			topic = options.topic,
 			channel = options.channel || DEFAULT_CHANNEL;
-		return new SubscriptionDefinition(channel, topic, callback);
+		return new SubscriptionDefinition( channel, topic, callback );
 	},
 
-	publish: function() {
+	publish : function () {
 		var len = arguments.length;
-		if(publishPicker[len]) {
-			return publishPicker[len].apply(this, arguments);
+		if ( publishPicker[len] ) {
+			return publishPicker[len].apply( this, arguments );
 		}
 	},
 
-	addWireTap: function(callback) {
-		return this.configuration.bus.addWireTap(callback);
+	addWireTap : function ( callback ) {
+		return this.configuration.bus.addWireTap( callback );
 	},
 
-	linkChannels: function(sources, destinations) {
+	linkChannels : function ( sources, destinations ) {
 		var result = [];
-		if(!_.isArray(sources)) {
+		if ( !_.isArray( sources ) ) {
 			sources = [sources];
 		}
-		if(!_.isArray(destinations)) {
+		if ( !_.isArray( destinations ) ) {
 			destinations = [destinations];
 		}
-		_.each(sources, function(source){
+		_.each( sources, function ( source ) {
 			var sourceTopic = source.topic || "*";
-			_.each(destinations, function(destination) {
+			_.each( destinations, function ( destination ) {
 				var destChannel = destination.channel || DEFAULT_CHANNEL;
 				result.push(
-					postal.subscribe({
-						channel: source.channel || DEFAULT_CHANNEL,
-						topic: source.topic || "*",
-						callback : function(data, env) {
+					postal.subscribe( {
+						channel : source.channel || DEFAULT_CHANNEL,
+						topic : source.topic || "*",
+						callback : function ( data, env ) {
 							var newEnv = env;
-							newEnv.topic = _.isFunction(destination.topic) ? destination.topic(env.topic) : destination.topic || env.topic;
+							newEnv.topic = _.isFunction( destination.topic ) ? destination.topic( env.topic ) : destination.topic || env.topic;
 							newEnv.channel = destChannel;
 							newEnv.data = data;
-							postal.publish(newEnv);
+							postal.publish( newEnv );
 						}
-					})
+					} )
 				);
-			});
-		});
+			} );
+		} );
 		return result;
 	},
 
-	utils: {
-		getSessionId: function( callback ) {
+	utils : {
+		getSessionId : function ( callback ) {
 			postal.configuration.getSessionIdAction.call( this, callback );
 		},
 
-		setSessionId: function( value, callback ) {
-			postal.utils.getSessionId( function( info ) {
+		setSessionId : function ( value, callback ) {
+			postal.utils.getSessionId( function ( info ) {
 				// get the session info to move id to last id
 				info.lastId = info.id;
 				info.id = value;
 				// invoke the callback the user provided to handle storing session
-				postal.configuration.setSessionIdAction( info, function( session ) {
+				postal.configuration.setSessionIdAction( info, function ( session ) {
 					callback( session );
 					// publish postal event msg about the change
-					postal.publish({
-						channel: SYSTEM_CHANNEL,
-						topic: "sessionId.changed",
-						data: session
-					});
+					postal.publish( {
+						channel : SYSTEM_CHANNEL,
+						topic : "sessionId.changed",
+						data : session
+					} );
 				} );
-			});
+			} );
 		},
 
-		getSubscribersFor: function() {
+		getSubscribersFor : function () {
 			var channel = arguments[ 0 ],
 				tpc = arguments[ 1 ],
 				result = [];
-			if( arguments.length === 1 ) {
-				if( Object.prototype.toString.call( channel ) === "[object String]" ) {
+			if ( arguments.length === 1 ) {
+				if ( Object.prototype.toString.call( channel ) === "[object String]" ) {
 					channel = postal.configuration.DEFAULT_CHANNEL;
 					tpc = arguments[ 0 ];
 				}
@@ -164,14 +164,14 @@ var postal = {
 					tpc = arguments[ 0 ].topic;
 				}
 			}
-			if( postal.configuration.bus.subscriptions[ channel ] &&
-				postal.configuration.bus.subscriptions[ channel ].hasOwnProperty( tpc )) {
+			if ( postal.configuration.bus.subscriptions[ channel ] &&
+			     postal.configuration.bus.subscriptions[ channel ].hasOwnProperty( tpc ) ) {
 				result = postal.configuration.bus.subscriptions[ channel ][ tpc ];
 			}
 			return result;
 		},
 
-		reset: function() {
+		reset : function () {
 			postal.configuration.bus.reset();
 			postal.configuration.resolver.reset();
 		}

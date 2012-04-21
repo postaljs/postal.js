@@ -1,52 +1,52 @@
-define([
+define( [
 	'jquery',
 	'backbone',
 	'bus'
-], function( $, Backbone, bus ){
+], function ( $, Backbone, bus ) {
 
-	return Backbone.Router.extend({
-		routes: {
-			""          : "home",
-			"requests"  : "requests",
-			"wiretap"   : "wiretap",
+	return Backbone.Router.extend( {
+		routes : {
+			"" : "home",
+			"requests" : "requests",
+			"wiretap" : "wiretap",
 			"*anything" : "redirect"
 		},
 
-		initialize: function() {
+		initialize : function () {
 			var self = this;
 			_.bindAll( self );
 
-			$( document ).delegate( "a.ps-nav", "click", function( e ){
+			$( document ).delegate( "a.ps-nav", "click", function ( e ) {
 				e.preventDefault();
-				self.navigate( $( this ).attr( 'href' ), { trigger: true });
-			});
+				self.navigate( $( this ).attr( 'href' ), { trigger : true } );
+			} );
 			bus.router.publish( "initialized" );
 		},
 
-		activateUI: function( uiName, context ) {
-			bus.viewManager.publish({
-				topic: "ui.show",
-				data: {
-					name: uiName,
-					context: context
+		activateUI : function ( uiName, context ) {
+			bus.viewManager.publish( {
+				topic : "ui.show",
+				data : {
+					name : uiName,
+					context : context
 				}
-			});
+			} );
 		},
 
-		home: function() {
+		home : function () {
 			this.activateUI( "homeUI" );
 		},
 
-		requests: function() {
+		requests : function () {
 			this.activateUI( "searchRequestUI" );
 		},
 
-		wiretap: function() {
+		wiretap : function () {
 			this.activateUI( "wireTapLogUI" );
 		},
 
-		redirect: function() {
-			this.navigate( "/", { trigger: true });
+		redirect : function () {
+			this.navigate( "/", { trigger : true } );
 		}
-	});
-});
+	} );
+} );
