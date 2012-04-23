@@ -2,7 +2,7 @@
 
 ## Explanation
 
-As much as I want to convince you that this sample app was written with you in mind, I'd be lying if I said so.  The browser examples in this repo are currently "bare bones", with no real usage examples beyond calling the API in broswer js and then calling it a day.  I wanted to demonstrate node.js usage of postal as well, and that gave birth to this example project.
+As much as I want to convince you that this sample app was written with you in mind, I'd be lying if I said so.  The browser examples in this repo are currently "bare bones", with no real usage examples beyond calling the API in browser js and then calling it a day.  I wanted to demonstrate node.js usage of postal as well, and that gave birth to this example project.
 
 ### The Good, the Bad & the Caveats
 
@@ -10,7 +10,7 @@ The Good:
 
 * You'll see postal.js used in node.js and in the browser (#winning?)
 * This is way beyond a hello world example
-* The browser and node.js postal instances are being *bridge* by a websocket connection
+* The browser and node.js postal instances are being *bridge* by a websocket connection (geek brownie points, FTW)
 * I demonstrate a general usage pattern I've fallen into with the node.js side of things, which I call "Local message bus at boundaries, events internal."
 	* Note that the node/messaging/ folder contains "bus-adapter.js" and "collector-adapter.js"
 	* These modules exist to adapt other bus-agnostics modules to postal.js
