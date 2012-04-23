@@ -19,15 +19,6 @@ require( [ 'backbone', 'jquery', 'underscore', 'amplify', 'machina', 'postal', '
 		// for debugging purposes ONLY for now:
 		window.postal = postal;
 
-		postal.configuration.getSessionIdAction = function ( callback ) {
-			callback( amplify.store( "postal.session" ) || {} );
-		};
-
-		postal.configuration.setSessionIdAction = function ( info, callback ) {
-			amplify.store( "postal.session", info );
-			callback( amplify.store( "postal.session", info ) );
-		};
-
 		require( [ 'infrastructure/app' ], function ( app ) {
 			window.app = app;
 		} );

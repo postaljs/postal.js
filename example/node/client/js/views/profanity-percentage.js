@@ -1,20 +1,39 @@
 define( [
 	'jquery',
-	'backbone',
+	'views/managed-view',
 	'text!views/templates/profanity-percentage.html',
-	'models/profanity-percentage-model',
+	'models/stat-model',
 	'bus'
 ],
-	function ( $, Backbone, template, ProfanityPercentageModel, bus ) {
+	function ( $, ManagedView, template, ProfanityPercentageModel, bus ) {
 		"use strict";
 
-		return Backbone.View.extend( {
+		return ManagedView.extend( {
 			tagName : "div",
 
 			initialize : function () {
-				_.bindAll( this );
-				this.template = _.template( template );
-				this.model = new ProfanityPercentageModel();
+				ManagedView.prototype.initialize.call(this, template);
+				this.model = new ProfanityPercentageModel({
+					percentage : "",
+					clean : "",
+					explicit : "",
+					total : ""
+				},[
+					bus.stats.subscribe( "profanity-percentage", function ( data, env ) {
+						this.set( "percentage", data.percentage, { silent : true } );
+						this.set( "clean", data.clean, { silent : true } );
+						this.set( "explicit", data.explicit, { silent : true } );
+						this.set( "total", data.clean + data.explicit, { silent : true } );
+						this.change();
+					} ),
+					bus.app.subscribe( "search.init", function () {
+						this.set( "percentage", "", { silent : true } );
+						this.set( "clean", "", { silent : true } );
+						this.set( "explicit", "", { silent : true } );
+						this.set( "total", "", { silent : true } );
+						this.change();
+					} )
+				]);
 				bus.app.subscribe( "search.info", this.setCurrentSearch );
 				this.model.bind( "change", this.render );
 				this.inDom = false;
@@ -28,14 +47,6 @@ define( [
 					this.$el.appendTo( "#stats" );
 					this.inDom = true;
 				}
-			},
-
-			show : function ( data ) {
-				this.$el.show();
-			},
-
-			hide : function ( data ) {
-				this.$el.hide();
 			}
 		} );
 	} );

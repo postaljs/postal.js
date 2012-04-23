@@ -1,20 +1,32 @@
 define( [
 	'jquery',
-	'backbone',
+	'views/managed-view',
 	'text!views/templates/tweet-count.html',
-	'models/tweet-count-model',
+	'models/stat-model',
 	'bus'
 ],
-	function ( $, Backbone, template, TweetCountModel, bus ) {
+	function ( $, ManagedView, template, TweetCountModel, bus ) {
 		"use strict";
 
-		return Backbone.View.extend( {
+		return ManagedView.extend( {
 			tagName : "div",
 
 			initialize : function () {
-				_.bindAll( this );
-				this.template = _.template( template );
-				this.model = new TweetCountModel();
+				ManagedView.prototype.initialize.call(this, template);
+				this.model = new TweetCountModel({
+					tweeters : []
+				}, [
+					bus.stats.subscribe( "tweet-count", function ( data, env ) {
+						if ( data.tweeters && data.tweeters.length ) {
+							this.set( "tweeters", _.sortBy( data.tweeters, function ( item ) {
+								return item.count * -1;
+							} ) );
+						}
+					} ) ,
+					bus.app.subscribe( "search.init", function () {
+						this.set( "tweeters", [] );
+					} )
+				]);
 				bus.app.subscribe( "search.info", this.setCurrentSearch );
 				this.model.bind( "change", this.render );
 				this.inDom = false;
@@ -28,14 +40,6 @@ define( [
 					this.$el.appendTo( "#stats" );
 					this.inDom = true;
 				}
-			},
-
-			show : function ( data ) {
-				this.$el.show();
-			},
-
-			hide : function ( data ) {
-				this.$el.hide();
 			}
 		} );
 	} );

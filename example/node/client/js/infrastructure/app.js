@@ -11,8 +11,11 @@ define( [
 	'views/mentioner-count',
 	'views/hash-tag-count',
 	'views/profanity-percentage',
-	'views/search-requests'
-], function ( $, Backbone, bus, Router, ViewManager, ContainerView, MenuView, TweetCountView, MentionCountView, MentionerCountView, HashTagCountView, ProfanityPercentage, SearchRequestView ) {
+	'views/search-requests',
+	'views/wiretap',
+], function ( $, Backbone, bus, Router, ViewManager, ContainerView, MenuView, TweetCountView,
+              MentionCountView, MentionerCountView, HashTagCountView, ProfanityPercentage,
+              SearchRequestView, WiretapView ) {
 	var app = {
 		bus : bus,
 		router : new Router()
@@ -25,19 +28,20 @@ define( [
 	} );
 
 	app.viewManager.registerViews( [
-		{ name : "container", ctor : ContainerView       },
-		{ name : "menu", ctor : MenuView            },
-		{ name : "tweetCount", ctor : TweetCountView      },
-		{ name : "mentionCount", ctor : MentionCountView    },
-		{ name : "mentionerCount", ctor : MentionerCountView  },
-		{ name : "hashTagCount", ctor : HashTagCountView    },
+		{ name : "container",           ctor : ContainerView       },
+		{ name : "menu",                ctor : MenuView            },
+		{ name : "tweetCount",          ctor : TweetCountView      },
+		{ name : "mentionCount",        ctor : MentionCountView    },
+		{ name : "mentionerCount",      ctor : MentionerCountView  },
+		{ name : "hashTagCount",        ctor : HashTagCountView    },
 		{ name : "profanityPercentage", ctor : ProfanityPercentage },
-		{ name : "searchRequests", ctor : SearchRequestView   }
+		{ name : "searchRequests",      ctor : SearchRequestView   },
+		{ name : "wiretap",             ctor : WiretapView         }
 	] );
 	app.viewManager.defineUIs( [
 		{ name : "homeUI", dependencies : [ "container", "menu", "tweetCount", "mentionCount", "mentionerCount", "hashTagCount", "profanityPercentage" ] },
 		{ name : "searchRequestUI", dependencies : [ "container", "menu", "searchRequests" ] },
-		{ name : "wireTapLogUI", dependencies : [ "menu" ], options : { noHide : true } }
+		{ name : "wireTapLogUI", dependencies : [ "container", "menu", "wiretap" ] }
 	] );
 
 	$( function () {

@@ -14,11 +14,10 @@ define( [
 			},
 
 			initialize : function () {
-				_.bindAll( this );
 				this.subscriptions = [
-					bus.app.subscribe( "search.info", this.setCurrentSearch ).defer(),
-					bus.app.subscribe( "search.new.ask", this.updateReqCount ).defer(),
-					bus.app.subscribe( "search.requests", this.updateReqCount ).defer()
+					bus.app.subscribe( "search.info", this.setCurrentSearch ).withContext( this ),
+					bus.app.subscribe( "search.new.ask", this.updateReqCount ).withContext( this ),
+					bus.app.subscribe( "search.requests", this.updateReqCount ).withContext( this )
 				];
 				bus.app.publish( {
 					topic : "get.search.info",

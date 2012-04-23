@@ -29,11 +29,12 @@ var TwitterSocketStats = function ( port, refreshinterval ) {
 	app.listen( port );
 	var searchChannel = postal.channel( "twittersearch", "*" ),
 		statsChannel = postal.channel( "stats", "*" ),
-		appChannel = postal.channel( "statsApp", "*" );
+		appChannel = postal.channel( "statsApp", "*" ),
+		fsm;
 
 	postal.linkChannels( { channel : "postal.socket", topic : "client.migrated"}, { channel : "statsApp", topic : "client.migrated" } );
 
-	return new machina.Fsm( {
+	fsm = new machina.Fsm( {
 
 		namespace : "statsApp",
 
@@ -115,7 +116,7 @@ var TwitterSocketStats = function ( port, refreshinterval ) {
 
 		removeSearchRequest : function ( correlationId, searchTerm ) {
 			if ( _.any( this.requestedSearches, function ( item ) {
-				return item.correlationId = correlationId && item.searchTerm === searchTerm;
+				return item.correlationId === correlationId && item.searchTerm === searchTerm;
 			} ) ) {
 				this.requestedSearches = _.filter( this.requestedSearches, function ( item ) {
 					return item.correlationId !== correlationId && item.searchTerm !== searchTerm;
@@ -179,10 +180,30 @@ var TwitterSocketStats = function ( port, refreshinterval ) {
 					if ( data.lastSessionId === this.currentSearch.id ) {
 						this.currentSearch.id = data.sessionId;
 					}
+				},
+				"client.disconnect" : function ( data ) {
+					if ( this.currentSearch.id === data.sessionId ) {
+						if( this.requestedSearches.length ) {
+							var newSearch = this.requestedSearches.shift();
+							this.setSearch( newSearch.correlationId, newSearch.searchTerm );
+						} else {
+							this.transition("notSearching");
+						}
+					}
 				}
 			}
 		}
 	} );
+
+	postal.subscribe( {
+		channel : "postal.socket",
+		topic : "client.disconnect",
+		callback: function( data, env ) {
+			fsm.handle(env.topic, data );
+		}
+	} );
+
+	return fsm;
 };
 
 var x = module.exports = new TwitterSocketStats( 8002, 7000 );

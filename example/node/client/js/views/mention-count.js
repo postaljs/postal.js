@@ -1,20 +1,30 @@
 define( [
 	'jquery',
-	'backbone',
+	'views/managed-view',
 	'text!views/templates/mention-count.html',
-	'models/mention-count-model',
+	'models/stat-model',
 	'bus'
 ],
-	function ( $, Backbone, template, MentionCountModel, bus ) {
+	function ( $, ManagedView, template, MentionCountModel, bus ) {
 		"use strict";
 
-		return Backbone.View.extend( {
+		return ManagedView.extend( {
 			tagName : "div",
 
 			initialize : function () {
-				_.bindAll( this );
-				this.template = _.template( template );
-				this.model = new MentionCountModel();
+				ManagedView.prototype.initialize.call(this, template);
+				this.model = new MentionCountModel({ mentions : [] },[
+					bus.stats.subscribe( "mention-count", function ( data, env ) {
+						if ( data.mentions && data.mentions.length ) {
+							this.set( "mentions", _.sortBy( data.mentions, function ( item ) {
+								return item.count * -1;
+							} ) );
+						}
+					} ),
+					bus.app.subscribe( "search.init", function () {
+						this.set( "mentions", [] );
+					} )
+				]);
 				bus.app.subscribe( "search.info", this.setCurrentSearch );
 				this.model.bind( "change", this.render );
 				this.inDom = false;
@@ -28,14 +38,6 @@ define( [
 					this.$el.appendTo( "#stats" );
 					this.inDom = true;
 				}
-			},
-
-			show : function ( data ) {
-				this.$el.show();
-			},
-
-			hide : function ( data ) {
-				this.$el.hide();
 			}
 		} );
 	} );

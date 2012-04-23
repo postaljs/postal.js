@@ -1,30 +1,21 @@
 define( [
 	'jquery',
-	'backbone',
+	'views/managed-view',
 	'text!views/templates/container.html'
 ],
-	function ( $, Backbone, template ) {
+	function ( $, ManagedView, template ) {
 		// Using ECMAScript 5 strict mode during development. By default r.js will ignore that.
 		"use strict";
 
-		return Backbone.View.extend( {
+		return ManagedView.extend( {
 			el : "body",
 
 			initialize : function () {
-				_.bindAll( this, "render" );
-				this.template = template;
+				ManagedView.prototype.initialize.call(this, template);
 			},
 
 			render : function () {
 				this.$el.html( this.template );
-			},
-
-			show : function ( data ) {
-				this.$el.show();
-			},
-
-			update : function ( data ) {
-
 			}
 		} );
 	} );

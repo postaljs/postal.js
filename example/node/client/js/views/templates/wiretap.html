@@ -1,0 +1,13 @@
+<h3>A Somewhat Pointless Feed of the postal.js Wiretap:</h3>
+<div class="scrollableDiv">
+<% if( messages.length ) { %>
+	<% _.each( messages, function( msg ) { %>
+		<div>
+			<%= msg.text %>
+		</div>
+		<hr>
+	<% }) %>
+<% } else { %>
+	<em>Waiting on more data to come through the wiretap...</em>
+<% } %>
+</div>

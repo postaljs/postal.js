@@ -16,12 +16,10 @@ define( [
 				_.bindAll( this );
 				this.setSessionId();
 				this.subscriptions = [
-					bus.app.subscribe( "search.info", this.setOwner ),
-					bus.app.subscribe( "search.requests", this.updateRequests ),
-					bus.app.subscribe( "search.new.ask", this.addRequest ),
-					bus.app.subscribe( "search.init", function () {
-						self.set( "requests", [] );
-					} )
+					bus.app.subscribe( "search.info", this.setOwner ).withContext( this ),
+					bus.app.subscribe( "search.requests", this.updateRequests ).withContext( this ),
+					bus.app.subscribe( "search.new.ask", this.addRequest ).withContext( this ),
+					bus.app.subscribe( "search.init", this.askForUpdate ).withContext( this )
 				];
 				this.askForUpdate();
 			},
@@ -46,7 +44,6 @@ define( [
 
 			setOwner : function ( data, env ) {
 				this.set( "ownerId", data.id );
-				this.change();
 				this.setSessionId();
 			},
 
@@ -55,32 +52,19 @@ define( [
 				postal.utils.getSessionId(
 					function ( session ) {
 						self.set( "sessionId", session.id );
-						self.change();
 					}
 				);
 			},
 
 			updateRequests : function ( data, env ) {
-				console.log( "Got an update" );
-				this.set( "requests", _.sortBy( data, function ( item ) {
+				var reqs = _.sortBy( data, function ( item ) {
 					return item.searchTerm;
-				} ) );
-				this.change();
+				});
+				this.set( "requests", reqs );
 			},
 
 			addRequest : function ( data, env ) {
-				var reqs = this.get( "requests" );
-				if ( _.any( reqs, function ( item ) {
-					return item.searchTerm === data.searchTerm &&
-					       item.correlationId === data.correlationId
-				} ) ) {
-					return;
-				}
-				reqs.push( data );
-				this.set( "requests", _.sortBy( reqs, function ( item ) {
-					return item.searchTerm;
-				} ) );
-				this.change();
+				this.askForUpdate();
 			}
 		} );
 	} );

@@ -1,14 +1,14 @@
 define( [
 	'jquery',
-	'backbone',
+	'views/managed-view',
 	'text!views/templates/menu.html',
 	'bus',
 	'models/menu-model'
 ],
-	function ( $, Backbone, template, bus, MenuModel ) {
+	function ( $, ManagedView, template, bus, MenuModel ) {
 		"use strict";
 
-		return Backbone.View.extend( {
+		return ManagedView.extend( {
 			el : "#menu",
 
 			events : {
@@ -16,18 +16,9 @@ define( [
 			},
 
 			initialize : function () {
-				_.bindAll( this );
-				this.template = _.template( template );
+				ManagedView.prototype.initialize.call(this, template);
 				this.model = new MenuModel();
 				this.model.bind( "change", this.updateView );
-			},
-
-			render : function () {
-				this.$el.html( this.template( this.model.toJSON() ) );
-			},
-
-			show : function ( data ) {
-				this.$el.show();
 			},
 
 			updateSearch : function () {
@@ -43,8 +34,24 @@ define( [
 			},
 
 			updateView : function () {
+				var $ownership = this.$el.find( "#search-ownership" ),
+					mdlOwnership = this.model.get( "searchOwnership" ),
+					dispOwnership = $ownership.text();
+				if( dispOwnership && mdlOwnership !== dispOwnership ) {
+					$ownership.text( this.model.get( "searchOwnership" ) )
+								.animate({
+									"font-size": "14pt",
+									"margin-left" : "+=15"
+								}, 500, function() {
+									$ownership.stop().animate({
+										"font-size" : "12pt",
+										"margin-left" : "-=15"
+									}, 400);
+								});
+				} else {
+					$ownership.text( this.model.get( "searchOwnership" ) );
+				}
 				this.$el.find( "#currentSearch" ).text( this.model.get( "searchTerm" ) );
-				this.$el.find( "#search-ownership" ).text( this.model.get( "searchOwnership" ) );
 				this.$el.find( "#request-indicator" ).text( this.model.get( "requests" ) ? " *" : "" );
 			}
 		} );
