@@ -36,8 +36,6 @@ The Caveats:
 	* If a client that doesn't own the search submits a search request, the owner can go to the "Search Requests" link on the top navbar and click on the term they want to allow.  This gives control to the requester.
 * Beyond simple playing in the browser and repl, I've not performed any major testing of this app - good grief, man, it's a sample app I've written while mostly half asleep :-)
 
-I have no doubt that a million people out there could contribute better sample apps along these lines, so please....bring it.
-
 More real-world sample applications using postal will be included in this repository as I build ones I'm at liberty to share.
 
 Thanks a ton for reading this if you made it this far.  *You* are exactly why I write this stuff!
