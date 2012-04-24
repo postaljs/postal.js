@@ -55,7 +55,7 @@ channel.publish( { name: "Dr. Who" } );
 subscription.unsubscribe();
 ```
 
-### Subscribing to a wildcard topic using #
+### Subscribing to a wildcard topic using \#
 
 The `#` symbol represents "one word" in a topic (i.e - the text between two periods of a topic). By subscribing to `"#.Changed"`, the binding will match `Name.Changed` & `Location.Changed` but *not* `Changed.Companion`.
 
