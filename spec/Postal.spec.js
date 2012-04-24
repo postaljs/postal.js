@@ -791,62 +791,6 @@ QUnit.specify( "postal.js", function () {
 				assert( _.isEmpty( postal.configuration.resolver.cache ) ).isTrue();
 			} );
 		} );
-		describe( "When calling postal.utils.getSessionInfo", function () {
-			describe( "with default implementation", function () {
-				describe( "before any value is set", function () {
-					it( "should have an initial value of undefined", async( function () {
-						postal.utils.getSessionId( function ( info ) {
-							assert( _.isEmpty( info ) ).isTrue();
-							resume();
-						} )
-					} ) );
-				} );
-				describe( "after a value is set", function () {
-					before( function () {
-						postal.subscribe( {
-							channel : SYSTEM_CHANNEL,
-							topic : "sessionId.changed",
-							callback : function ( data, env ) {
-								assert( data.lastId == undefined ).isTrue();
-								assert( data.id ).equals( "123456" );
-								resume();
-							}
-						} );
-					} );
-					after( function () {
-						postal.utils.reset();
-					} );
-					it( "should have a value matching expected result", async( function () {
-						postal.utils.setSessionId( "123456", function ( info ) {
-							assert( info.lastId == undefined ).isTrue();
-							assert( info.id ).equals( "123456" );
-						} );
-					} ) );
-				} );
-				describe( "after a value is set a second time", function () {
-					before( function () {
-						postal.subscribe( {
-							channel : SYSTEM_CHANNEL,
-							topic : "sessionId.changed",
-							callback : function ( data, env ) {
-								assert( data.lastId ).equals( "123456" );
-								assert( data.id ).equals( "98765" );
-								resume();
-							}
-						} );
-					} );
-					after( function () {
-						postal.utils.reset();
-					} );
-					it( "should have a value matching expected result", async( function () {
-						postal.utils.setSessionId( "98765", function ( info ) {
-							assert( info.lastId ).equals( "123456" );
-							assert( info.id ).equals( "98765" );
-						} );
-					} ) );
-				} );
-			} );
-		} );
 		describe( "When calling utils.getSubscribersFor", function () {
 			var subs = [], i;
 			before( function () {

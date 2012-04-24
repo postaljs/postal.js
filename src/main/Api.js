@@ -55,13 +55,6 @@ var postal = {
 	configuration : {
 		bus : localBus,
 		resolver : bindingsResolver,
-		getSessionIdAction : function ( callback ) {
-			callback( sessionInfo );
-		},
-		setSessionIdAction : function ( info, callback ) {
-			sessionInfo = info;
-			callback( sessionInfo );
-		},
 		DEFAULT_CHANNEL : DEFAULT_CHANNEL,
 		DEFAULT_PRIORITY : DEFAULT_PRIORITY,
 		DEFAULT_DISPOSEAFTER : DEFAULT_DISPOSEAFTER,
@@ -128,28 +121,6 @@ var postal = {
 	},
 
 	utils : {
-		getSessionId : function ( callback ) {
-			postal.configuration.getSessionIdAction.call( this, callback );
-		},
-
-		setSessionId : function ( value, callback ) {
-			postal.utils.getSessionId( function ( info ) {
-				// get the session info to move id to last id
-				info.lastId = info.id;
-				info.id = value;
-				// invoke the callback the user provided to handle storing session
-				postal.configuration.setSessionIdAction( info, function ( session ) {
-					callback( session );
-					// publish postal event msg about the change
-					postal.publish( {
-						channel : SYSTEM_CHANNEL,
-						topic : "sessionId.changed",
-						data : session
-					} );
-				} );
-			} );
-		},
-
 		getSubscribersFor : function () {
 			var channel = arguments[ 0 ],
 				tpc = arguments[ 1 ],
