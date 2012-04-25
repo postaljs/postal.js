@@ -8,7 +8,7 @@ mv ./lib/standard/postal.amd.min.js ./lib/amd/postal.min.js
 mv ./lib/standard/postal.diagnostics.amd.js ./lib/amd/postal.diagnostics.js
 mv ./lib/standard/postal.diagnostics.amd.min.js ./lib/amd/postal.diagnostics.min.js
 
-mv ./lib/standard/postal.diagnostics.node.js ./lib/node/postal.diagnostics.js
+mv ./lib/standard/postal.diagnostics.node.js ./lib/node/diags/postal.diagnostics.js
 mv ./lib/standard/postal.node.js ./lib/node/postal.js
 rm ./lib/standard/postal.diagnostics.node*
 rm ./lib/standard/postal.node*

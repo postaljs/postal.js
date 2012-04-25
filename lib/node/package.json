@@ -1,0 +1,51 @@
+{
+    "name" : "postal",
+    "description" : "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
+    "version" : "0.6.0",
+    "homepage" : "http://github.com/ifandelse/postal.js",
+    "repository" : {
+        "type" : "git",
+        "url" : "git://github.com/ifandelse/postal.js.git"
+    },
+	"author" : {
+        "name" : "Jim Cowart",
+        "email" : "jim@ifandelse.com",
+        "url" : "http://freshbrewedcode.com/jimcowart"
+    },
+    "contributors": [
+        {
+            "name" : "Jim Cowart",
+            "email" : "jim@ifandelse.com",
+            "url" : "http://freshbrewedcode.com/jimcowart"
+        },
+        {
+            "name" : "Alex Robson",
+            "email" : "asrobson@gmail.com",
+            "url" : "http://freshbrewedcode.com/alexrobson"
+        }
+    ],
+    "bugs" : {
+        "email" : "jim@ifandelse.com",
+        "url" : "http://github.com/ifandelse/postal.js/issues"
+   },
+	"directories" : { "lib" : "./" },
+    "main" : "./postal.js",
+	"engines" : {
+		"node" : ">=0.4.0"
+	},
+	"dependencies" : {
+		"underscore" : ">=1.1.7"
+	},
+	"bundleDependencies" : [ "underscore" ],
+	"devDependencies" : {},
+    "licenses" : [
+        {
+            "type" : "MIT",
+            "url" : "http://www.opensource.org/licenses/mit-license.php"
+        },
+        {
+            "type" : "GPL",
+            "url" : "http://www.opensource.org/licenses/gpl-3.0.html"
+        }
+    ]
+}
