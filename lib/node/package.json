@@ -7,37 +7,46 @@
         "type" : "git",
         "url" : "git://github.com/ifandelse/postal.js.git"
     },
-	"author" : {
+    "author" : {
         "name" : "Jim Cowart",
-        "email" : "jim@ifandelse.com",
+        "email" : "JustFindMeOnTwitter@MyUsernameIs_ifandelse.com",
         "url" : "http://freshbrewedcode.com/jimcowart"
     },
     "contributors": [
         {
             "name" : "Jim Cowart",
-            "email" : "jim@ifandelse.com",
+            "email" : "WhyNotJustComment@OnMyBlog.com",
             "url" : "http://freshbrewedcode.com/jimcowart"
         },
         {
             "name" : "Alex Robson",
-            "email" : "asrobson@gmail.com",
+            "email" : "WhyNotJustComment@OnMyBlog.com",
             "url" : "http://freshbrewedcode.com/alexrobson"
         }
     ],
+    "keywords": [
+        "pub/sub",
+        "pub",
+        "sub",
+        "messaging",
+        "message",
+        "bus",
+        "event"
+    ],
     "bugs" : {
-        "email" : "jim@ifandelse.com",
+        "email" : "PleaseJustUseTheIssuesPage@github.com",
         "url" : "http://github.com/ifandelse/postal.js/issues"
-   },
-	"directories" : { "lib" : "./" },
+    },
+    "directories" : { "lib" : "./" },
     "main" : "./postal.js",
-	"engines" : {
-		"node" : ">=0.4.0"
-	},
-	"dependencies" : {
-		"underscore" : ">=1.1.7"
-	},
-	"bundleDependencies" : [ "underscore" ],
-	"devDependencies" : {},
+    "engines" : {
+        "node" : ">=0.4.0"
+    },
+    "dependencies" : {
+        "underscore" : ">=1.1.7"
+    },
+    "bundleDependencies" : [ "underscore" ],
+    "devDependencies" : {},
     "licenses" : [
         {
             "type" : "MIT",
