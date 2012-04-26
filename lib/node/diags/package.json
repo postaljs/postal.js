@@ -1,7 +1,7 @@
 {
     "name" : "postal.diagnostics",
     "description" : "Wiretap add-on for postal.js allowing configurable console.logging output of messages being published through postal's message bus.",
-    "version" : "0.6.0",
+    "version" : "0.6.1",
     "homepage" : "http://github.com/ifandelse/postal.js",
     "repository" : {
         "type" : "git",

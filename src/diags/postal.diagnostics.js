@@ -4,7 +4,10 @@ var filters = [],
 		_.each( filter, function ( item, key ) {
 			if ( env[key] ) {
 				possible++;
-				if ( _.isObject( env[key] ) && !_.isArray( env[key] ) ) {
+				if ( _.isRegExp( item ) && item.test( env[key] ) ) {
+					match++;
+				}
+				else if ( _.isObject( env[key] ) && !_.isArray( env[key] ) ) {
 					if ( applyFilter( item, env[key] ) ) {
 						match++;
 					}
