@@ -21,6 +21,7 @@ define( [
 				self.navigate( $( this ).attr( 'href' ), { trigger : true } );
 			} );
 			bus.router.publish( "initialized" );
+
 		},
 
 		activateUI : function ( uiName, context ) {

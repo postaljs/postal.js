@@ -9,18 +9,18 @@
     },
 	"author" : {
         "name" : "Jim Cowart",
-        "email" : "jim@ifandelse.com",
+        "email" : "WhyNotJustComment@OnMyBlog.com",
         "url" : "http://freshbrewedcode.com/jimcowart"
     },
     "contributors": [
         {
             "name" : "Jim Cowart",
-            "email" : "jim@ifandelse.com",
+            "email" : "WhyNotJustComment@OnMyBlog.com",
             "url" : "http://freshbrewedcode.com/jimcowart"
         }
     ],
     "bugs" : {
-        "email" : "jim@ifandelse.com",
+        "email" : "PleaseJustUseTheIssuesPage@github.com",
         "url" : "http://github.com/ifandelse/postal.js/issues"
    },
 	"directories" : { "lib" : "./" },
