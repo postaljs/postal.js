@@ -121,6 +121,21 @@ QUnit.specify( "postal.js", function () {
 				assert( msgData ).equals( "Testing123" );
 			} );
 		} );
+		describe( "When subscribing multiple subscribers with different priority", function () {
+			var s1, s2, r1 = [];
+			before( function () {
+				s1 = postal.subscribe( { channel : "MyChannel", topic : "MyTopic", callback: function() { r1.push("lower"); } } ).withPriority(200);
+				s2 = postal.subscribe( { channel : "MyChannel", topic : "MyTopic", callback: function() { r1.push("higher"); } } ).withPriority(1);
+				postal.publish( { channel: "MyChannel", topic: "MyTopic", data: "Oh, Hai!" } );
+			} );
+			after( function () {
+				postal.utils.reset();
+			} );
+			it( "should invoke higher priority subscription first", function () {
+				assert(r1[0] ).isEqualTo("higher");
+				assert(r1[1] ).isEqualTo("lower");
+			} );
+		} );
 		describe( "When subscribing with a disposeAfter of 5", function () {
 			var msgReceivedCnt = 0;
 			before( function () {

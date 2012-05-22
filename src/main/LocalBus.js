@@ -11,6 +11,24 @@ var localBus = {
 		};
 	},
 
+	changePriority: function ( subDef ) {
+		var idx, found;
+		if(this.subscriptions[subDef.channel] && this.subscriptions[subDef.channel][subDef.topic]) {
+			this.subscriptions[subDef.channel][subDef.topic] = _.without(this.subscriptions[subDef.channel][subDef.topic], subDef);
+			idx = this.subscriptions[subDef.channel][subDef.topic].length - 1;
+			for ( ; idx >= 0; idx-- ) {
+				if ( this.subscriptions[subDef.channel][subDef.topic][idx].priority <= subDef.priority ) {
+					this.subscriptions[subDef.channel][subDef.topic].splice( idx + 1, 0, subDef );
+					found = true;
+					break;
+				}
+			}
+			if ( !found ) {
+				this.subscriptions[subDef.channel][subDef.topic].unshift( subDef );
+			}
+		}
+	},
+
 	publish : function ( envelope ) {
 		_.each( this.wireTaps, function ( tap ) {
 			tap( envelope.data, envelope );
@@ -55,18 +73,7 @@ var localBus = {
 		if ( !subs ) {
 			subs = this.subscriptions[subDef.channel][subDef.topic] = new Array( 0 );
 		}
-
-		idx = subs.length - 1;
-		for ( ; idx >= 0; idx-- ) {
-			if ( subs[idx].priority <= subDef.priority ) {
-				subs.splice( idx + 1, 0, subDef );
-				found = true;
-				break;
-			}
-		}
-		if ( !found ) {
-			subs.unshift( subDef );
-		}
+		subs.push( subDef );
 		return subDef;
 	},
 

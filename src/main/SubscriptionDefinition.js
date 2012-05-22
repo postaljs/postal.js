@@ -117,6 +117,7 @@ SubscriptionDefinition.prototype = {
 			throw "Priority must be a number";
 		}
 		this.priority = priority;
+		postal.configuration.bus.changePriority( this );
 		return this;
 	},
 
