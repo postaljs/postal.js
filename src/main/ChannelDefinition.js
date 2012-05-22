@@ -15,14 +15,15 @@ ChannelDefinition.prototype = {
 	},
 
 	publish : function ( obj ) {
+    var _obj = obj || {};
 		var envelope = {
 			channel : this.channel,
 			topic : this._topic,
-			data : obj || {}
+			data : _obj
 		};
 		// If this is an envelope....
-		if ( obj.topic && obj.data ) {
-			envelope = obj;
+		if ( _obj.topic && _obj.data ) {
+			envelope = _obj;
 			envelope.channel = envelope.channel || this.channel;
 		}
 		envelope.timeStamp = new Date();
