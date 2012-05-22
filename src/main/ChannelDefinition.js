@@ -15,7 +15,7 @@ ChannelDefinition.prototype = {
 	},
 
 	publish : function ( obj ) {
-    var _obj = obj || {};
+		var _obj = obj || {};
 		var envelope = {
 			channel : this.channel,
 			topic : this._topic,
