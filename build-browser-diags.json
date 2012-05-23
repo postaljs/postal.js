@@ -1,9 +1,0 @@
-{
-	"source" : "src/diags",
-	"output" : "lib/standard",
-	"lint" : {},
-	"uglify" : {},
-	"extensions" : {
-		"uglify" : "min"
-	}
-}

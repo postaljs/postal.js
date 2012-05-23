@@ -1,6 +1,6 @@
 # Postal.js
 
-## Version 0.6.0
+## Version 0.6.2 (Dual Licensed [MIT](http://www.opensource.org/licenses/mit-license) & [GPL](http://www.opensource.org/licenses/gpl-license))
 
 ## What is it?
 Postal.js is an in-memory message bus - very loosely inspired by [AMQP](http://www.amqp.org/) - written in JavaScript.  Postal.js runs in the browser, or on the server-side using Node.js. It takes a familiar "eventing-style" paradigm most JavaScript developers are already used to and extends it by providing "broker" and subscriber implementations which are more sophisticated than what you typically find in simple event delegation.
@@ -120,6 +120,9 @@ postal.channel( { topic: "WeepingAngel.DontBlink" } )
 dupSubscription.unsubscribe();
 ```
 
+## More References
+Please visit the [postal.js wiki](https://github.com/ifandelse/postal.js/wiki) for API documentation, discussion of concepts and links to blogs/articles on postal.js.
+
 ## How can I extend it?
 There are four main ways you can extend Postal:
 
@@ -128,7 +131,7 @@ There are four main ways you can extend Postal:
 * You can write an entirely new bus implementation if you wanted.  The postal `subscribe`, `publish` and `addWiretap` calls all simply wrap a concrete implementation provided by the `postal.configuration.bus` object.  For example, if you wanted a bus that stored message history in local storage and pushed a dump of past messages to a new subscriber, you'd simply write your implementation and then swap the default one out by calling: `postal.configuration.bus = myWayBetterBusImplementation`.
 * You can also change how the `bindingResolver` matches subscriptions to message topics being published.  You may not care for the inverted RabbitMQ-style bindings functionality (postal currently inverts the treatment of asterisk and hash wildcard symbols compared to AMQP).  No problem!  Write your own resolver object that implements a `compare` and `reset` method and swap the core version out with your implementation by calling: `postal.configuration.resolver = myWayBetterResolver`.
 
-It's also possible to extend the monitoring of messages passing through Postal by adding a "wire tap".  A wire tap is a callback that will get invoked for any published message (even if no actual subscriptions would bind to the message's topic).  Wire taps should _not_ be used in lieu of an actual subscription - but instead should be used for diagnostics, logging, forwarding (to a websocket publisher or a local storage wrapper, for example) or other concerns that fall along those lines.  This repository includes a console logging wiretap called postal.diagnostics.js.  This diagnostics wiretap can be configured with filters to limit the firehose of message data to specific channels/topics and more.
+It's also possible to extend the monitoring of messages passing through Postal by adding a "wire tap".  A wire tap is a callback that will get invoked for any published message (even if no actual subscriptions would bind to the message's topic).  Wire taps should _not_ be used in lieu of an actual subscription - but instead should be used for diagnostics, logging, forwarding (to a websocket publisher or a local storage wrapper, for example) or other concerns that fall along those lines.  This repository used to include a console logging wiretap called postal.diagnostics.js - you can now find it [here in it's own repo](https://github.com/ifandelse/postal.diagnostics).  This diagnostics wiretap can be configured with filters to limit the firehose of message data to specific channels/topics and more.
 
 ## Can I contribute?
 Please - by all means!  While I hope the API is relatively stable, I'm open to pull requests.  (Hint - if you want a feature implemented, a pull request gives it a much higher probability of being included than simply asking me.)  As I said, pull requests are most certainly welcome - but please include tests for your additions.  Otherwise, it will disappear into the ether.
