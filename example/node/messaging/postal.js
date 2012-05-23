@@ -2,7 +2,7 @@
  postal.js
  Author: Jim Cowart
  License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
- Version 0.6.2
+ Version 0.6.3
  */
 
 // This is the node.js version of postal.js
@@ -274,6 +274,7 @@ var localBus = {
 		} );
 
 		_.each( this.subscriptions[envelope.channel], function ( topic ) {
+			// TODO: research faster ways to handle this than _.clone
 			_.each( _.clone(topic), function ( subDef ) {
 				if ( postal.configuration.resolver.compare( subDef.topic, envelope.topic ) ) {
 					if ( _.all( subDef.constraints, function ( constraint ) {
