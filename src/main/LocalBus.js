@@ -35,7 +35,7 @@ var localBus = {
 		} );
 
 		_.each( this.subscriptions[envelope.channel], function ( topic ) {
-			_.each( topic, function ( subDef ) {
+			_.each( _.clone(topic), function ( subDef ) {
 				if ( postal.configuration.resolver.compare( subDef.topic, envelope.topic ) ) {
 					if ( _.all( subDef.constraints, function ( constraint ) {
 						return constraint( envelope.data, envelope );
