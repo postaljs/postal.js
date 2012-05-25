@@ -126,4 +126,19 @@ $( function () {
 	postal.channel( "He.Will.Knock.Four.Times" )
 		.publish( { value : "Knock!" } );
 	wdSubscription.unsubscribe();
+
+	// Using distinct() to ignore duplicate messages
+	var revealChannel = postal.channel('detect.cylon'),
+	  revealSubscription = revealChannel.subscribe(function (who) {
+	  	$('<li></li>').text(who.name).appendTo($('#example9'));
+	  }).distinct();
+	postal.channel('detect.cylon').publish({name: 'Boomer'});
+	postal.channel('detect.cylon').publish({name: 'Saul Tigh'});
+	postal.channel('detect.cylon').publish({name: 'William Adama'});
+	postal.channel('detect.cylon').publish({name: 'Helo'});
+	//ignored!
+	postal.channel('detect.cylon').publish({name: 'Boomer'});
+	postal.channel('detect.cylon').publish({name: 'Felix Gaeta'});
+	//ignored!
+	postal.channel('detect.cylon').publish({name: 'William Adama'});
 } );

@@ -4,6 +4,7 @@
 (function ( _, global, undefined ) {
 
 //import("Constants.js");
+//import("ConsecutiveDistinctPredicate.js");
 //import("DistinctPredicate.js");
 //import("ChannelDefinition.js");
 //import("SubscriptionDefinition.js");
