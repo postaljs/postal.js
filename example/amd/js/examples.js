@@ -48,12 +48,12 @@ define( ['postal', 'postaldiags'], function ( postal, diags ) {
 		.publish( { type : "Useless", value : "This won't trigger any subscriptions either" } );
 	starSubscription.unsubscribe();
 
-	// Applying ignoreDuplicates to a subscription
+	// Applying distinctUntilChanged to a subscription
 	var dupChannel = postal.channel( "WeepingAngel.*" ),
 		dupSubscription = dupChannel.subscribe(
 			function ( data ) {
 				$( '<li>' + data.value + '</li>' ).appendTo( "#example4" );
-			} ).ignoreDuplicates();
+			} ).distinctUntilChanged();
 	postal.channel( "WeepingAngel.DontBlink" )
 		.publish( { value : "Don't Blink" } );
 	postal.channel( "WeepingAngel.DontBlink" )
@@ -62,6 +62,10 @@ define( ['postal', 'postaldiags'], function ( postal, diags ) {
 		.publish( { value : "Don't Even Blink" } );
 	postal.channel( "WeepingAngel.DontBlink" )
 		.publish( { value : "Don't Close Your Eyes" } );
+  postal.channel( "WeepingAngel.DontBlink" )
+    .publish( { value : "Don't Blink" } );
+  postal.channel( "WeepingAngel.DontBlink" )
+    .publish( { value : "Don't Blink" } );
 	dupSubscription.unsubscribe();
 
 	// Using disposeAfter(X) to remove subscription automagically after X number of receives

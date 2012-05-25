@@ -53,8 +53,8 @@ QUnit.specify( "postal.js", function () {
 			} );
 		} );
 
-		describe( "When setting ignoreDuplicates", function () {
-			var sDefa = new SubscriptionDefinition( "TestChannel", "TestTopic", NO_OP ).ignoreDuplicates();
+		describe( "When setting distinctUntilChanged", function () {
+			var sDefa = new SubscriptionDefinition( "TestChannel", "TestTopic", NO_OP ).distinctUntilChanged();
 
 			it( "Should add a DistinctPredicate constraint to the configuration constraints", function () {
 				assert( sDefa.constraints.length ).equals( 1 );

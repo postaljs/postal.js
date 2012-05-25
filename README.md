@@ -100,13 +100,13 @@ starChannel.publish( { topic: "Changed",                             data: { typ
 starSubscription.unsubscribe();
 ```
 
-### Applying ignoreDuplicates to a subscription
+### Applying distinctUntilChanged to a subscription
 
 ```javascript
 var dupChannel = postal.channel( { topic: "WeepingAngel.*" } ),
     dupSubscription = dupChannel.subscribe( function( data ) {
                           $( '<li>' + data.value + '</li>' ).appendTo( "#example4" );
-                      }).ignoreDuplicates();
+                      }).distinctUntilChanged();
 // demonstrating multiple channels per topic being used
 // You can do it this way if you like, but the example above has nicer syntax (and *much* less overhead)
 postal.channel( { topic: "WeepingAngel.DontBlink" } )
@@ -117,6 +117,10 @@ postal.channel( { topic: "WeepingAngel.DontEvenBlink" } )
       .publish( { value:"Don't Even Blink" } );
 postal.channel( { topic: "WeepingAngel.DontBlink" } )
       .publish( { value:"Don't Close Your Eyes" } );
+postal.channel( { topic: "WeepingAngel.DontBlink" } )
+      .publish( { value:"Don't Blink" } );
+postal.channel( { topic: "WeepingAngel.DontBlink" } )
+      .publish( { value:"Don't Blink" } );
 dupSubscription.unsubscribe();
 ```
 

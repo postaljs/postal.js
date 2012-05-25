@@ -152,7 +152,7 @@ SubscriptionDefinition.prototype = {
 		return this;
 	},
 
-	ignoreDuplicates : function () {
+  distinctUntilChanged : function () {
 		this.withConstraint( new ConsecutiveDistinctPredicate() );
 		return this;
 	},

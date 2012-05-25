@@ -165,7 +165,7 @@ QUnit.specify( "postal.js", function () {
 				subscription = channel.subscribe( function ( data ) {
 					subInvokedCnt++;
 				} )
-					.ignoreDuplicates();
+					.distinctUntilChanged();
 				channel.publish( "Testing123" );
 				channel.publish( "Testing123" );
 				channel.publish( "Testing123" );
