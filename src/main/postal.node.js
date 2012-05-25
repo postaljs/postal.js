@@ -5,6 +5,7 @@ var _ = require( 'underscore' );
 
 //import("Constants.js");
 //import("DistinctPredicate.js");
+//import("ConsecutiveDistinctPredicate.js");
 //import("ChannelDefinition.js");
 //import("SubscriptionDefinition.js");
 //import("BindingsResolver.js");

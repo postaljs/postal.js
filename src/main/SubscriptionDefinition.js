@@ -63,7 +63,12 @@ SubscriptionDefinition.prototype = {
 	},
 
 	ignoreDuplicates : function () {
-		this.withConstraint( new DistinctPredicate() );
+		this.withConstraint( new ConsecutiveDistinctPredicate() );
+		return this;
+	},
+
+	distinct : function () {
+		this.withConstraint( new IsDistinctPredicate() );
 		return this;
 	},
 
