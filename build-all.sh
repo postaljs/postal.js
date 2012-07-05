@@ -1,6 +1,6 @@
 #!/bin/sh
 
-anvil -b build-browser.json
+./node_modules/anvil.js/bin/anvil -b build-browser.json
 
 mv ./lib/standard/postal.amd.js ./lib/amd/postal.js
 mv ./lib/standard/postal.amd.min.js ./lib/amd/postal.min.js
