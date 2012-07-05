@@ -7,6 +7,7 @@ obj
 _ReSharper*
 *.ReSharper.user
 *.ReSharper
+*.swp
 desktop.ini
 .eprj
 .idea
