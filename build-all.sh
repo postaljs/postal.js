@@ -1,6 +1,12 @@
 #!/bin/sh
 
-anvil -b build-browser.json
+if [ ! -f ./node_modules/anvil.js/bin/anvil ] ; then
+  echo "anvil.js was not found."
+  echo "Make you sure you do npm install!"
+  exit
+fi
+
+./node_modules/anvil.js/bin/anvil -b build-browser.json
 
 mv ./lib/standard/postal.amd.js ./lib/amd/postal.js
 mv ./lib/standard/postal.amd.min.js ./lib/amd/postal.min.js

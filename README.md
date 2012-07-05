@@ -140,6 +140,19 @@ It's also possible to extend the monitoring of messages passing through Postal b
 ## Can I contribute?
 Please - by all means!  While I hope the API is relatively stable, I'm open to pull requests.  (Hint - if you want a feature implemented, a pull request gives it a much higher probability of being included than simply asking me.)  As I said, pull requests are most certainly welcome - but please include tests for your additions.  Otherwise, it will disappear into the ether.
 
+## Getting Started with postal.js Source
+
+Clone the repository
+  
+    $ git clone git://github.com/ifandelse/postal.js.git
+
+Or your own fork of the repo. Make sure you have [npm](http://npmjs.org/)
+installed.
+
+    $ cd postal.js
+    $ npm install
+    $ ./build-all.sh
+
 ## Roadmap for the Future
 Here's where Postal is headed:
 
