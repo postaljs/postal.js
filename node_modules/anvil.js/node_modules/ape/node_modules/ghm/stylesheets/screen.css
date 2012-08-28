@@ -1,0 +1,52 @@
+ul {list-style-position: inside;} 
+.sidebar { float:right; width: 338px;}
+
+.cheatsheet {
+width:338px;
+margin-top: 40px;
+
+border: 1px #CCC solid;
+border-radius: 3px;
+-moz-border-radius: 3px;
+-webkit-border-radius: 3px;
+
+
+}
+
+.cheatsheet h2 {
+margin-top: 0;
+color: #666;
+text-shadow: white 1px 1px 0px;
+
+background: #EEE; 
+
+filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#EEE', endColorstr='#aaaaaa'); 
+background: -webkit-gradient(linear, left top, left bottom, from(#EEE), to(#aaaaaa));
+background: -moz-linear-gradient(top,  #EEE,  #aaaaaa); 
+
+padding:10px;
+}
+
+.cheatsheet p {
+margin-bottom: 0;
+color: #666;
+padding: 0 10px 15px 10px;
+}
+
+#user_input, #html_result {
+width: 560px;
+height: 170px;
+}
+
+#result {
+width: 545px;
+min-height: 150px;
+border: 1px solid #999;
+margin-top: 15px;
+padding: 10px;
+}
+
+.warn strong {
+color:red;
+}
+

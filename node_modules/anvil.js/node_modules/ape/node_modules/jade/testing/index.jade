@@ -1,0 +1,12 @@
+users = [{ name: 'tobi', friends: ['loki'] }, { name: 'loki' }]
+
+ul
+  for user in users
+    li= user.name
+      ul
+        for friend in user.friends
+          li= friend
+        else
+          li no friends!
+  else
+    li no users!

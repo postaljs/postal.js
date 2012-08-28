@@ -1,0 +1,23 @@
+{
+  "author": "Felix Geisendörfer <felix@debuggable.com> (http://debuggable.com/)",
+  "name": "active-x-obfuscator",
+  "description": "A module to (safely) obfuscate all occurrences of the string 'ActiveX' inside any JavaScript code.",
+  "version": "0.0.1",
+  "homepage": "https://github.com/felixge/node-active-x-obfuscator",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/felixge/node-active-x-obfuscator.git"
+  },
+  "main": "./index",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "dependencies": {
+    "zeparser": "0.0.5"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {}
+}

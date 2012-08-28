@@ -1,7 +1,7 @@
 {
     "name" : "postal",
     "description" : "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
-    "version" : "0.6.4",
+    "version" : "0.7.0",
     "homepage" : "http://github.com/ifandelse/postal.js",
     "repository" : {
         "type" : "git",
@@ -22,6 +22,11 @@
             "name" : "Alex Robson",
             "email" : "WhyNotJustComment@OnMyBlog.com",
             "url" : "http://freshbrewedcode.com/alexrobson"
+        },
+        {
+	        "name" : "Nicholas Cloud",
+	        "email" : "WhyNotJustComment@OnMyBlog.com",
+	        "url" : "http://nicholascloud.com"
         }
     ],
     "keywords": [
@@ -31,7 +36,10 @@
         "messaging",
         "message",
         "bus",
-        "event"
+        "event",
+        "mediator",
+        "broker",
+        "envelope"
     ],
     "bugs" : {
         "email" : "PleaseJustUseTheIssuesPage@github.com",

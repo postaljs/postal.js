@@ -1,0 +1,16 @@
+{
+	"source": "js",
+	"spec": "spec",
+	"ext": "ext",
+	"output": "next",
+	"finalize": {
+		"header-file": "license.txt"
+	},
+	"docs": {
+		"generator": "docco",
+		"output": "docs"
+	},
+	"hosts": {
+		"/": "docs"
+	}
+}

@@ -1,0 +1,35 @@
+{
+  "name": "diff",
+  "version": "1.0.2",
+  "description": "A javascript text diff implementation.",
+  "keywords": [
+    "diff",
+    "javascript"
+  ],
+  "maintainers": [
+    "Kevin Decker <kpdecker@gmail.com> (http://incaseofstairs.com)"
+  ],
+  "bugs": {
+    "email": "kpdecker@gmail.com",
+    "url": "http://github.com/kpdecker/jsdiff/issues"
+  },
+  "licenses": [
+    {
+      "type": "BSD",
+      "url": "http://github.com/kpdecker/jsdiff/blob/master/LICENSE"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kpdecker/jsdiff.git"
+  },
+  "engines": {
+    "node": ">=0.3.1"
+  },
+  "main": "./diff",
+  "scripts": {
+    "test": "expresso test/*"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

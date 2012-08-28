@@ -1,0 +1,161 @@
+<!DOCTYPE html><head><style type="text/css">pre code{display:block;padding:.5em;color:black;background:#f8f8ff}pre .comment,pre .template_comment,pre .diff .header,pre .javadoc{color:#998;font-style:italic}pre .keyword,pre .css .rule .keyword,pre .winutils,pre .javascript .title,pre .lisp .title,pre .subst{color:black;font-weight:bold}pre .number,pre .hexcolor{color:#40a070}pre .string,pre .tag .value,pre .phpdoc,pre .tex .formula{color:#d14}pre .title,pre .id{color:#900;font-weight:bold}pre .javascript .title,pre .lisp .title,pre .subst{font-weight:normal}pre .class .title,pre .haskell .label,pre .tex .command{color:#458;font-weight:bold}pre .tag,pre .tag .title,pre .rules .property,pre .django .tag .keyword{color:navy;font-weight:normal}pre .attribute,pre .variable,pre .instancevar,pre .lisp .body{color:teal}pre .regexp{color:#009926}pre .class{color:#458;font-weight:bold}pre .symbol,pre .ruby .symbol .string,pre .ruby .symbol .keyword,pre .ruby .symbol .keymethods,pre .lisp .keyword,pre .tex .special,pre .input_number{color:#990073}pre .builtin,pre .built_in,pre .lisp .title{color:#0086b3}pre .preprocessor,pre .pi,pre .doctype,pre .shebang,pre .cdata{color:#999;font-weight:bold}pre .deletion{background:#fdd}pre .addition{background:#dfd}pre .diff .change{background:#0086b3}pre .chunk{color:#aaa}pre .tex .formula{opacity:.5}#docs {margin:auto}.block {clear:both}.comment {padding: 0 10px;width:50%;background:snow}.code {width:49%;background:#f8f8ff}td {vertical-align:top}table {width:90%; border-collapse:collapse}
+</style></head><body><table id="docs"><tr class="block"><td class="comment"><h2>API docs? Nope, ape docs!</h2>
+
+<hr />
+
+<p>ape is a command line tool to generate documentation from your comments.<br />It parses your source code files, and strips markdown formatted comments out,<br />it then puts your code in github-flavored-markdown code blocks, and displays the comments in line.</p>
+
+<p>It wasn't written to be fancy, but rather to have a simple, automated way of keeping docs on github up to date.</p>
+
+<p>To use:</p>
+
+<pre><code>sudo npm install -g ape
+ape [list of files or directories]
+</code></pre></td><td class="code"></td></tr><tr class="block"><td class="comment"><p>Require dependencies</p></td><td class="code"><pre><code><span class="keyword">var</span> fs = require(<span class="string">'fs'</span>),
+    path = require(<span class="string">'path'</span>),
+    gfm = require(<span class="string">'ghm'</span>),
+    hljs = require(<span class="string">'hljs'</span>),
+    jade = require(<span class="string">'jade'</span>);
+</code></pre></td></tr><tr class="block"><td class="comment"><p>This function is a helper for frontends, to make it simpler to determine if a file can be processed by ape.<br />It returns a callback with a single boolean parameter indicating if the file is supported</p></td><td class="code"><pre><code>exports.supported = <span class="function"><span class="keyword">function</span> <span class="params">(filename, callback)</span> {</span>
+    <span class="keyword">var</span> lang = languages[path.extname(filename)];
+    <span class="keyword">if</span> (<span class="keyword">typeof</span> lang === <span class="string">'undefined'</span> ) {
+        callback(<span class="literal">false</span>);
+    } <span class="keyword">else</span> {
+        callback(<span class="literal">true</span>);
+    }
+};
+</code></pre></td></tr><tr class="block"><td class="comment"><p>A simple helper function to return the dictionary of comment regexs, determined by the file extension</p></td><td class="code"><pre><code>exports.get_language = <span class="function"><span class="keyword">function</span> <span class="params">(filename)</span> {</span>
+    <span class="keyword">var</span> lang = languages[path.extname(filename)];
+    <span class="keyword">return</span> lang;
+}
+</code></pre></td></tr><tr class="block"><td class="comment"><p>This is the main function to parse the line array of source code, and return a new line array<br />containing the formatted text</p></td><td class="code"><pre><code><span class="function"><span class="keyword">function</span> <span class="title">parse_code</span><span class="params">(code, lang, outputFormat, template, callback)</span> {</span>
+    <span class="keyword">var</span> parsed_code = [],
+        this_line,
+        in_comment,
+        in_code,
+        spaces,
+        commentblock = [],
+        codeblock = [],
+        tempblock = [];
+
+    <span class="keyword">if</span> (code &amp;&amp; <span class="keyword">typeof</span> code !== <span class="string">'string'</span>) code = code.toString().split(<span class="string">"\n"</span>);
+    <span class="keyword">if</span> (<span class="keyword">typeof</span> lang === <span class="string">'undefined'</span> || !code) <span class="keyword">return</span>;
+    
+    <span class="function"><span class="keyword">function</span> <span class="title">pushblock</span><span class="params">()</span> {</span>
+        parsed_code.push({ code: codeblock.join(<span class="string">'\n'</span>), comment: commentblock.join(<span class="string">'\n'</span>) });
+        codeblock = [];
+        commentblock = [];
+        in_code = <span class="literal">false</span>;
+    }
+
+    <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>, l = code.length; i &lt; l; i++) {
+        this_line = code[i];
+        <span class="keyword">if</span> (this_line.match(lang.comment) &amp;&amp; !in_comment &amp;&amp; !this_line.match(<span class="regexp">/^#\!/</span>)) {
+            <span class="keyword">if</span> (in_code) pushblock();
+            commentblock.push(this_line.replace(lang.comment, <span class="string">''</span>))
+        } <span class="keyword">else</span> <span class="keyword">if</span> (this_line.match(lang.start) &amp;&amp; !in_comment) {
+            <span class="keyword">if</span> (lang.name === <span class="string">'python'</span> &amp;&amp; in_code) {
+                <span class="keyword">while</span> (codeblock[codeblock.length - <span class="number">1</span>].trim() !== <span class="string">''</span>) {
+                    tempblock.push(codeblock.pop());
+                }
+            }
+            <span class="keyword">if</span> (in_code) pushblock(); 
+            <span class="keyword">if</span> (lang.name === <span class="string">'python'</span>) {
+                <span class="keyword">for</span> (<span class="keyword">var</span> ti = <span class="number">0</span>, tl = tempblock.length; ti &lt; tl; ti++) {
+                    codeblock.push(tempblock.pop());
+                }
+            }
+            in_comment = <span class="literal">true</span>;
+            spaces = this_line.match(<span class="regexp">/^\s+/</span>);
+            <span class="keyword">if</span> (spaces) spaces = spaces[<span class="number">0</span>].length;
+            this_line = this_line.replace(lang.start, <span class="string">''</span>);
+            <span class="keyword">if</span> (this_line.match(lang.end)) {
+                this_line = this_line.replace(lang.end, <span class="string">''</span>);
+                in_comment = <span class="literal">false</span>;
+            } 
+            <span class="keyword">if</span> (this_line.trim() !== <span class="string">''</span>) commentblock.push(this_line);
+        } <span class="keyword">else</span> <span class="keyword">if</span> (this_line.match(lang.end) &amp;&amp; in_comment) {
+            this_line = this_line.replace(lang.end, <span class="string">''</span>);
+            <span class="keyword">if</span> (this_line.trim() !== <span class="string">''</span>) commentblock.push(this_line);
+            in_comment = <span class="literal">false</span>;
+        } <span class="keyword">else</span> <span class="keyword">if</span> (this_line.trim() === <span class="string">''</span> &amp;&amp; !in_comment &amp;&amp; !in_code) {
+            pushblock();
+        } <span class="keyword">else</span> {
+            <span class="keyword">if</span> (in_comment) {
+                <span class="keyword">if</span> (lang.name === <span class="string">'python'</span>) this_line = this_line.substring(spaces);
+                commentblock.push(this_line);
+            } <span class="keyword">else</span> {
+                <span class="keyword">if</span> (!in_code &amp;&amp; this_line.trim() !== <span class="string">''</span>) in_code = <span class="literal">true</span>; 
+                codeblock.push(this_line);
+            }
+        }
+    }
+
+    pushblock();
+
+    <span class="keyword">if</span> (outputFormat === <span class="string">'md'</span>) {
+        generate_md(parsed_code, lang, callback);
+    } <span class="keyword">else</span> <span class="keyword">if</span> (outputFormat === <span class="string">'html'</span>) {
+        generate_html(parsed_code, lang, template, callback);
+    }
+}
+</code></pre></td></tr><tr class="block"><td class="comment"><p>This is the exported method</p></td><td class="code"><pre><code>exports.generate_doc = parse_code;
+</code></pre></td></tr><tr class="block"><td class="comment"><p>This function writes the parsed output to a markdown file, matching the original source's filename but changing the extension to .md</p></td><td class="code"><pre><code><span class="function"><span class="keyword">function</span> <span class="title">generate_md</span><span class="params">(parsed_code, language, callback)</span> {</span>
+    <span class="keyword">var</span> outfile,
+        outcode = <span class="string">''</span>;
+    
+    <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>, l = parsed_code.length; i &lt; l; i++) {
+        <span class="keyword">if</span> (parsed_code[i].comment !== <span class="string">''</span>) outcode += parsed_code[i].comment + <span class="string">'\n\n'</span>;
+        <span class="keyword">if</span> (parsed_code[i].code !== <span class="string">''</span>) outcode += <span class="string">'```'</span> + language.name + <span class="string">'\n'</span> + parsed_code[i].code + <span class="string">'\n```\n\n'</span>;
+    }
+
+    callback(<span class="literal">null</span>, outcode);
+}
+</code></pre></td></tr><tr class="block"><td class="comment"><p>This function writes parsed output to html</p></td><td class="code"><pre><code><span class="function"><span class="keyword">function</span> <span class="title">generate_html</span><span class="params">(parsed_code, language, template, callback)</span> {</span>
+    <span class="keyword">var</span> outfile,
+        templatePath,
+        template;
+
+    <span class="keyword">if</span> (<span class="keyword">typeof</span> template === <span class="string">'undefined'</span>) {
+        templatePath = path.join(__dirname, <span class="string">'template.jade'</span>);
+    } <span class="keyword">else</span> {
+        templatePath = template;
+    }
+
+    template = fs.readFileSync(__dirname + <span class="string">'/template.jade'</span>, <span class="string">'utf-8'</span>);
+    <span class="keyword">var</span> fn = jade.compile(template);
+
+    callback(<span class="literal">null</span>, fn({ gfm: gfm, data: parsed_code, hljs: hljs, lang: language.name }));
+}
+</code></pre></td></tr><tr class="block"><td class="comment"><p>Here we define our supported languages. Each language is a dictionary, keyed on the file extension. Inside the dictionary<br />we have the the following items:</p>
+
+<ul>
+<li>'name': the identifier that we output to the markdown for code blocks</li>
+<li>'comment': is a regex that will match a single line comment for the specific language, but does NOT include the text on the line, only the comment</li>
+<li>'start': a regular expression to match the beginning of a multi-line commment block. 'start' should only match if it's on the beginning
+of a line</li>
+<li>'end': the partner regex to 'start' matching the end of a multi-line comment only if the match is at the end of a line.</li>
+</ul></td><td class="code"><pre><code><span class="keyword">var</span> C_LINE_COMMENT = <span class="regexp">/^\s*\/\/\s?/</span>, 
+    C_BLOCK_COMMENT_START = <span class="regexp">/^\s*\/\*\s?/</span>, 
+    C_BLOCK_COMMENT_END = <span class="regexp">/\*\/\s*$/</span>, 
+    HASH_LINE_COMMENT = <span class="regexp">/^\s*#\s?/</span>,
+    NEVER_MATCH = <span class="regexp">/a\bc/</span>;
+<span class="keyword">var</span> languages = {
+    <span class="string">'.js'</span>: { name: <span class="string">'javascript'</span>, comment: C_LINE_COMMENT, start: C_BLOCK_COMMENT_START, end: C_BLOCK_COMMENT_END },
+    <span class="string">'.py'</span>: { name: <span class="string">'python'</span>, comment: HASH_LINE_COMMENT, start: <span class="regexp">/^\s*\"\"\"\s?/</span>, end: <span class="regexp">/\"\"\"\s*$/</span> },
+    <span class="string">'.rb'</span>: { name: <span class="string">'ruby'</span>, comment: HASH_LINE_COMMENT, start: <span class="regexp">/^\s*\=begin\s?/</span>, end: <span class="regexp">/\=end\s*$/</span> },
+    <span class="string">'.lua'</span>: { name: <span class="string">'lua'</span>, comment: <span class="regexp">/^\s*--\s?/</span>, start: <span class="regexp">/^\s*--\[\[\s?/</span>, end: <span class="regexp">/--\]\]\s*$/</span> },
+    <span class="string">'.coffee'</span>: { name: <span class="string">'coffeescript'</span>, comment: <span class="regexp">/^\s*#(?!##)\s?/</span>, start: <span class="regexp">/^\s*###\s?/</span>, end: <span class="regexp">/###\s*$/</span> },
+    <span class="string">'.php'</span>: { name: <span class="string">'php'</span>, comment: <span class="regexp">/^\s*(?:#|\/\/\s?)/</span>, start: C_BLOCK_COMMENT_START, end: C_BLOCK_COMMENT_END },
+    <span class="string">'.c'</span>: { name: <span class="literal">null</span>, comment: C_LINE_COMMENT, start: C_BLOCK_COMMENT_START, end: C_BLOCK_COMMENT_END },
+    <span class="string">'.h'</span>: { name: <span class="literal">null</span>, comment: C_LINE_COMMENT, start: C_BLOCK_COMMENT_START, end: C_BLOCK_COMMENT_END },
+    <span class="string">'.pl'</span>: { name: <span class="string">'perl'</span>, comment: HASH_LINE_COMMENT, start: NEVER_MATCH, end: NEVER_MATCH },
+    <span class="string">'.cpp'</span>: { name: <span class="string">'cpp'</span>, comment: C_LINE_COMMENT, start: C_BLOCK_COMMENT_START, end: C_BLOCK_COMMENT_END },
+    <span class="string">'.cs'</span>: { name: <span class="string">'cs'</span>, comment: C_LINE_COMMENT, start: C_BLOCK_COMMENT_START, end: C_BLOCK_COMMENT_END },
+    <span class="string">'.m'</span>: { name: <span class="string">'objectivec'</span>, comment: C_LINE_COMMENT, start: C_BLOCK_COMMENT_START, end: C_BLOCK_COMMENT_END },
+    <span class="string">'.sql'</span>: { name: <span class="string">'sql'</span>, comment: <span class="regexp">/^\s*--\s?/</span>, start: C_BLOCK_COMMENT_START, end: C_BLOCK_COMMENT_END },
+    <span class="string">'.sh'</span>: { name: <span class="string">'bash'</span>, comment: HASH_LINE_COMMENT, start: NEVER_MATCH, end: NEVER_MATCH },
+    <span class="string">'.css'</span>: { name: <span class="string">'css'</span>, comment: NEVER_MATCH, start: C_BLOCK_COMMENT_START, end: C_BLOCK_COMMENT_END },
+    <span class="string">'.as'</span>: { name: <span class="string">'actionscript'</span>, comment: C_LINE_COMMENT, start: C_BLOCK_COMMENT_START, end: C_BLOCK_COMMENT_END }
+};
+</code></pre></td></tr></table></body>

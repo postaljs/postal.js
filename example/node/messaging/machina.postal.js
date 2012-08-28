@@ -14,7 +14,7 @@ module.exports = function ( postal, machina ) {
 		},
 		wireHandlersToBus : function ( fsm, handlerChannel ) {
 			bus.channels[handlerChannel]._subscriptions.push(
-				bus.channels[handlerChannel].subscribe( "*", function ( data, envelope ) {
+				bus.channels[handlerChannel].subscribe( "#", function ( data, envelope ) {
 					fsm.handle.call( fsm, envelope.topic, data, envelope );
 				} )
 			);

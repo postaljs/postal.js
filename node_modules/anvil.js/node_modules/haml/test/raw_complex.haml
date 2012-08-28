@@ -1,0 +1,62 @@
+- /*
+  here we can have a comment that will not be output.
+  Since executable-JS is a block-level thing, we can
+  have as much comment as we want */
+
+
+- /* now you can have arbitrary control logic 
+    This will output <div>1</div><div>2</div><div>3</div>
+    notice: the %div isn't indented! Explained below!
+  */
+
+- for(var i=1; i < 4; i++){
+%div= i
+-}
+
+
+%h1 Woah!
+
+- /* we can include new variable declarations as well! */
+  var someObj = {
+    a: 1,
+    b: 2
+  }
+= someObj.b
+
+
+%br
+
+
+- /* this is going to be funky. i DO NOT expect you to do this. 
+    Here we will begin with a comment, then define our variable.
+    Next we begin a function definition.
+    
+    We will use this function to output a div that contains a number.
+    Successive calls should output the next number in the div.
+
+    We want our function to output the value of the counter,
+    so we "outdent" to escape the JavaScript block in haml.
+    Note that we have not closed our function definition's 
+    parenthesis yet. So, even though we outdent, the 
+    concatenation statement will be in the function's body.
+  */
+  
+  var counter = 0;
+  function increment(){
+  counter++;
+.count
+  = counter
+-}
+- increment() /* the tags wil be appended to the buffer, so use - instead of = */
+- increment()
+
+
+
+
+- function b(item){
+.item
+  %b= item
+  %span.length= item.length
+- }
+- b("Hi")
+- b("World")

@@ -1,6 +1,6 @@
 # Postal.js
 
-## Version 0.6.3 (Dual Licensed [MIT](http://www.opensource.org/licenses/mit-license) & [GPL](http://www.opensource.org/licenses/gpl-license))
+## Version 0.7.0 (Dual Licensed [MIT](http://www.opensource.org/licenses/mit-license) & [GPL](http://www.opensource.org/licenses/gpl-license))
 
 ## What is it?
 Postal.js is an in-memory message bus - very loosely inspired by [AMQP](http://www.amqp.org/) - written in JavaScript.  Postal.js runs in the browser, or on the server-side using Node.js. It takes a familiar "eventing-style" paradigm most JavaScript developers are already used to and extends it by providing "broker" and subscriber implementations which are more sophisticated than what you typically find in simple event delegation.
@@ -20,11 +20,15 @@ Postal.js is in good company - there are many options for &lt;airquotes&gt;pub/s
 * topcis should be hierarchical and allow plain string or wildcard bindings
 * messages should include envelope metadata
 
+## Recent Updates (IMPORTANT)
+
+Version 0.7.0 of postal has implemented a bindings resolver that aligns with how AMQP handles wildcards in topical bindings.  ***Please note that this effectively inverts how postal has handled wildcards up to now***.  You can still use the old version of the bindings resolve by including the `classic-resolver.js` file in your project. If you want to use the new resolver, just use postal as-is and know that "#" matches 0 or more "words" (words are period-delimited segments of topics) and "*" matches exactly one word.
+
 ### Channels? WAT?
 A channel is a logical partition of topics.  Conceptually, it's like a dedicated highway for a specific set of communication.  At first glance it might seem like that's overkill for an environment that runs in an event loop, but it actually proves to be quite useful.  Every library has architectural opinions that it either imposes or nudges you toward.  Channel-oriented messaging nudges you to separate your communication by bounded context, and enables the kind of fine-tuned visibility you need into the interactions between components as your application grows.
 
 ### Hierarchical Topics
-In my experience, seeing publish and subscribe calls all over application logic is usually a strong code smell.  Ideally, the majority of message-bus integration should be concealed within application infrastructure.  Having a hierarchical-wildcard-bindable topic system makes it very easy to keep things concise (especially subscribe calls!).  For example, if you have a module that needs to listen to every message published on the ShoppingCart channel, you'd simply subscribe to "\*", and never have to worry about additional subscribes on that channel again - even if you add new messages in the future.  If you need to capture all messages with ".validation" at the end of the topic, you'd simply subscribe to "\*.validation".  If you needed to target all messages with topics that started with "Customer.", ended with ".validation" and had only one period-delimited segment in between, you'd subscribe to "Customer.#.validation" (thus your subscription would capture Customer.address.validation and Customer.email.validation").
+In my experience, seeing publish and subscribe calls all over application logic is usually a strong code smell.  Ideally, the majority of message-bus integration should be concealed within application infrastructure.  Having a hierarchical-wildcard-bindable topic system makes it very easy to keep things concise (especially subscribe calls!).  For example, if you have a module that needs to listen to every message published on the ShoppingCart channel, you'd simply subscribe to "\#", and never have to worry about additional subscribes on that channel again - even if you add new messages in the future.  If you need to capture all messages with ".validation" at the end of the topic, you'd simply subscribe to "\#.validation".  If you needed to target all messages with topics that started with "Customer.", ended with ".validation" and had only one period-delimited segment in between, you'd subscribe to "Customer.*.validation" (thus your subscription would capture Customer.address.validation and Customer.email.validation").
 
 ## How do I use it?
 
@@ -55,12 +59,12 @@ channel.publish( { name: "Dr. Who" } );
 subscription.unsubscribe();
 ```
 
-### Subscribing to a wildcard topic using &#35;
+### Subscribing to a wildcard topic using *
 
-The `#` symbol represents "one word" in a topic (i.e - the text between two periods of a topic). By subscribing to `"#.Changed"`, the binding will match `Name.Changed` & `Location.Changed` but *not* `Changed.Companion`.
+The `*` symbol represents "one word" in a topic (i.e - the text between two periods of a topic). By subscribing to `"*.Changed"`, the binding will match `Name.Changed` & `Location.Changed` but *not* `Changed.Companion`.
 
 ```javascript
-var hashChannel = postal.channel( { topic: "#.Changed" } ),
+var hashChannel = postal.channel( { topic: "*.Changed" } ),
     chgSubscription = hashChannel.subscribe( function( data ) {
         $( '<li>' + data.type + " Changed: " + data.value + '</li>' ).appendTo( "#example2" );
     });
@@ -71,12 +75,12 @@ postal.channel( "Location.Changed" )
 chgSubscription.unsubscribe();
 ```
 
-### Subscribing to a wildcard topic using *
+### Subscribing to a wildcard topic using &#35;
 
-The `*` symbol represents any number of characters/words in a topic string. By subscribing to ``"DrWho.*.Changed"``, the binding will match `DrWho.NinthDoctor.Companion.Changed` & `DrWho.Location.Changed` but *not* `Changed`.
+The `#` symbol represents any number of characters/words in a topic string. By subscribing to ``"DrWho.#.Changed"``, the binding will match `DrWho.NinthDoctor.Companion.Changed` & `DrWho.Location.Changed` but *not* `Changed`.
 
 ```javascript
-var starChannel = postal.channel( { channel: "Doctor.Who", topic: "DrWho.*.Changed" } ),
+var starChannel = postal.channel( { channel: "Doctor.Who", topic: "DrWho.#.Changed" } ),
     starSubscription = starChannel.subscribe( function( data ) {
         $( '<li>' + data.type + " Changed: " + data.value + '</li>' ).appendTo( "#example3" );
     });
@@ -100,10 +104,12 @@ starChannel.publish( { topic: "Changed",                             data: { typ
 starSubscription.unsubscribe();
 ```
 
+
+
 ### Applying distinctUntilChanged to a subscription
 
 ```javascript
-var dupChannel = postal.channel( { topic: "WeepingAngel.*" } ),
+var dupChannel = postal.channel( { topic: "WeepingAngel.#" } ),
     dupSubscription = dupChannel.subscribe( function( data ) {
                           $( '<li>' + data.value + '</li>' ).appendTo( "#example4" );
                       }).distinctUntilChanged();
@@ -143,7 +149,6 @@ Please - by all means!  While I hope the API is relatively stable, I'm open to p
 ## Roadmap for the Future
 Here's where Postal is headed:
 
-* The default binding resolver will be changed in v0.7.0 to match AMQP binding conventions exactly.
 * Add-ons to enable message capture and replay are in the works and should be ready soon.
 * The `SubscriptionDefinition` object will be given the ability to pause (skip) responding to subscriptions
 * What else would you like to see?

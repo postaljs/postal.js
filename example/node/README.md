@@ -4,6 +4,10 @@
 
 As much as I want to convince you that this sample app was written with you in mind, I'd be lying if I said so.  The browser examples in this repo are currently "bare bones", with no real usage examples beyond calling the API in browser js and then calling it a day.  I wanted to demonstrate node.js usage of postal as well, and that gave birth to this example project.
 
+## How to run
+
+Open a terminal/console to the example/node directory and run `node index.js`.  Then open a browser to http://localhost:8002.  Once you enter a search term in the client UI, it will trigger the server side twitter search module to start searching, etc.
+
 ### The Good, the Bad & the Caveats
 
 The Good:

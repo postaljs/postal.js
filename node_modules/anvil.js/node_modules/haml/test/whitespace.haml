@@ -1,0 +1,44 @@
+%p I want my words 
+  %a> to have spaces on the outside
+  So they don't run together. 
+  But i also want some to have
+  %a< spaces on the inside
+  and still others to have
+  %a<> spaces on either side
+  even if it has
+  %a<>= "code"
+  on the line
+  %a>= "or"
+  just code with space on the outside
+
+
+%p
+  %a link
+  s that touch their neighbor.
+
+
+%p
+  And
+  %a>links
+  that do not
+
+%p
+  Or a
+  %b<> important thing
+  with tons of space
+
+%p
+  Download the file
+  %a(href="/home")> here
+  now.
+
+-# empty tag
+%p<>
+
+- id="123456"; locals={name:"hi"}
+
+.item.pending{data-id: id}
+  %input.checkbox(type="checkbox" id="todo-"+id)
+  %label.description(name=("todo-"+id))= (locals.name || "")
+  %span<>= id
+  %a.delete.live{href:"/todo/"+id+"/delete"}> delete

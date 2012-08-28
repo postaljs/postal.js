@@ -171,7 +171,7 @@ var RemoteClientProxy = function ( postal, socketClient, bridge ) {
 	fsm.subscriptions._direct = {
 		_private : postal.subscribe( {
 			channel : socketClient.id,
-			topic : "*",
+			topic : "#",
 			callback : function ( d, e ) {
 				fsm.handle( "socketTransmit", d, e );
 			}

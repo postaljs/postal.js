@@ -440,25 +440,29 @@ QUnit.specify( "postal.js", function () {
 			} );
 		} );
 		describe( "When subscribing with a hierarchical binding, using #", function () {
-			var count = 0, channelB, channelC, channelD;
+			var count, channelB, channelC, channelD, channelE;
 			before( function () {
+        count = 0;
 				channel = postal.channel( { channel : "MyChannel", topic : "MyTopic.#.SubTopic" } );
 				channelB = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic" } );
 				channelC = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubTopic" } );
-				channelD = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubTopic.YetAnother" } );
-				subscription = channel.subscribe( function ( data ) {
+				channelD = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubMiddle.SubTopic" } );
+				channelE = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubTopic.YetAnother" } );
+				subscription = channel.subscribe( function ( data, env ) {
 					count++;
+          console.log("TOPIC: " + env.topic );
 				} );
 				channelC.publish( {channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubTopic", data : "Testing123"} );
 				channelB.publish( {channel : "MyChannel", topic : "MyTopic.MiddleTopic", data : "Testing123"} );
+				channelD.publish( {channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubMiddle.SubTopic", data : "Testing123"} );
 				channelD.publish( {channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubTopic.YetAnother", data : "Testing123"} );
 			} );
 			after( function () {
 				postal.utils.reset();
 				count = 0;
 			} );
-			it( "should have invoked subscription callback only once", function () {
-				assert( count ).equals( 1 );
+			it( "should have invoked subscription callback twice", function () {
+				assert( count ).equals( 2 );
 			} );
 		} );
 		describe( "When subscribing with a hierarchical binding, using *", function () {
@@ -481,7 +485,7 @@ QUnit.specify( "postal.js", function () {
 				count = 0;
 			} );
 			it( "should have invoked subscription callback twice", function () {
-				assert( count ).equals( 2 );
+				assert( count ).equals( 1 );
 			} );
 		} );
 		describe( "When subscribing with a hierarchical binding, using # and *", function () {

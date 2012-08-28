@@ -27,9 +27,9 @@ var TwitterSocketStats = function ( port, refreshinterval ) {
 	// Stand up our express app
 	app.use( "/", express.static( __dirname + '/client' ) );
 	app.listen( port );
-	var searchChannel = postal.channel( "twittersearch", "*" ),
-		statsChannel = postal.channel( "stats", "*" ),
-		appChannel = postal.channel( "statsApp", "*" ),
+	var searchChannel = postal.channel( "twittersearch", "#" ),
+		statsChannel = postal.channel( "stats", "#" ),
+		appChannel = postal.channel( "statsApp", "#" ),
 		fsm;
 
 	postal.linkChannels( { channel : "postal.socket", topic : "client.migrated"}, { channel : "statsApp", topic : "client.migrated" } );
