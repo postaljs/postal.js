@@ -10,7 +10,7 @@ Open a terminal/console to the example/node directory and run `node index.js`.  
 
 ## The Good, the Bad & the Caveats
 
-##The Good:
+###The Good:
 
 * You'll see postal.js used in node.js and in the browser (#winning?)
 * This is way beyond a hello world example
@@ -21,7 +21,7 @@ Open a terminal/console to the example/node directory and run `node index.js`.  
 	* The "bus agnostic" modules (for ex. - anything in the "collectors" directory) can work just fine without a message bus in place, but any subscribers would have to have a direct reference to the module, causing the application to be more tightly coupled.
 	* The adapters wrap the standard "events" that a module can produce and act as a bridge to then publish those events onto the message bus.  This enables other clients to subscribe to said events without needing to know anything explicit about the event producer beyond the structure of the message (the message *is* the contract).
 
-##The Bad:
+###The Bad:
 
 * I have (had?) high hopes to refactor this into better organized code, but alas, I have a wife, two kids, friends, other OSS projects and about 200 books on my amazon wish list.  So, while the code is readable, it's more verbose than it should be.
 * *IF* I get to refactor anything, I would target things like:
@@ -29,7 +29,7 @@ Open a terminal/console to the example/node directory and run `node index.js`.  
 	* Tie postal.js into the Backbone.Sync process so that models could transparently get updates from the server w/o having to know about subscriptions for updates
 	* More comments - especially around the bus-adapter/collector adpaters in the node.js code
 
-##The Caveats:
+###The Caveats:
 
 * The web socket bridge in use in this project (postal.socket) is *highly experimental*!  A real version is in the works, but this project served as a test bed for ideas I had floating around in my brain.
 * The actual functionality of this example app is truly silly and arbitrary:
