@@ -14,19 +14,24 @@
     },
     "contributors": [
         {
-            "name" : "Jim Cowart",
+            "name"  : "Jim Cowart",
             "email" : "WhyNotJustComment@OnMyBlog.com",
-            "url" : "http://freshbrewedcode.com/jimcowart"
+            "url"   : "http://freshbrewedcode.com/jimcowart"
         },
         {
-            "name" : "Alex Robson",
+            "name"  : "Alex Robson",
             "email" : "WhyNotJustComment@OnMyBlog.com",
-            "url" : "http://freshbrewedcode.com/alexrobson"
+            "url"   : "http://freshbrewedcode.com/alexrobson"
         },
         {
-	        "name" : "Nicholas Cloud",
+	        "name"  : "Nicholas Cloud",
 	        "email" : "WhyNotJustComment@OnMyBlog.com",
-	        "url" : "http://nicholascloud.com"
+	        "url"   : "http://nicholascloud.com"
+        },
+        {
+            "name"  : "Doug Neiner",
+            "email" : "WhyNotJustComment@OnMyBlog.com",
+            "url"   : "http://dougneiner.com/"
         }
     ],
     "keywords": [
