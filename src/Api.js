@@ -107,7 +107,7 @@ var postal = {
 						channel : source.channel || DEFAULT_CHANNEL,
 						topic : source.topic || "#",
 						callback : function ( data, env ) {
-							var newEnv = env;
+							var newEnv = _.clone( env );
 							newEnv.topic = _.isFunction( destination.topic ) ? destination.topic( env.topic ) : destination.topic || env.topic;
 							newEnv.channel = destChannel;
 							newEnv.data = data;
