@@ -1,6 +1,6 @@
 # Postal.js
 
-## Version 0.7.0 (Dual Licensed [MIT](http://www.opensource.org/licenses/mit-license) & [GPL](http://www.opensource.org/licenses/gpl-license))
+## Version 0.7.1 (Dual Licensed [MIT](http://www.opensource.org/licenses/mit-license) & [GPL](http://www.opensource.org/licenses/gpl-license))
 
 ## What is it?
 Postal.js is an in-memory message bus - very loosely inspired by [AMQP](http://www.amqp.org/) - written in JavaScript.  Postal.js runs in the browser, or on the server-side using Node.js. It takes a familiar "eventing-style" paradigm most JavaScript developers are already used to and extends it by providing "broker" and subscriber implementations which are more sophisticated than what you typically find in simple event delegation.
@@ -22,7 +22,7 @@ Postal.js is in good company - there are many options for &lt;airquotes&gt;pub/s
 
 ## Recent Updates (IMPORTANT)
 
-Version 0.7.0 of postal has implemented a bindings resolver that aligns with how AMQP handles wildcards in topical bindings.  ***Please note that this effectively inverts how postal has handled wildcards up to now***.  You can still use the old version of the bindings resolve by including the `classic-resolver.js` file in your project. If you want to use the new resolver, just use postal as-is and know that "#" matches 0 or more "words" (words are period-delimited segments of topics) and "*" matches exactly one word.
+Version 0.7.1 of postal has implemented a bindings resolver that aligns with how AMQP handles wildcards in topical bindings.  ***Please note that this effectively inverts how postal has handled wildcards up to now***.  You can still use the old version of the bindings resolve by including the `classic-resolver.js` file in your project. If you want to use the new resolver, just use postal as-is and know that "#" matches 0 or more "words" (words are period-delimited segments of topics) and "*" matches exactly one word.
 
 ### Channels? WAT?
 A channel is a logical partition of topics.  Conceptually, it's like a dedicated highway for a specific set of communication.  At first glance it might seem like that's overkill for an environment that runs in an event loop, but it actually proves to be quite useful.  Every library has architectural opinions that it either imposes or nudges you toward.  Channel-oriented messaging nudges you to separate your communication by bounded context, and enables the kind of fine-tuned visibility you need into the interactions between components as your application grows.
