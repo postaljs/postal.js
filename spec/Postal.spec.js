@@ -778,6 +778,33 @@ QUnit.specify( "postal.js", function () {
 				} );
 			} );
 		} );
+		describe( "When binding channel - one source to multiple destinations", function () {
+			var destData = [],
+				destEnv = [],
+				callback = function ( data, env ) {
+					destData.push( data );
+					destEnv.push( env );
+				};
+
+			before( function () {
+				linkages = postal.linkChannels(
+					{ channel : "sourceChannel", topic: "Oh.Hai.There" }, 
+					[
+						{ channel : "destinationChannel", topic: "NewTopic.Oh.Hai" },
+						{ channel : "destinationChannel", topic: "NewTopic.Oh.Hai.There" }
+					]);
+				postal.subscribe( { channel : "destinationChannel", topic : "NewTopic.Oh.Hai", callback : callback} );
+				postal.subscribe( { channel : "destinationChannel", topic : "NewTopic.Oh.Hai.There", callback : callback } );
+				postal.publish( "sourceChannel", "Oh.Hai.There", { data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
+			} );
+			after( function () {
+				postal.utils.reset();
+			} );
+			it( "linked subscriptions should each have been called once", function () {
+				assert( destData.length ).equals( 2 );
+				assert( destEnv.length ).equals( 2 );
+			} );
+		});
 		describe( "When calling postal.utils.reset", function () {
 			var resolver;
 			before( function () {
