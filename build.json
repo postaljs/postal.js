@@ -1,27 +1,17 @@
 {
-	"source" : "src",
-	"output" : "lib",
-    "name" : {
-        "postal.node.js"                   : "node/postal.js",
-        "postal.standard.js"               : "standard/postal.js",
-        "postal.standard.min.js"           : "standard/postal.min.js",
-        "postal.amd.js"                    : "amd/postal.js",
-        "postal.amd.min.js"                : "amd/postal.min.js",
-	    "classic-resolver.node.js"         : "node/classic-resolver.js",
-	    "classic-resolver.standard.js"     : "standard/classic-resolver.js",
-	    "classic-resolver.standard.min.js" : "standard/classic-resolver.min.js",
-	    "classic-resolver.amd.js"          : "amd/classic-resolver.js",
-	    "classic-resolver.amd.min.js"      : "amd/classic-resolver.min.js"
+	"anvil.uglify" : {
+        "exclude": ["./node/postal.js", "./node/classic-resolver.js"]
     },
-	"lint" : {},
-	"uglify" : {
-        "exclude": ["postal.node.js", "classic-resolver.node.min.js"]
+	"anvil.http": {
+		"paths": {
+        	"/": "./"
+        },
+        "port" : 8080
     },
-	"extensions" : {
-		"uglify" : "min"
-	},
-    "hosts": {
-        "/": "./"
-    },
-	"port" : 8080
+    "anvil.output": {
+    	"./lib/standard/postal.*": "./example/standard/js",
+    	"./lib/amd/postal.*": "./example/amd/js/libs/postal",
+    	"./lib/amd/postal.*": "./example/node/client/js/lib",
+    	"./lib/amd/postal.js": "./example/node/messaging"
+    }
 }
