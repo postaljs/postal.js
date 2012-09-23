@@ -1,6 +1,6 @@
 define( [
 	'postal'
 ], function ( postal ) {
-	//import("BindingsResolver.js");
+	//import("../BindingsResolver.js");
 	postal.configuration.resolver = classicBindingsResolver;
 } );

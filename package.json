@@ -7,11 +7,7 @@
         "type" : "git",
         "url" : "git://github.com/ifandelse/postal.js.git"
     },
-    "author" : {
-        "name" : "Jim Cowart",
-        "email" : "JustFindMeOnTwitter@MyUsernameIs_ifandelse.com",
-        "url" : "http://freshbrewedcode.com/jimcowart"
-    },
+    "author" : "Jim Cowart (http://freshbrewedcode.com/jimcowart)",
     "contributors": [
         {
             "name"  : "Jim Cowart",
@@ -24,9 +20,9 @@
             "url"   : "http://freshbrewedcode.com/alexrobson"
         },
         {
-	        "name"  : "Nicholas Cloud",
-	        "email" : "WhyNotJustComment@OnMyBlog.com",
-	        "url"   : "http://nicholascloud.com"
+          "name"  : "Nicholas Cloud",
+          "email" : "WhyNotJustComment@OnMyBlog.com",
+          "url"   : "http://nicholascloud.com"
         },
         {
             "name"  : "Doug Neiner",
