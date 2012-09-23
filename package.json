@@ -51,7 +51,7 @@
         "email" : "PleaseJustUseTheIssuesPage@github.com",
         "url" : "http://github.com/ifandelse/postal.js/issues"
     },
-    "files" : ["lib/node/postal.js"],
+    "directories" : { "lib" : "lib/node" },
     "main" : "lib/node/postal.js",
     "engines" : {
         "node" : ">=0.4.0"

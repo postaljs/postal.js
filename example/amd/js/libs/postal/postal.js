@@ -1,10 +1,9 @@
 /*
- postal.js
- Author: Jim Cowart
+ postal
+ Author: Jim Cowart (http://freshbrewedcode.com/jimcowart)
  License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
  Version 0.7.1
  */
-
 // This is the amd-module version of postal.js
 // If you need the standard lib style version, go to http://github.com/ifandelse/postal.js
 define( ["underscore"], function ( _, undefined ) {
