@@ -1,4 +1,4 @@
-//import("BindingsResolver.js");
+//import("../BindingsResolver.js");
 
 module.exports = {
 	configure: function(postal) {
