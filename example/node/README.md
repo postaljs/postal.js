@@ -6,7 +6,11 @@ As much as I want to convince you that this sample app was written with you in m
 
 ## How to run
 
-Open a terminal/console to the example/node directory and run `node index.js`.  Then open a browser to http://localhost:8002.  Once you enter a search term in the client UI, it will trigger the server side twitter search module to start searching, etc.
+### Install depedencies first!
+Open a terminal/console to the example/node directory and run `npm install`.
+
+### Now, to run...
+Open a terminal/console to the example/node directory and run `npm start`.  Then open a browser to http://localhost:8002.  Once you enter a search term in the client UI, it will trigger the server side twitter search module to start searching, etc.
 
 ## The Good, the Bad & the Caveats
 
