@@ -1,13 +1,12 @@
 /*
- postal.js
- Author: Jim Cowart
+ postal
+ Author: Jim Cowart (http://freshbrewedcode.com/jimcowart)
  License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
  Version 0.7.1
  */
-
 // This is the standard lib version of postal.js
 // If you need the amd-module style version, go to http://github.com/ifandelse/postal.js
-(function ( _, global, undefined ) {
+;(function ( _, global, undefined ) {
 
 var DEFAULT_CHANNEL = "/",
 	DEFAULT_PRIORITY = 50,

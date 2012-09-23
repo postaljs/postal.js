@@ -10,3 +10,6 @@ _ReSharper*
 desktop.ini
 .eprj
 .idea
+.anvil
+*node_modules
+*npm-debug*

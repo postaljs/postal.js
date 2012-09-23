@@ -1,3 +1,0 @@
-[submodule "lib/jslint/jslint.com-mirror"]
-	path = lib/jslint/jslint.com-mirror
-	url = git://github.com/happygiraffe/jslint.com-mirror.git
