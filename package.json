@@ -28,6 +28,11 @@
             "name"  : "Doug Neiner",
             "email" : "WhyNotJustComment@OnMyBlog.com",
             "url"   : "http://dougneiner.com/"
+        },
+        {
+            "name"  : "Jonathan Creamer",
+            "email" : "WhyNotJustComment@OnMyBlog.com",
+            "url"   : "http://freshbrewedcode.com/jonathancreamer/"
         }
     ],
     "keywords": [
@@ -46,8 +51,8 @@
         "email" : "PleaseJustUseTheIssuesPage@github.com",
         "url" : "http://github.com/ifandelse/postal.js/issues"
     },
-    "directories" : { "lib" : "./lib/node" },
-    "main" : "./postal.js",
+    "files" : ["lib/node/postal.js"],
+    "main" : "lib/node/postal.js",
     "engines" : {
         "node" : ">=0.4.0"
     },
