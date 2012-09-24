@@ -18,8 +18,8 @@ Open a terminal/console to the example/node directory and run `npm start`.  Then
 
 * You'll see postal.js used in node.js and in the browser (#winning?)
 * This is way beyond a hello world example
-* The browser and node.js postal instances are being *bridge* by a websocket connection (geek brownie points, FTW)
-* I demonstrate a general usage pattern I've fallen into with the node.js side of things, which I call "Local message bus at boundaries, events internal."
+* The browser and node.js postal instances are being *bridged* by a websocket connection (geek brownie points, FTW)
+* I demonstrate a general usage pattern (message endpoint) I've fallen into with the node.js side of things, which I describe as "Local message bus at boundaries, events internal."
 	* Note that the node/messaging/ folder contains "bus-adapter.js" and "collector-adapter.js"
 	* These modules exist to adapt other bus-agnostics modules to postal.js
 	* The "bus agnostic" modules (for ex. - anything in the "collectors" directory) can work just fine without a message bus in place, but any subscribers would have to have a direct reference to the module, causing the application to be more tightly coupled.
