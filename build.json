@@ -14,9 +14,8 @@
 	"output": {
 		"full": "lib",
 		"partial": {
-			"/standard/postal.*": "./example/standard/js",
-			"/amd/postal.*": [ "./example/amd/js/libs/postal", "./example/node/client/js/lib" ],
-			"/node/postal.js": "./example/node/messaging"
+			"/browser/postal.*" : [ "./example/standard/js", "./example/amd/js/libs/postal", "./example/node/client/js/lib" ],
+			"/node/postal.js"   : "./example/node/messaging"
 		}
 	},
 	"dependencies": [ "anvil.http", "anvil.uglify" ]
