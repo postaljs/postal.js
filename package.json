@@ -1,7 +1,7 @@
 {
     "name" : "postal",
     "description" : "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
-    "version" : "0.7.1",
+    "version" : "0.7.2",
     "homepage" : "http://github.com/ifandelse/postal.js",
     "repository" : {
         "type" : "git",
@@ -27,12 +27,17 @@
         {
             "name"  : "Doug Neiner",
             "email" : "WhyNotJustComment@OnMyBlog.com",
-            "url"   : "http://dougneiner.com/"
+            "url"   : "http://dougneiner.com"
         },
         {
             "name"  : "Jonathan Creamer",
             "email" : "WhyNotJustComment@OnMyBlog.com",
-            "url"   : "http://freshbrewedcode.com/jonathancreamer/"
+            "url"   : "http://freshbrewedcode.com/jonathancreamer"
+        },
+        {
+	        "name"  : "Elijah Manor",
+	        "email" : "WhyNotJustComment@OnMyBlog.com",
+	        "url"   : "http://www.elijahmanor.com"
         }
     ],
     "keywords": [
