@@ -11,10 +11,10 @@ var localBus = {
 		};
 	},
 
-	changePriority: function ( subDef ) {
+	changePriority : function ( subDef ) {
 		var idx, found;
-		if(this.subscriptions[subDef.channel] && this.subscriptions[subDef.channel][subDef.topic]) {
-			this.subscriptions[subDef.channel][subDef.topic] = _.without(this.subscriptions[subDef.channel][subDef.topic], subDef);
+		if ( this.subscriptions[subDef.channel] && this.subscriptions[subDef.channel][subDef.topic] ) {
+			this.subscriptions[subDef.channel][subDef.topic] = _.without( this.subscriptions[subDef.channel][subDef.topic], subDef );
 			idx = this.subscriptions[subDef.channel][subDef.topic].length - 1;
 			for ( ; idx >= 0; idx-- ) {
 				if ( this.subscriptions[subDef.channel][subDef.topic][idx].priority <= subDef.priority ) {
@@ -34,21 +34,24 @@ var localBus = {
 			tap( envelope.data, envelope );
 		} );
 
-		_.each( this.subscriptions[envelope.channel], function ( topic ) {
-			// TODO: research faster ways to handle this than _.clone
-			_.each( _.clone(topic), function ( subDef ) {
-				if ( postal.configuration.resolver.compare( subDef.topic, envelope.topic ) ) {
-					if ( _.all( subDef.constraints, function ( constraint ) {
-						return constraint( envelope.data, envelope );
-					} ) ) {
-						if ( typeof subDef.callback === 'function' ) {
-							subDef.callback.apply( subDef.context, [envelope.data, envelope] );
-							subDef.onHandled();
+		if ( this.subscriptions[envelope.channel] ) {
+			_.each( this.subscriptions[envelope.channel], function ( topic ) {
+				// TODO: research faster ways to handle this than _.clone
+				_.each( _.clone( topic ), function ( subDef ) {
+					if ( postal.configuration.resolver.compare( subDef.topic, envelope.topic ) ) {
+						if ( _.all( subDef.constraints, function ( constraint ) {
+							return constraint( envelope.data, envelope );
+						} ) ) {
+							if ( typeof subDef.callback === 'function' ) {
+								subDef.callback.apply( subDef.context, [envelope.data, envelope] );
+								subDef.onHandled();
+							}
 						}
 					}
-				}
+				} );
 			} );
-		} );
+		}
+
 	},
 
 	reset : function () {

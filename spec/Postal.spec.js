@@ -864,5 +864,15 @@ QUnit.specify( "postal.js", function () {
 				assert( results.length ).equals( 10 );
 			} );
 		} );
+		describe( "When publishing on a channel where no subscribers exist", function () {
+			it( "should return expected results for MyChannel/MyTopic", function () {
+				var env = postal.publish({
+					channel: "NoOneIsUsingThisOne",
+					topic: "This.Is.A.Lonely.Topic",
+					data: "Y U NO SUBSCRIBE TO ME?"
+				});
+				assert( !_.isEmpty(env) ).equals( true );
+			} );
+		} );
 	} );
 } );
