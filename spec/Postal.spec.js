@@ -156,6 +156,27 @@ describe( "Postal", function () {
 			expect( msgReceivedCnt ).to.be( 5 );
 		} );
 	} );
+  describe( "When subscribing with once()", function () {
+    var msgReceivedCnt = 0;
+    before( function () {
+      channel = postal.channel( { channel : "MyChannel", topic : "MyTopic" } );
+      subscription = channel.subscribe( function ( data ) {
+        msgReceivedCnt++;
+      } ).once();
+      channel.publish( "Testing123" );
+      channel.publish( "Testing123" );
+      channel.publish( "Testing123" );
+      channel.publish( "Testing123" );
+      channel.publish( "Testing123" );
+      channel.publish( "Testing123" );
+    } );
+    after( function () {
+      postal.utils.reset();
+    } );
+    it( "subscription callback should be invoked 1 time", function () {
+      expect( msgReceivedCnt ).to.be( 1 );
+    } );
+  } );
 	describe( "When subscribing and ignoring duplicates", function () {
 		var subInvokedCnt = 0;
 		before( function () {

@@ -161,6 +161,10 @@ SubscriptionDefinition.prototype = {
 		return this;
 	},
 
+  once: function() {
+    this.disposeAfter(1);
+  },
+
 	withConstraint : function ( predicate ) {
 		if ( !_.isFunction( predicate ) ) {
 			throw "Predicate constraint must be a function";

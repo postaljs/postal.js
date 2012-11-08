@@ -4,17 +4,17 @@
  License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
  Version 0.7.3
  */
-(function ( root, doc, factory ) {
+(function ( root, factory ) {
 	if ( typeof define === "function" && define.amd ) {
 		// AMD. Register as an anonymous module.
 		define( ["underscore"], function ( _ ) {
-			return factory( _, root, doc );
+			return factory( _, root );
 		} );
 	} else {
 		// Browser globals
-		factory( root._, root, doc );
+		factory( root._, root );
 	}
-}( this, document, function ( _, global, document, undefined ) {
+}( this, function ( _, global, undefined ) {
 
 	var DEFAULT_CHANNEL = "/",
 		DEFAULT_PRIORITY = 50,
@@ -168,6 +168,10 @@
 			this.withConstraint( new DistinctPredicate() );
 			return this;
 		},
+	
+	  once: function() {
+	    this.disposeAfter(1);
+	  },
 	
 		withConstraint : function ( predicate ) {
 			if ( !_.isFunction( predicate ) ) {
