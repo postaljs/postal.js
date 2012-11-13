@@ -5,8 +5,7 @@
 	"anvil.http": {
 		"paths": {
 			"/": "./"
-		},
-		"port" : 8080
+		}
 	},
 	"anvil.jshint" : {
 		"all": true
@@ -18,5 +17,5 @@
 			"/node/postal.js"   : "./example/node/messaging"
 		}
 	},
-	"dependencies": [ "anvil.http", "anvil.uglify" ]
+	"dependencies": [ "anvil.http", "anvil.uglify", "anvil.jshint" ]
 }
