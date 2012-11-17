@@ -45,7 +45,7 @@ describe( "SubscriptionDefinition", function () {
 			expect( sDef.onHandled ).to.be( NO_OP );
 		} );
 		it( "should default the context", function () {
-			expect( sDef.context ).to.be(null);
+			expect( sDef.context ).to.be( null );
 		} );
 		it( "should fire the subscription.created message", function () {
 			expect( caughtSubscribeEvent ).to.be( true );
@@ -81,11 +81,22 @@ describe( "SubscriptionDefinition", function () {
 	} );
 
 	describe( "When setting the context", function () {
-		var obj = {},
-			sDefd = new SubscriptionDefinition( "TestChannel", "TestTopic", NO_OP ).withContext( obj );
+		var obj = { name : "Rose" },
+			name,
+			sDefd = new SubscriptionDefinition( "TestChannel", "TestTopic", NO_OP )
+				.withContext( obj )
+				.withConstraint( function ( d, e ) {
+					name = this.name;
+					return true;
+				} );
+
+		postal.publish({ channel: "TestChannel", topic: "TestTopic", data: "Oh, hai"})
 
 		it( "Should set context", function () {
 			expect( sDefd.context ).to.be( obj );
+		} );
+		it( "Should apply context to predicate/constraint", function () {
+			expect( name ).to.be( "Rose" );
 		} );
 	} );
 
@@ -111,7 +122,7 @@ describe( "SubscriptionDefinition", function () {
 	describe( "When deferring the callback", function () {
 		var results = [], sDefe;
 
-		it( "Should defer the callback", function (done) {
+		it( "Should defer the callback", function ( done ) {
 			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data ) {
 				results.push( data );
 				expect( results[0] ).to.be( "first" );
@@ -127,7 +138,7 @@ describe( "SubscriptionDefinition", function () {
 	describe( "When delaying the callback", function () {
 		var results = [], sDefe;
 
-		it( "Should delay the callback", function (done) {
+		it( "Should delay the callback", function ( done ) {
 			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data ) {
 				results.push( data );
 				expect( results[0] ).to.be( "first" );
@@ -145,7 +156,7 @@ describe( "SubscriptionDefinition", function () {
 				results.push( data );
 			} ).withDebounce( 800 );
 
-		it( "should have only invoked debounced callback once", function (done) {
+		it( "should have only invoked debounced callback once", function ( done ) {
 			sDefe.callback( 1 ); // starts the two second clock on debounce
 			setTimeout( function () {
 				sDefe.callback( 2 );
@@ -176,7 +187,7 @@ describe( "SubscriptionDefinition", function () {
 				results.push( data );
 			} ).withThrottle( 500 );
 
-		it( "should have only invoked throttled callback twice", function (done) {
+		it( "should have only invoked throttled callback twice", function ( done ) {
 			sDefe.callback( 1 ); // starts the two second clock on debounce
 			setTimeout( function () {
 				sDefe.callback( 800 );

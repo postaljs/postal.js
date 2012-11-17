@@ -312,10 +312,10 @@
 					_.each( _.clone( topic ), function ( subDef ) {
 						if ( postal.configuration.resolver.compare( subDef.topic, envelope.topic ) ) {
 							if ( _.all( subDef.constraints, function ( constraint ) {
-								return constraint( envelope.data, envelope );
+								return constraint.call(subDef.context, envelope.data, envelope );
 							} ) ) {
 								if ( typeof subDef.callback === 'function' ) {
-									subDef.callback.apply( subDef.context, [envelope.data, envelope] );
+									subDef.callback.call( subDef.context, envelope.data, envelope );
 									subDef.onHandled();
 								}
 							}
