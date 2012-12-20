@@ -77,3 +77,4 @@ var localBus = {
 		}
 	}
 };
+localBus.subscriptions[SYSTEM_CHANNEL] = {};
