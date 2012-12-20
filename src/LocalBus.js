@@ -30,6 +30,7 @@ var localBus = {
 	},
 
 	publish : function ( envelope ) {
+    envelope.timeStamp = new Date();
 		_.each( this.wireTaps, function ( tap ) {
 			tap( envelope.data, envelope );
 		} );
