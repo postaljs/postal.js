@@ -1,3 +1,4 @@
+var NO_OP = function() {};
 describe( "SubscriptionDefinition", function () {
 	describe( "When initializing SubscriptionDefinition", function () {
 		var sDef,
@@ -32,17 +33,8 @@ describe( "SubscriptionDefinition", function () {
 		it( "should set the callback", function () {
 			expect( sDef.callback ).to.be( NO_OP );
 		} );
-		it( "should default the priority", function () {
-			expect( sDef.priority ).to.be( 50 );
-		} );
 		it( "should default the constraints", function () {
 			expect( sDef.constraints.length ).to.be( 0 );
-		} );
-		it( "should default the maxCalls", function () {
-			expect( sDef.maxCalls ).to.be( 0 );
-		} );
-		it( "should default the onHandled callback", function () {
-			expect( sDef.onHandled ).to.be( NO_OP );
 		} );
 		it( "should default the context", function () {
 			expect( sDef.context ).to.be( null );
@@ -97,14 +89,6 @@ describe( "SubscriptionDefinition", function () {
 		} );
 		it( "Should apply context to predicate/constraint", function () {
 			expect( name ).to.be( "Rose" );
-		} );
-	} );
-
-	describe( "When setting priority", function () {
-		var sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", NO_OP ).withPriority( 10 );
-
-		it( "Should set priority", function () {
-			expect( sDefe.priority ).to.be( 10 );
 		} );
 	} );
 

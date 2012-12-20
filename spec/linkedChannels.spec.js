@@ -10,9 +10,9 @@ describe("Linked Channels", function(){
           destData.push( data );
           destEnv.push( env );
         }} );
-        postal.publish( "sourceChannel", "Oh.Hai.There", { data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
+        postal.publish( { channel: "sourceChannel", topic: "Oh.Hai.There", data: "I'm in yer bus, linkin' to yer subscriptionz..." } );
         linkages[0].unsubscribe();
-        postal.publish( "sourceChannel", "Oh.Hai.There", { data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
+        postal.publish( { channel: "sourceChannel", topic: "Oh.Hai.There", data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
       } );
       after( function () {
         postal.utils.reset();
@@ -22,7 +22,7 @@ describe("Linked Channels", function(){
         expect( destEnv.length ).to.be( 1 );
       } );
       it( "linked subscription data should match expected results", function () {
-        expect( destData[0].data ).to.be( "I'm in yer bus, linkin' to yer subscriptionz..." );
+        expect( destData[0] ).to.be( "I'm in yer bus, linkin' to yer subscriptionz..." );
       } );
       it( "linked subscription envelope should match expected results", function () {
         expect( destEnv[0].channel ).to.be( "destinationChannel" );
@@ -39,9 +39,9 @@ describe("Linked Channels", function(){
           destData.push( data );
           destEnv.push( env );
         }} );
-        postal.publish( "sourceChannel", "Oh.Hai.There", { data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
+        postal.publish( { channel: "sourceChannel", topic: "Oh.Hai.There", data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
         linkages[0].unsubscribe();
-        postal.publish( "sourceChannel", "Oh.Hai.There", { data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
+        postal.publish( { channel: "sourceChannel", topic: "Oh.Hai.There", data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
       } );
       after( function () {
         postal.utils.reset();
@@ -51,7 +51,7 @@ describe("Linked Channels", function(){
         expect( destEnv.length ).to.be( 1 );
       } );
       it( "linked subscription data should match expected results", function () {
-        expect( destData[0].data ).to.be( "I'm in yer bus, linkin' to yer subscriptionz..." );
+        expect( destData[0] ).to.be( "I'm in yer bus, linkin' to yer subscriptionz..." );
       } );
       it( "linked subscription envelope should match expected results", function () {
         expect( destEnv[0].channel ).to.be( "destinationChannel" );
@@ -70,9 +70,9 @@ describe("Linked Channels", function(){
           destData.push( data );
           destEnv.push( env );
         }} );
-        postal.publish( "sourceChannel", "Oh.Hai.There", { data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
+        postal.publish( { channel: "sourceChannel", topic: "Oh.Hai.There", data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
         linkages[0].unsubscribe();
-        postal.publish( "sourceChannel", "Oh.Hai.There", { data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
+        postal.publish( { channel: "sourceChannel", topic: "Oh.Hai.There", data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
       } );
       after( function () {
         postal.utils.reset();
@@ -82,7 +82,7 @@ describe("Linked Channels", function(){
         expect( destEnv.length ).to.be( 1 );
       } );
       it( "linked subscription data should match expected results", function () {
-        expect( destData[0].data ).to.be( "I'm in yer bus, linkin' to yer subscriptionz..." );
+        expect( destData[0] ).to.be( "I'm in yer bus, linkin' to yer subscriptionz..." );
       } );
       it( "linked subscription envelope should match expected results", function () {
         expect( destEnv[0].channel ).to.be( "destinationChannel" );
@@ -107,7 +107,7 @@ describe("Linked Channels", function(){
         ]);
       postal.subscribe( { channel : "destinationChannel", topic : "NewTopic.Oh.Hai", callback : callback} );
       postal.subscribe( { channel : "destinationChannel", topic : "NewTopic.Oh.Hai.There", callback : callback } );
-      postal.publish( "sourceChannel", "Oh.Hai.There", { data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
+      postal.publish( { channel: "sourceChannel", topic: "Oh.Hai.There", data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
     } );
     after( function () {
       postal.utils.reset();

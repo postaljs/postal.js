@@ -54,44 +54,22 @@
 	    return isDistinct;
 	  };
 	};
-	var ChannelDefinition = function ( channelName, defaultTopic ) {
+	var ChannelDefinition = function ( channelName ) {
 		this.channel = channelName || DEFAULT_CHANNEL;
-		this._topic = defaultTopic || "";
 	};
 	
 	ChannelDefinition.prototype = {
 		subscribe : function () {
-			var len = arguments.length;
-			if ( len === 1 ) {
-				return new SubscriptionDefinition( this.channel, this._topic, arguments[0] );
-			}
-			else if ( len === 2 ) {
-				return new SubscriptionDefinition( this.channel, arguments[0], arguments[1] );
-			}
+	    return arguments.length === 1 ?
+	      new SubscriptionDefinition( this.channel, arguments[0].topic, arguments[0].callback ) :
+	      new SubscriptionDefinition( this.channel, arguments[0], arguments[1] );
 		},
 	
-		publish : function ( obj ) {
-			var _obj = obj || {};
-			var envelope = {
-				channel : this.channel,
-				topic : this._topic,
-				data : _obj
-			};
-			// If this is an envelope....
-			if ( _obj.topic && _obj.data ) {
-				envelope = _obj;
-				envelope.channel = envelope.channel || this.channel;
-			}
-			envelope.timeStamp = new Date();
+		publish : function () {
+	    var envelope = arguments.length === 1 ? arguments[0] : { topic: arguments[0], data: arguments[1] };
+	    envelope.channel = this.channel;
 			postal.configuration.bus.publish( envelope );
 			return envelope;
-		},
-	
-		topic : function ( topic ) {
-			if ( topic === this._topic ) {
-				return this;
-			}
-			return new ChannelDefinition( this.channel, topic );
 		}
 	};
 	
@@ -302,6 +280,7 @@
 		},
 	
 		publish : function ( envelope ) {
+	    envelope.timeStamp = new Date();
 			_.each( this.wireTaps, function ( tap ) {
 				tap( envelope.data, envelope );
 			} );
@@ -371,55 +350,7 @@
 		}
 	};
 	
-	var publishPicker = {
-			"1" : function ( envelope ) {
-				if ( !envelope ) {
-					throw new Error( "publishing from the 'global' postal.publish call requires a valid envelope." );
-				}
-				envelope.channel = envelope.channel || DEFAULT_CHANNEL;
-				envelope.timeStamp = new Date();
-				postal.configuration.bus.publish( envelope );
-				return envelope;
-			},
-			"2" : function ( topic, data ) {
-				var envelope = { channel : DEFAULT_CHANNEL, topic : topic, timeStamp : new Date(), data : data };
-				postal.configuration.bus.publish( envelope );
-				return envelope;
-			},
-			"3" : function ( channel, topic, data ) {
-				var envelope = { channel : channel, topic : topic, timeStamp : new Date(), data : data };
-				postal.configuration.bus.publish( envelope );
-				return envelope;
-			}
-		},
-		channelPicker = {
-			"1" : function ( chn ) {
-				var channel = chn, topic, options = {};
-				if ( Object.prototype.toString.call( channel ) === "[object String]" ) {
-					channel = DEFAULT_CHANNEL;
-					topic = chn;
-				}
-				else {
-					channel = chn.channel || DEFAULT_CHANNEL;
-					topic = chn.topic;
-					options = chn.options || options;
-				}
-				return new postal.channelTypes[ options.type || "local" ]( channel, topic );
-			},
-			"2" : function ( chn, tpc ) {
-				var channel = chn, topic = tpc, options = {};
-				if ( Object.prototype.toString.call( tpc ) === "[object Object]" ) {
-					channel = DEFAULT_CHANNEL;
-					topic = chn;
-					options = tpc;
-				}
-				return new postal.channelTypes[ options.type || "local" ]( channel, topic );
-			},
-			"3" : function ( channel, topic, options ) {
-				return new postal.channelTypes[ options.type || "local" ]( channel, topic );
-			}
-		},
-		sessionInfo = {};
+	var sessionInfo = {};
 	
 	// save some setup time, albeit tiny
 	localBus.subscriptions[SYSTEM_CHANNEL] = {};
@@ -434,29 +365,22 @@
 			SYSTEM_CHANNEL : SYSTEM_CHANNEL
 		},
 	
-		channelTypes : {
-			local : ChannelDefinition
-		},
+	  ChannelDefinition : ChannelDefinition,
 	
-		channel : function () {
-			var len = arguments.length;
-			if ( channelPicker[len] ) {
-				return channelPicker[len].apply( this, arguments );
-			}
+	  SubscriptionDefinition: SubscriptionDefinition,
+	
+		channel : function ( channelName ) {
+	    return new ChannelDefinition( channelName );
 		},
 	
 		subscribe : function ( options ) {
-			var callback = options.callback,
-				topic = options.topic,
-				channel = options.channel || DEFAULT_CHANNEL;
-			return new SubscriptionDefinition( channel, topic, callback );
+			return new SubscriptionDefinition( options.channel || DEFAULT_CHANNEL, options.topic, options.callback );
 		},
 	
-		publish : function () {
-			var len = arguments.length;
-			if ( publishPicker[len] ) {
-				return publishPicker[len].apply( this, arguments );
-			}
+		publish : function ( envelope ) {
+	    envelope.channel = envelope.channel || DEFAULT_CHANNEL;
+	    postal.configuration.bus.publish( envelope );
+	    return envelope;
 		},
 	
 		addWireTap : function ( callback ) {

@@ -1,5 +1,3 @@
-var sessionInfo = {};
-
 // save some setup time, albeit tiny
 localBus.subscriptions[SYSTEM_CHANNEL] = {};
 
@@ -8,17 +6,15 @@ var postal = {
 		bus : localBus,
 		resolver : bindingsResolver,
 		DEFAULT_CHANNEL : DEFAULT_CHANNEL,
-		DEFAULT_PRIORITY : DEFAULT_PRIORITY,
-		DEFAULT_DISPOSEAFTER : DEFAULT_DISPOSEAFTER,
 		SYSTEM_CHANNEL : SYSTEM_CHANNEL
 	},
 
-  ChannelDefinition : ChannelDefinition,
+	ChannelDefinition : ChannelDefinition,
 
-  SubscriptionDefinition: SubscriptionDefinition,
+	SubscriptionDefinition : SubscriptionDefinition,
 
 	channel : function ( channelName ) {
-    return new ChannelDefinition( channelName );
+		return new ChannelDefinition( channelName );
 	},
 
 	subscribe : function ( options ) {
@@ -26,9 +22,8 @@ var postal = {
 	},
 
 	publish : function ( envelope ) {
-    envelope.channel = envelope.channel || DEFAULT_CHANNEL;
-    postal.configuration.bus.publish( envelope );
-    return envelope;
+		envelope.channel = envelope.channel || DEFAULT_CHANNEL;
+		return postal.configuration.bus.publish( envelope );
 	},
 
 	addWireTap : function ( callback ) {
@@ -36,13 +31,9 @@ var postal = {
 	},
 
 	linkChannels : function ( sources, destinations ) {
-		var result = [];
-		if ( !_.isArray( sources ) ) {
-			sources = [sources];
-		}
-		if ( !_.isArray( destinations ) ) {
-			destinations = [destinations];
-		}
+		var result   = [];
+		sources      = !_.isArray( sources ) ? [sources] : sources;
+		destinations = !_.isArray( destinations ) ? [destinations] : destinations;
 		_.each( sources, function ( source ) {
 			var sourceTopic = source.topic || "#";
 			_.each( destinations, function ( destination ) {
@@ -81,7 +72,7 @@ var postal = {
 				}
 			}
 			if ( postal.configuration.bus.subscriptions[ channel ] &&
-				postal.configuration.bus.subscriptions[ channel ].hasOwnProperty( tpc ) ) {
+			     postal.configuration.bus.subscriptions[ channel ].hasOwnProperty( tpc ) ) {
 				result = postal.configuration.bus.subscriptions[ channel ][ tpc ];
 			}
 			return result;

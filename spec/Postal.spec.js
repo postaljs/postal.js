@@ -20,9 +20,7 @@ describe( "Postal", function () {
 					}
 				}
 			} );
-			subscription = postal.channel( { channel : "MyChannel", topic : "MyTopic" } )
-				.subscribe( function () {
-				} );
+			subscription = postal.channel( "MyChannel" ).subscribe( "MyTopic" , function () {} );
 			sub = postal.configuration.bus.subscriptions.MyChannel.MyTopic[0];
 		} );
 		after( function () {
@@ -41,14 +39,8 @@ describe( "Postal", function () {
 		it( "should have set subscription topic value", function () {
 			expect( sub.topic ).to.be( "MyTopic" );
 		} );
-		it( "should have set subscription priority value", function () {
-			expect( sub.priority ).to.be( 50 );
-		} );
 		it( "should have defaulted the subscription constraints array", function () {
 			expect( sub.constraints.length ).to.be( 0 );
-		} );
-		it( "should have defaulted the subscription disposeAfter value", function () {
-			expect( sub.maxCalls ).to.be( 0 );
 		} );
 		it( "should have defaulted the subscription context value", function () {
 			expect( sub.context ).to.be(null);
@@ -75,9 +67,7 @@ describe( "Postal", function () {
 					;
 				}
 			} );
-			subscription = postal.channel( { channel : "MyChannel", topic : "MyTopic" } )
-				.subscribe( function () {
-				} );
+      subscription = postal.channel( "MyChannel" ).subscribe( "MyTopic" , function () {} );
 			subExistsBefore = postal.configuration.bus.subscriptions.MyChannel.MyTopic[0] !== undefined;
 			subscription.unsubscribe();
 			subExistsAfter = postal.configuration.bus.subscriptions.MyChannel.MyTopic.length !== 0;
@@ -100,14 +90,14 @@ describe( "Postal", function () {
 		var msgReceivedCnt = 0,
 			msgData;
 		before( function () {
-			channel = postal.channel( { channel : "MyChannel", topic : "MyTopic" } );
-			subscription = channel.subscribe( function ( data ) {
+			channel = postal.channel( "MyChannel" );
+			subscription = channel.subscribe( "MyTopic", function ( data ) {
 				msgReceivedCnt++;
 				msgData = data;
 			} );
-			channel.publish( "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
 			subscription.unsubscribe();
-			channel.publish( "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
 		} );
 		after( function () {
 			postal.utils.reset();
@@ -119,35 +109,20 @@ describe( "Postal", function () {
 			expect( msgData ).to.be( "Testing123" );
 		} );
 	} );
-	describe( "When subscribing multiple subscribers with different priority", function () {
-		var s1, s2, r1 = [];
-		before( function () {
-			s1 = postal.subscribe( { channel : "MyChannel", topic : "MyTopic", callback: function() { r1.push("lower"); } } ).withPriority(200);
-			s2 = postal.subscribe( { channel : "MyChannel", topic : "MyTopic", callback: function() { r1.push("higher"); } } ).withPriority(1);
-			postal.publish( { channel: "MyChannel", topic: "MyTopic", data: "Oh, Hai!" } );
-		} );
-		after( function () {
-			postal.utils.reset();
-		} );
-		it( "should invoke higher priority subscription first", function () {
-			expect(r1[0] ).to.be("higher");
-			expect(r1[1] ).to.be("lower");
-		} );
-	} );
 	describe( "When subscribing with a disposeAfter of 5", function () {
 		var msgReceivedCnt = 0;
 		before( function () {
-			channel = postal.channel( { channel : "MyChannel", topic : "MyTopic" } );
-			subscription = channel.subscribe( function ( data ) {
+			channel = postal.channel( "MyChannel" );
+			subscription = channel.subscribe( "MyTopic", function ( data ) {
 				msgReceivedCnt++;
 			} )
 				.disposeAfter( 5 );
-			channel.publish( "Testing123" );
-			channel.publish( "Testing123" );
-			channel.publish( "Testing123" );
-			channel.publish( "Testing123" );
-			channel.publish( "Testing123" );
-			channel.publish( "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
 		} );
 		after( function () {
 			postal.utils.reset();
@@ -159,16 +134,16 @@ describe( "Postal", function () {
   describe( "When subscribing with once()", function () {
     var msgReceivedCnt = 0;
     before( function () {
-      channel = postal.channel( { channel : "MyChannel", topic : "MyTopic" } );
-      subscription = channel.subscribe( function ( data ) {
+      channel = postal.channel( "MyChannel" );
+      subscription = channel.subscribe( "MyTopic", function ( data ) {
         msgReceivedCnt++;
       } ).once();
-      channel.publish( "Testing123" );
-      channel.publish( "Testing123" );
-      channel.publish( "Testing123" );
-      channel.publish( "Testing123" );
-      channel.publish( "Testing123" );
-      channel.publish( "Testing123" );
+      channel.publish( "MyTopic", "Testing123" );
+      channel.publish( "MyTopic", "Testing123" );
+      channel.publish( "MyTopic", "Testing123" );
+      channel.publish( "MyTopic", "Testing123" );
+      channel.publish( "MyTopic", "Testing123" );
+      channel.publish( "MyTopic", "Testing123" );
     } );
     after( function () {
       postal.utils.reset();
@@ -180,17 +155,17 @@ describe( "Postal", function () {
 	describe( "When subscribing and ignoring duplicates", function () {
 		var subInvokedCnt = 0;
 		before( function () {
-			channel = postal.channel( { channel : "MyChannel", topic : "MyTopic" } );
-			subscription = channel.subscribe( function ( data ) {
+			channel = postal.channel( "MyChannel" );
+			subscription = channel.subscribe( "MyTopic", function ( data ) {
 				subInvokedCnt++;
 			} )
 				.distinctUntilChanged();
-			channel.publish( "Testing123" );
-			channel.publish( "Testing123" );
-			channel.publish( "Testing123" );
-			channel.publish( "Testing123" );
-			channel.publish( "Testing123" );
-			channel.publish( "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
 		} );
 		after( function () {
 			postal.utils.reset();
@@ -206,14 +181,14 @@ describe( "Postal", function () {
 	describe( "When subscribing with one constraint returning true", function () {
 		var recvd = false;
 		before( function () {
-			channel = postal.channel( { channel : "MyChannel", topic : "MyTopic" } );
-			subscription = channel.subscribe( function ( data ) {
+			channel = postal.channel( "MyChannel" );
+			subscription = channel.subscribe( "MyTopic", function ( data ) {
 				recvd = true;
 			} )
 				.withConstraint( function () {
 					return true;
 				} );
-			channel.publish( "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
 		} );
 		after( function () {
 			postal.utils.reset();
@@ -229,14 +204,14 @@ describe( "Postal", function () {
 	describe( "When subscribing with one constraint returning false", function () {
 		var recvd = false;
 		before( function () {
-			channel = postal.channel( { channel : "MyChannel", topic : "MyTopic" } );
-			subscription = channel.subscribe( function ( data ) {
+			channel = postal.channel( "MyChannel" );
+			subscription = channel.subscribe( "MyTopic", function ( data ) {
 				recvd = true;
 			} )
 				.withConstraint( function () {
 					return false;
 				} );
-			channel.publish( "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
 		} );
 		after( function () {
 			postal.utils.reset();
@@ -252,8 +227,8 @@ describe( "Postal", function () {
 	describe( "When subscribing with multiple constraints returning true", function () {
 		var recvd = false;
 		before( function () {
-			channel = postal.channel( { channel : "MyChannel", topic : "MyTopic" } );
-			subscription = channel.subscribe( function ( data ) {
+			channel = postal.channel( "MyChannel" );
+			subscription = channel.subscribe( "MyTopic", function ( data ) {
 				recvd = true;
 			} )
 				.withConstraints( [function () {
@@ -265,7 +240,7 @@ describe( "Postal", function () {
 			                       function () {
 				                       return true;
 			                       }] );
-			channel.publish( "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
 		} );
 		after( function () {
 			postal.utils.reset();
@@ -281,8 +256,8 @@ describe( "Postal", function () {
 	describe( "When subscribing with multiple constraints and one returning false", function () {
 		var recvd = false;
 		before( function () {
-			channel = postal.channel( { channel : "MyChannel", topic : "MyTopic" } );
-			subscription = channel.subscribe( function ( data ) {
+			channel = postal.channel( "MyChannel" );
+			subscription = channel.subscribe( "MyTopic", function ( data ) {
 				recvd = true;
 			} )
 				.withConstraints( [function () {
@@ -294,7 +269,7 @@ describe( "Postal", function () {
 			                       function () {
 				                       return true;
 			                       }] );
-			channel.publish( "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
 		} );
 		after( function () {
 			postal.utils.reset();
@@ -315,12 +290,12 @@ describe( "Postal", function () {
 				}
 			};
 		before( function () {
-			channel = postal.channel( { channel : "MyChannel", topic : "MyTopic" } );
-			subscription = channel.subscribe( function ( data ) {
+			channel = postal.channel( "MyChannel" );
+			subscription = channel.subscribe( "MyTopic", function ( data ) {
 				this.increment();
 			} )
 				.withContext( obj );
-			channel.publish( "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
 		} );
 		after( function () {
 			postal.utils.reset();
@@ -332,49 +307,49 @@ describe( "Postal", function () {
 	describe( "When subscribing with defer", function () {
 		var results = [];
 		before( function () {
-			channel = postal.channel( { channel : "MyChannel", topic : "MyTopic" } );
+			channel = postal.channel( "MyChannel" );
 
 		} );
 		after( function () {
 			postal.utils.reset();
 		} );
 		it( "should have met expected results", function (done) {
-			subscription = channel.subscribe(
+			subscription = channel.subscribe( "MyTopic",
 				function ( data ) {
 					results.push( "second" );
 					expect( results[0] ).to.be( "first" );
 					expect( results[1] ).to.be( "second" );
 					done();
 				} ).defer();
-			channel.publish( "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
 			results.push( "first" );
 		} );
 	} );
 	describe( "When subscribing with delay", function () {
 		var results = [];
 		before( function () {
-			channel = postal.channel( { channel : "MyChannel", topic : "MyTopic" } );
+			channel = postal.channel( "MyChannel" );
 		} );
 		after( function () {
 			postal.utils.reset();
 		} );
 		it( "should have met expected results", function (done) {
-			subscription = channel.subscribe(
+			subscription = channel.subscribe("MyTopic",
 				function ( data ) {
 					results.push( "second" );
 					expect( results[0] ).to.be( "first" );
 					expect( results[1] ).to.be( "second" );
 					done();
 				} ).withDelay( 500 );
-			channel.publish( "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
 			results.push( "first" );
 		} );
 	} );
 	describe( "When subscribing with debounce", function () {
 		var results = [], debouncedChannel;
 		before( function () {
-			debouncedChannel = postal.channel( { channel : "DebouncedChannel", topic : "MyTopic" } );
-			subscription = debouncedChannel.subscribe(
+			debouncedChannel = postal.channel( "MyChannel" );
+			subscription = debouncedChannel.subscribe( "MyTopic",
 				function ( data ) {
 					results.push( data );
 				} ).withDebounce( 800 );
@@ -383,21 +358,21 @@ describe( "Postal", function () {
 			postal.utils.reset();
 		} );
 		it( "should have only invoked debounced callback once", function (done) {
-			debouncedChannel.publish( 1 ); // starts the two second clock on debounce
+			debouncedChannel.publish( "MyTopic", 1 ); // starts the two second clock on debounce
 			setTimeout( function () {
-				debouncedChannel.publish( 2 );
+				debouncedChannel.publish( "MyTopic", 2 );
 			}, 20 ); // should not invoke callback
 			setTimeout( function () {
-				debouncedChannel.publish( 3 );
+				debouncedChannel.publish( "MyTopic", 3 );
 			}, 80 ); // should not invoke callback
 			setTimeout( function () {
-				debouncedChannel.publish( 4 );
+				debouncedChannel.publish( "MyTopic", 4 );
 			}, 250 ); // should not invoke callback
 			setTimeout( function () {
-				debouncedChannel.publish( 5 );
+				debouncedChannel.publish( "MyTopic", 5 );
 			}, 500 ); // should not invoke callback
 			setTimeout( function () {
-				debouncedChannel.publish( 6 );
+				debouncedChannel.publish( "MyTopic", 6 );
 			}, 1000 ); // should invoke callback
 			setTimeout( function () {
 				expect( results[0] ).to.be( 6 );
@@ -409,8 +384,8 @@ describe( "Postal", function () {
 	describe( "When subscribing with throttle", function () {
 		var results = [], throttledChannel;
 		before( function () {
-			throttledChannel = postal.channel( { channel : "ThrottledChannel", topic : "MyTopic" } );
-			subscription = throttledChannel.subscribe(
+			throttledChannel = postal.channel( "MyChannel" );
+			subscription = throttledChannel.subscribe( "MyTopic",
 				function ( data ) {
 					results.push( data );
 				} ).withThrottle( 500 );
@@ -419,13 +394,13 @@ describe( "Postal", function () {
 			postal.utils.reset();
 		} );
 		it( "should have only invoked throttled callback twice", function (done) {
-			throttledChannel.publish( 1 ); // starts the two second clock on debounce
+			throttledChannel.publish( "MyTopic", 1 ); // starts the two second clock on debounce
 			setTimeout( function () {
-				throttledChannel.publish( 800 );
+				throttledChannel.publish( "MyTopic", 800 );
 			}, 800 ); // should invoke callback
 			for ( var i = 0; i < 20; i++ ) {
 				(function ( x ) {
-					throttledChannel.publish( x );
+					throttledChannel.publish( "MyTopic", x );
 				})( i );
 			}
 			setTimeout( function () {
@@ -439,15 +414,13 @@ describe( "Postal", function () {
 	describe( "When subscribing with a hierarchical binding, no wildcards", function () {
 		var count = 0, channelB, channelC;
 		before( function () {
-			channel = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubTopic" } );
-			channelB = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic" } );
-			channelC = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubTopic.YetAnother" } );
-			subscription = channel.subscribe( function ( data ) {
+			channel = postal.channel( "MyChannel" );
+			subscription = channel.subscribe( "MyTopic.MiddleTopic", function ( data ) {
 				count++;
 			} );
-			channel.publish( "Testing123" );
-			channelB.publish( "Testing123" );
-			channelC.publish( "Testing123" );
+			channel.publish( "MyTopic.MiddleTopic.SubTopic", "Testing123" );
+			channel.publish( "MyTopic.MiddleTopic", "Testing123" );
+			channel.publish( "MyTopic.MiddleTopic.SubTopic.YetAnother", "Testing123" );
 		} );
 		after( function () {
 			postal.utils.reset();
@@ -461,19 +434,14 @@ describe( "Postal", function () {
 		var count, channelB, channelC, channelD, channelE;
 		before( function () {
     count = 0;
-			channel = postal.channel( { channel : "MyChannel", topic : "MyTopic.#.SubTopic" } );
-			channelB = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic" } );
-			channelC = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubTopic" } );
-			channelD = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubMiddle.SubTopic" } );
-			channelE = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubTopic.YetAnother" } );
-			subscription = channel.subscribe( function ( data, env ) {
+			channel = postal.channel( "MyChannel" );
+			subscription = channel.subscribe( "MyTopic.#.SubTopic", function ( data, env ) {
 				count++;
-      console.log("TOPIC: " + env.topic );
 			} );
-			channelC.publish( {channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubTopic", data : "Testing123"} );
-			channelB.publish( {channel : "MyChannel", topic : "MyTopic.MiddleTopic", data : "Testing123"} );
-			channelD.publish( {channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubMiddle.SubTopic", data : "Testing123"} );
-			channelD.publish( {channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubTopic.YetAnother", data : "Testing123"} );
+			channel.publish( "MyTopic.MiddleTopic.SubTopic", "Testing123" );
+			channel.publish( "MyTopic.MiddleTopic", "Testing123" );
+			channel.publish( "MyTopic.MiddleTopic.SubMiddle.SubTopic", "Testing123" );
+			channel.publish( "MyTopic.MiddleTopic.SubTopic.YetAnother", "Testing123" );
 		} );
 		after( function () {
 			postal.utils.reset();
@@ -486,17 +454,14 @@ describe( "Postal", function () {
 	describe( "When subscribing with a hierarchical binding, using *", function () {
 		var count = 0, channelB, channelC, channelD;
 		before( function () {
-			channel = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic.*" } );
-			channelB = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic" } );
-			channelC = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubTopic" } );
-			channelD = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubTopic.YetAnother" } );
-			subscription = channel.subscribe( function ( data ) {
+			channel = postal.channel( "MyChannel" );
+			subscription = channel.subscribe( "MyTopic.MiddleTopic.*", function ( data ) {
 				count++;
 			} );
 
-			channelC.publish( "Testing123" );
-			channelB.publish( "Testing123" );
-			channelD.publish( "Testing123" );
+			channel.publish( "MyTopic.MiddleTopic", "Testing123" );
+			channel.publish( "MyTopic.MiddleTopic.SubTopic", "Testing123" );
+			channel.publish( "MyTopic.MiddleTopic.SubTopic.YetAnother", "Testing123" );
 		} );
 		after( function () {
 			postal.utils.reset();
@@ -509,19 +474,15 @@ describe( "Postal", function () {
 	describe( "When subscribing with a hierarchical binding, using # and *", function () {
 		var count = 0, channelB, channelC, channelD, channelE;
 		before( function () {
-			channel = postal.channel( { channel : "MyChannel", topic : "MyTopic.#.*" } );
-			channelB = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic" } );
-			channelC = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubTopic" } );
-			channelD = postal.channel( { channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubTopic.YetAnother" } );
-			channelE = postal.channel( { channel : "MyChannel", topic : "OtherTopic.MiddleTopic.SubTopic.YetAnother" } );
-			subscription = channel.subscribe( function ( data ) {
+			channel = postal.channel( "MyChannel" );
+			subscription = channel.subscribe( "MyTopic.#.*", function ( data ) {
 				count++;
 			} );
 
-			channelC.publish( {channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubTopic", data : "Testing123"} );
-			channelB.publish( {channel : "MyChannel", topic : "MyTopic.MiddleTopic", data : "Testing123"} );
-			channelD.publish( {channel : "MyChannel", topic : "MyTopic.MiddleTopic.SubTopic.YetAnother", data : "Testing123"} );
-			channelE.publish( {channel : "MyChannel", topic : "OtherTopic.MiddleTopic.SubTopic.YetAnother", data : "Testing123"} );
+			channel.publish( "MyTopic.MiddleTopic.SubTopic", "Testing123" );
+			channel.publish( "MyTopic.MiddleTopic", "Testing123" );
+			channel.publish( "MyTopic.MiddleTopic.SubTopic.YetAnother", "Testing123" );
+			channel.publish( "OtherTopic.MiddleTopic.SubTopic.YetAnother", "Testing123" );
 		} );
 		after( function () {
 			postal.utils.reset();
@@ -540,9 +501,9 @@ describe( "Postal", function () {
 				msgReceivedCnt++;
 				msgData = data;
 			} );
-			postal.publish( "MyGlobalChannel", "MyTopic", "Testing123" );
+			postal.publish( { channel: "MyGlobalChannel", topic: "MyTopic", data: "Testing123" } );
 			subscription.unsubscribe();
-			postal.publish( "MyGlobalChannel", "MyTopic", "Testing123" );
+			postal.publish( { channel: "MyGlobalChannel", topic: "MyTopic", data: "Testing123" } );
 		} );
 		after( function () {
 			postal.utils.reset();
@@ -586,14 +547,8 @@ describe( "Postal", function () {
 		it( "should have set subscription topic value", function () {
 			expect( sub.topic ).to.be( "MyTopic" );
 		} );
-		it( "should have set subscription priority value", function () {
-			expect( sub.priority ).to.be( 50 );
-		} );
 		it( "should have defaulted the subscription constraints array", function () {
 			expect( sub.constraints.length ).to.be( 0 );
-		} );
-		it( "should have defaulted the subscription disposeAfter value", function () {
-			expect( sub.maxCalls ).to.be( 0 );
 		} );
 		it( "should have defaulted the subscription context value", function () {
 			expect( sub.context ).to.be(null);
@@ -653,9 +608,9 @@ describe( "Postal", function () {
 		var resolver;
 		before( function () {
 			postal.utils.reset();
-			subscription = postal.channel( { channel : "MyChannel", topic : "MyTopic" } ).subscribe( function () {
+			subscription = postal.channel( "MyChannel" ).subscribe( "MyTopic", function () {
 			} );
-			postal.channel( { channel : "MyChannel", topic : "MyTopic" } ).publish( "Oh Hai!" );
+			postal.channel( "MyChannel" ).publish( "MyTopic", "Oh Hai!" );
 			sub = postal.configuration.bus.subscriptions.MyChannel.MyTopic[0];
 			resolver = postal.configuration.resolver.cache["MyTopic"];
 			postal.utils.reset();
@@ -665,9 +620,7 @@ describe( "Postal", function () {
 		it( "should have created a subscription definition", function () {
 			expect( sub.channel ).to.be( "MyChannel" );
 			expect( sub.topic ).to.be( "MyTopic" );
-			expect( sub.priority ).to.be( 50 );
 			expect( sub.constraints.length ).to.be( 0 );
-			expect( sub.maxCalls ).to.be( 0 );
 			expect( sub.context ).to.be(null);
 		} );
 		it( "should have created a resolver cache entry", function () {
@@ -685,12 +638,12 @@ describe( "Postal", function () {
 		var subs = [], i;
 		before( function () {
 			i = 10;
-			var ch1 = postal.channel( { channel : "MyChannel", topic : "MyTopic" } ),
-				ch2 = postal.channel( { channel : "MyChannel2", topic : "MyTopic2" } );
+			var ch1 = postal.channel( "MyChannel" ),
+				  ch2 = postal.channel( "MyChannel2" );
 			while ( i ) {
-				subs.push( ch1.subscribe( function () {
+				subs.push( ch1.subscribe( "MyTopic", function () {
 				} ) );
-				subs.push( ch2.subscribe( function () {
+				subs.push( ch2.subscribe( "MyTopic2", function () {
 				} ) );
 				i--;
 			}
