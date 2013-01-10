@@ -1,6 +1,6 @@
 # Postal.js
 
-## Version 0.7.3 (Dual Licensed [MIT](http://www.opensource.org/licenses/mit-license) & [GPL](http://www.opensource.org/licenses/gpl-license))
+## Version 0.8.0	 (Dual Licensed [MIT](http://www.opensource.org/licenses/mit-license) & [GPL](http://www.opensource.org/licenses/gpl-license))
 
 ## What is it?
 Postal.js is an in-memory message bus - very loosely inspired by [AMQP](http://www.amqp.org/) - written in JavaScript.  Postal.js runs in the browser, or on the server-side using Node.js. It takes a familiar "eventing-style" paradigm most JavaScript developers are already used to and extends it by providing "broker" and subscriber implementations which are more sophisticated than what you typically find in simple event delegation.
