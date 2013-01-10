@@ -8,7 +8,7 @@ Postal.js is an in-memory message bus - very loosely inspired by [AMQP](http://w
 ## Why would I use it?
 Using a local message bus can enable to you de-couple your web application's components in a way not possible with other 'eventing' approaches.  In addition, strategically adopting messaging at the 'seams' of your application (e.g. - between modules, at entry/exit points for browser data and storage) can not only help enforce better overall architectural design, but also insulate you from the risks of tightly coupling your application to 3rd party libraries.  For example:
 
-* If you're using a client-side binding framework, and either don't have - or don't like - the request/communication abstractions provided, then grab a library like [amplify.js](http://amplifyjs.com) or [reqwest](https://github.com/ded/reqwest).  Then, instead of tightly coupling the two, have the request success/error callbacks publish messages with the appropriate data and any subscribers you've wired up can handle applying the data to the specific objects/elements they're concerned with.
+* If you're using a client-side binding framework, and either don't have - or don't like - the request/communication abstractions provided, then grab a library like [amplify.js](http://amplifyjs.com) or [reqwest](https://github.com/ded/reqwest).  Then, instead of tightly coupling them to your application, have the request success/error callbacks publish messages with the appropriate data and any subscribers you've wired up can handle applying the data to the specific objects/elements they're concerned with.
 * Do you need two view models to communicate, but you don't want them to need to know about each other?  Have them subscribe to the topics about which they are interested in receiving messages.  From there, whenever a view model needs to alert any listeners of specific data/events, just publish a message to the bus.  If the other view model is present, it will receive the notification.
 * Want to wire up your own binding framework?  Want to control the number of times subscription callbacks get invoked within a given time frame? Want to keep subscriptions from being fired until after data stops arriving? Want to keep events from being acted upon until the UI event loop is done processing other events?  Postal.js gives you the control you need in these kinds of scenarios via the options available on the `SubscriptionDefinition` object.
 * postal.js is extensible.  Plugins like [postal.when](https://github.com/postaljs/postal.when) can be included to provide even more targeted functionality to subscribers. [Postal.federation](https://github.com/postaljs/postal.federation) provides the core bits needed to federate postal instances running in different environments (currently the only federation plugin available is [postal.xframe](https://github.com/postaljs/postal.xframe) for federating between windows in the browser, but more plugins are in the works). These - and more - are all things Postal can do for you.
@@ -17,7 +17,7 @@ Using a local message bus can enable to you de-couple your web application's com
 Postal.js is in good company - there are many options for &lt;airquotes&gt;pub/sub&lt;/airquotes&gt; in the browser.  However, I grew frustrated with most of them because they often closely followed an event-delegation-paradigm, instead of providing a structured in-memory message bus.  Central to postal.js are four concepts:
 
 * channels should be provided to allow for logical partitioning of "topics"
-* topcis should be hierarchical and allow plain string or wildcard bindings
+* topics should be hierarchical and allow plain string or wildcard bindings
 * messages should include envelope metadata
 * subscriber callbacks should get a consistent method signature
 
@@ -43,7 +43,7 @@ var subscription = channel.subscribe( "name.change", function( data, envelope ) 
 });
 
 // And someone publishes a first name change:
-channel.publish( { name: "Dr. Who" } );
+channel.publish( "name.change", { name: "Dr. Who" } );
 
 // postal also provides a top-level ability to subscribe/publish
 // used primarily when you don't need to hang onto a channel instance:
