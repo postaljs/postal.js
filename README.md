@@ -138,4 +138,5 @@ Here's where Postal is headed:
 
 * Add-ons to enable message capture and replay are in the works and should be ready soon.
 * The `SubscriptionDefinition` object will be given the ability to pause (skip) responding to subscriptions
+* We'll be working on experimental "lightweight" builds of postal, providing a basic SubscriptionDefinition prototype, but removing the more advanced options if you don't need them. Reduced size builds would be offered alongside full builds, giving you page-weight-sensitive options.
 * What else would you like to see?
