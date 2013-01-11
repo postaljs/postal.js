@@ -71,9 +71,9 @@ define( ['postal', 'postaldiags'], function ( postal, diags ) {
 		} ).withConstraint( function () {
 				return drIsInTheTardis;
 			} );
-	channel.publish( "Tardis.Depart", { value : "Time for time travel....fantastic!" } );
-	channel.publish( "Tardis.Depart", { value : "Time for time travel....fantastic!" } );
-	drIsInTheTardis = true;
+	channel.publish( "Tardis.Depart", { value : "Time for time travel....super!" } );
+	channel.publish( "Tardis.Depart", { value : "Time for time travel....stellar!" } );
+	drIsInTheTardis = true; // constraint will pass now
 	channel.publish( "Tardis.Depart", { value : "Time for time travel....fantastic!" } );
 	wcSubscription.unsubscribe();
 
@@ -87,8 +87,9 @@ define( ['postal', 'postaldiags'], function ( postal, diags ) {
 
 	// Using withDelay() to delay the subscription evaluation
 	var wdSubscription = channel.subscribe( "He.Will.Knock.Four.Times",function ( data ) {
-		$( "<li>" + data.value + "</li>" ).appendTo( "#example8" );
+		$( "<li>" + data.value + "(Received at: " + new Date() + ")</li>" ).appendTo( "#example8" );
 	} ).withDelay( 5000 );
+	$( "<li>Publishing Started at: " + new Date() + "</li>" ).appendTo( "#example8" );
 	channel.publish( "He.Will.Knock.Four.Times", { value : "Knock!" } );
 	channel.publish( "He.Will.Knock.Four.Times", { value : "Knock!" } );
 	channel.publish( "He.Will.Knock.Four.Times", { value : "Knock!" } );
