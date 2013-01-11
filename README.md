@@ -3,7 +3,7 @@
 ## Version 0.8.0	 (Dual Licensed [MIT](http://www.opensource.org/licenses/mit-license) & [GPL](http://www.opensource.org/licenses/gpl-license))
 
 ## What is it?
-Postal.js is an in-memory message bus - very loosely inspired by [AMQP](http://www.amqp.org/) - written in JavaScript.  Postal.js runs in the browser, or on the server-side using Node.js. It takes a familiar "eventing-style" paradigm most JavaScript developers are already used to and extends it by providing "broker" and subscriber implementations which are more sophisticated than what you typically find in simple event delegation.
+Postal.js is an in-memory message bus - very loosely inspired by [AMQP](http://www.amqp.org/) - written in JavaScript.  Postal.js runs in the browser, or on the server-side using Node.js. It takes the familiar "eventing-style" paradigm (of which most JavaScript developers are familiar) and extends it by providing "broker" and subscriber implementations which are more sophisticated than what you typically find in simple event delegation.
 
 ## Why would I use it?
 Using a local message bus can enable to you de-couple your web application's components in a way not possible with other 'eventing' approaches.  In addition, strategically adopting messaging at the 'seams' of your application (e.g. - between modules, at entry/exit points for browser data and storage) can not only help enforce better overall architectural design, but also insulate you from the risks of tightly coupling your application to 3rd party libraries.  For example:
@@ -29,21 +29,24 @@ In my experience, seeing publish and subscribe calls all over application logic 
 
 ## How do I use it?
 
-Here are four examples of using Postal.  All of these examples - AND MORE! - can run live here: [http://jsfiddle.net/ifandelse/FdFM3/](http://jsfiddle.net/ifandelse/FdFM3/) (Please bear in mind this fiddle is pulling the postal lib from github, so running these in IE will not work due to the mime type mismatch.)
-
-JavaScript:
+Here are four examples of using Postal.  All of these examples - AND MORE! - can run live [here](http://jsfiddle.net/ifandelse/BJC8L/). (Please bear in mind this fiddle is pulling the postal lib from github, so running these in IE will not work due to the mime type mismatch.)
 
 ```javascript
-// Get a channel
-var channel = postal.channel( "MyChannel" )
+// This gets you a handle to the default postal channel...
+// For grins, you can get a named channel instead like this:
+// var channel = postal.channel( 'DoctorWho' );
+var channel = postal.channel();
 
-// subscribe using the channel instance
-var subscription = channel.subscribe( "name.change", function( data, envelope ) {
+// subscribe to 'name.change' topics
+var subscription = channel.subscribe( "name.change", function ( data ) {
 	$( "#example1" ).html( "Name: " + data.name );
-});
+} );
 
-// And someone publishes a first name change:
-channel.publish( "name.change", { name: "Dr. Who" } );
+// And someone publishes a name change:
+channel.publish( "name.change", { name : "Dr. Who" } );
+
+// To unsubscribe, you:
+subscription.unsubscribe();
 
 // postal also provides a top-level ability to subscribe/publish
 // used primarily when you don't need to hang onto a channel instance:
@@ -62,40 +65,36 @@ postal.publish({
 	    name : "Dr. Who"
 	}
 });
-
 ```
 
 ### Subscribing to a wildcard topic using *
 
-The `*` symbol represents "one word" in a topic (i.e - the text between two periods of a topic). By subscribing to `"*.Changed"`, the binding will match `Name.Changed` & `Location.Changed` but *not* `Changed.Companion`.
+The `*` symbol represents "one word" in a topic (i.e - the text between two periods of a topic). By subscribing to `"*.changed"`, the binding will match `name.changed` & `location.changed` but *not* `changed.companion`.
 
 ```javascript
-var wcChannel = postal.channel( "wildcards" ),
-    chgSubscription = wcChannel.subscribe( "*.Changed", function( data ) {
-        $( '<li>' + data.type + " Changed: " + data.value + '</li>' ).appendTo( "#example2" );
-    });
-wcChannel.publish( "Name.Changed", { type: "Name", value:"John Smith" } );
-wcChannel.publish( "Location.Changed", { type: "Location", value: "Early 20th Century England" } );
+var chgSubscription = channel.subscribe( "*.changed", function ( data ) {
+	$( "<li>" + data.type + " changed: " + data.value + "</li>" ).appendTo( "#example2" );
+} );
+channel.publish( "name.changed",     { type : "Name",     value : "John Smith" } );
+channel.publish( "location.changed", { type : "Location", value : "Early 20th Century England" } );
 chgSubscription.unsubscribe();
 ```
 
 ### Subscribing to a wildcard topic using &#35;
 
-The `#` symbol represents any number of characters/words in a topic string. By subscribing to ``"DrWho.#.Changed"``, the binding will match `DrWho.NinthDoctor.Companion.Changed` & `DrWho.Location.Changed` but *not* `Changed`.
+The `#` symbol represents 0-n number of characters/words in a topic string. By subscribing to `"DrWho.#.Changed"`, the binding will match `DrWho.NinthDoctor.Companion.Changed` & `DrWho.Location.Changed` but *not* `Changed`.
 
 ```javascript
-var hashChannel = postal.channel( "Doctor.Who" ),
-    hashSubscription = hashChannel.subscribe( "DrWho.#.Changed", function( data ) {
-        $( '<li>' + data.type + " Changed: " + data.value + '</li>' ).appendTo( "#example3" );
-    });
-hashChannel.publish( "DrWho.NinthDoctor.Companion.Changed", { type: "Name", value:"Rose"   } );
-hashChannel.publish( "DrWho.TenthDoctor.Companion.Changed", { type: "Name", value:"Martha" } );
-hashChannel.publish( "DrWho.Eleventh.Companion.Changed",    { type: "Name", value:"Amy"    } );
-hashChannel.publish( "DrWho.Location.Changed",              { type: "Location", value: "The Library" } );
-hashChannel.publish( "TheMaster.DrumBeat.Changed",          { type: "DrumBeat", value: "This won't trigger any subscriptions" } );
-hashChannel.publish( "Changed",                             { type: "Useless", value: "This won't trigger any subscriptions either" } );
-
-hashSubscription.unsubscribe();
+var starSubscription = channel.subscribe( "DrWho.#.Changed", function ( data ) {
+	$( "<li>" + data.type + " Changed: " + data.value + "</li>" ).appendTo( "#example3" );
+} );
+channel.publish( "DrWho.NinthDoctor.Companion.Changed", { type : "Companion Name", value : "Rose"   } );
+channel.publish( "DrWho.TenthDoctor.Companion.Changed", { type : "Companion Name", value : "Martha" } );
+channel.publish( "DrWho.Eleventh.Companion.Changed",    { type : "Companion Name", value : "Amy"    } );
+channel.publish( "DrWho.Location.Changed",              { type : "Location",       value : "The Library" } );
+channel.publish( "TheMaster.DrumBeat.Changed",          { type : "DrumBeat",       value : "This won't trigger any subscriptions" } );
+channel.publish( "Changed",                             { type : "Useless",        value : "This won't trigger any subscriptions either" } );
+starSubscription.unsubscribe();
 ```
 
 

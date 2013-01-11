@@ -1,7 +1,5 @@
 {
-	"anvil.uglify" : {
-		"exclude": ["./node/postal.js", "./node/classic-resolver.js"]
-	},
+	"anvil.uglify" : {},
 	"anvil.http": {
 		"paths": {
 			"/": "./"
@@ -13,9 +11,8 @@
 	"output": {
 		"full": "lib",
 		"partial": {
-			"/browser/postal.*" : [ "./example/standard/js", "./example/amd/js/libs/postal", "./example/node/client/js/lib" ],
-			"/node/postal.js"   : "./example/node/messaging"
+			"lib/postal.*" : [ "./example/standard/js", "./example/amd/js/libs/postal" ]
 		}
 	},
-	"dependencies": [ "anvil.http", "anvil.uglify" ]
+	"dependencies": [ "anvil.http", "anvil.uglify", "anvil.jshint" ]
 }

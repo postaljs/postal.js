@@ -56,8 +56,8 @@
         "email" : "PleaseJustUseTheIssuesPage@github.com",
         "url" : "http://github.com/postaljs/postal.js/issues"
     },
-    "directories" : { "lib" : "lib/node" },
-    "main" : "lib/node/postal.js",
+    "directories" : { "lib" : "lib" },
+    "main" : "lib/postal.js",
     "engines" : {
         "node" : ">=0.4.0"
     },
