@@ -29,7 +29,7 @@ In my experience, seeing publish and subscribe calls all over application logic 
 
 ## How do I use it?
 
-Here are four examples of using Postal.  All of these examples - AND MORE! - can run live [here](http://jsfiddle.net/ifandelse/BJC8L/). (Please bear in mind this fiddle is pulling the postal lib from github, so running these in IE will not work due to the mime type mismatch.)
+Here are four examples of using Postal.  All of these examples - AND MORE! - can run live [here](http://jsfiddle.net/ifandelse/BJC8L/). (Please bear in mind this fiddle is pulling the postal lib from github, so running these in IE will not work due to the mime type mismatch.) Be sure to check out the [wiki](https://github.com/postaljs/postal.js/wiki) for API documentation and conceptual walk-throughs.
 
 ```javascript
 // This gets you a handle to the default postal channel...
