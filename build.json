@@ -1,5 +1,5 @@
 {
-	"anvil.uglify" : {},
+	"anvil.uglify" : { "all" :true },
 	"anvil.http": {
 		"paths": {
 			"/": "./"

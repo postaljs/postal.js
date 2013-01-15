@@ -16,19 +16,22 @@ var localBus = {
 			tap( envelope.data, envelope );
 		} );
 		if ( this.subscriptions[envelope.channel] ) {
-			_.each( this.subscriptions[envelope.channel], function ( topic ) {
+			_.each( this.subscriptions[envelope.channel], function ( subscribers ) {
 				// TODO: research faster ways to handle this than _.clone
-				_.each( _.clone( topic ), function ( subDef ) {
-					if ( postal.configuration.resolver.compare( subDef.topic, envelope.topic ) ) {
-						if ( _.all( subDef.constraints, function ( constraint ) {
-							return constraint.call( subDef.context, envelope.data, envelope );
-						} ) ) {
-							if ( typeof subDef.callback === 'function' ) {
-								subDef.callback.call( subDef.context, envelope.data, envelope );
-							}
-						}
-					}
-				} );
+        var idx = 0;
+        while(idx < subscribers.length) {
+          (function(subDef){
+            if ( postal.configuration.resolver.compare( subDef.topic, envelope.topic ) ) {
+              if ( _.all( subDef.constraints, function ( constraint ) {
+                return constraint.call( subDef.context, envelope.data, envelope );
+              } ) ) {
+                if ( typeof subDef.callback === 'function' ) {
+                  subDef.callback.call( subDef.context, envelope.data, envelope );
+                }
+              }
+            }
+          }(subscribers[idx++]));
+        }
 			} );
 		}
 		return envelope;
