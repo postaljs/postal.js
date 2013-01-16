@@ -23,23 +23,28 @@ describe( "ChannelDefinition", function () {
 			channel = undefined;
 			subscription = undefined;
 		});
-		it( "Should allow a topic only to be used", function(){
+		it( "Should allow a topic only to be used", function(done){
 			subscription = channel.subscribe("topic.only", function(d, e) {
 				expect(typeof d === "undefined" ).to.be(true);
+        expect(e.topic).to.be("topic.only");
+        done();
 			});
 			channel.publish("topic.only");
 		});
-		it( "Should allow a topic and data argument to be used", function(){
+		it( "Should allow a topic and data argument to be used", function(done){
 			subscription = channel.subscribe("topic.and.data", function(d, e) {
 				expect(d).to.be("hai");
+        expect(e.topic).to.be("topic.and.data");
+        done()
 			});
 			channel.publish("topic.and.data", "hai");
 		});
-		it( "Should allow an envelope argument to be used", function(){
+		it( "Should allow an envelope argument to be used", function(done){
 			subscription = channel.subscribe("envelope", function(d, e) {
 				expect( e.channel).to.be("OhHai");
 				expect( e.data).to.be("hai");
 				expect( e.foo).to.be("bar");
+        done();
 			});
 			channel.publish({ topic: "envelope", data: "hai", foo: "bar" });
 		});
