@@ -5,14 +5,11 @@
 			"/": "./"
 		}
 	},
-	"anvil.jshint" : {
-		"all": true
-	},
 	"output": {
 		"full": "lib",
 		"partial": {
 			"**/lib/postal.*" : [ "example/standard/js", "example/amd/js/libs/postal" ]
 		}
 	},
-	"dependencies": [ "anvil.http", "anvil.uglify", "anvil.jshint" ]
+	"dependencies": [ "anvil.uglify" ]
 }
