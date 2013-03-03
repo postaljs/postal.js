@@ -489,7 +489,7 @@ describe( "Postal", function () {
 			count = 0;
 		} );
 		it( "should have invoked subscription callback twice", function () {
-			expect( count ).to.be( 2 );
+			expect( count ).to.be( 3 );
 		} );
 	} );
 	describe( "When using global publish api", function () {
