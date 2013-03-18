@@ -33,7 +33,9 @@ SubscriptionDefinition.prototype = {
 	defer : function () {
 		var fn = this.callback;
 		this.callback = function ( data ) {
-			setTimeout( fn, 0, data );
+			setTimeout( function () {
+				fn( data );
+			}, 0 );
 		};
 		return this;
 	},
