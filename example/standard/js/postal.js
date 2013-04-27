@@ -2,7 +2,7 @@
  postal
  Author: Jim Cowart (http://freshbrewedcode.com/jimcowart)
  License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
- Version 0.8.0
+ Version 0.8.3
  */
 (function ( root, factory ) {
 	if ( typeof module === "object" && module.exports ) {
@@ -13,7 +13,7 @@
 		}
 	} else if ( typeof define === "function" && define.amd ) {
 		// AMD. Register as an anonymous module.
-		define( ["."], function ( _ ) {
+		define( ["underscore"], function ( _ ) {
 			return factory( _, root );
 		} );
 	} else {
@@ -69,7 +69,7 @@
 	ChannelDefinition.prototype.publish = function () {
 		var envelope = arguments.length === 1 ?
 		                (Object.prototype.toString.call(arguments[0]) === '[object String]' ?
-		                 arguments[0] : { topic: arguments[0] }) : { topic : arguments[0], data : arguments[1] };
+	                  { topic: arguments[0] } : arguments[0]) : { topic : arguments[0], data : arguments[1] };
 		envelope.channel = this.channel;
 		return postal.configuration.bus.publish( envelope );
 	};
@@ -203,32 +203,51 @@
 		}
 	};
 	var bindingsResolver = {
-		cache : { },
+		cache : {},
+		regex : {},
 	
 		compare : function ( binding, topic ) {
-			if ( this.cache[topic] && this.cache[topic][binding] ) {
-				return true;
+			var pattern, rgx, prev, result = (this.cache[topic] && this.cache[topic][binding]);
+			if(typeof result !== "undefined") {
+				return result;
 			}
-			var pattern = ("^" + binding.replace( /\./g, "\\." )            // escape actual periods
-				                        .replace( /\*/g, "[A-Z,a-z,0-9]*" ) // asterisks match any alpha-numeric 'word'
-				                        .replace( /#/g, ".*" ) + "$")       // hash matches 'n' # of words (+ optional on start/end of topic)
-				                        .replace( "\\..*$", "(\\..*)*$" )   // fix end of topic matching on hash wildcards
-				                        .replace( "^.*\\.", "^(.*\\.)*" );  // fix beginning of topic matching on hash wildcards
-			var rgx = new RegExp( pattern );
-			var result = rgx.test( topic );
-			if ( result ) {
-				if ( !this.cache[topic] ) {
-					this.cache[topic] = {};
-				}
-				this.cache[topic][binding] = true;
+			if(!(rgx = this.regex[binding])) {
+				pattern = "^" + _.map(binding.split('.'), function(segment) {
+					var res = !!prev && prev !== "#" ? "\\.\\b" : "\\b";
+					if(segment === "#") {
+						res += "[A-Z,a-z,0-9,\\.]*"
+					} else if (segment === "*") {
+						res += "[A-Z,a-z,0-9]+"
+					} else {
+						res += segment;
+					}
+					prev = segment;
+					return res;
+				} ).join('') + "$";
+				rgx = this.regex[binding] = new RegExp( pattern );
 			}
+			this.cache[topic] = this.cache[topic] || {};
+			this.cache[topic][binding] = result = rgx.test( topic );
 			return result;
 		},
 	
 		reset : function () {
 			this.cache = {};
+			this.regex = {};
 		}
 	};
+	var fireSub = function(subDef, envelope) {
+	  if ( postal.configuration.resolver.compare( subDef.topic, envelope.topic ) ) {
+	    if ( _.all( subDef.constraints, function ( constraint ) {
+	      return constraint.call( subDef.context, envelope.data, envelope );
+	    } ) ) {
+	      if ( typeof subDef.callback === 'function' ) {
+	        subDef.callback.call( subDef.context, envelope.data, envelope );
+	      }
+	    }
+	  }
+	};
+	
 	var localBus = {
 		addWireTap : function ( callback ) {
 			var self = this;
@@ -247,20 +266,14 @@
 				tap( envelope.data, envelope );
 			} );
 			if ( this.subscriptions[envelope.channel] ) {
-				_.each( this.subscriptions[envelope.channel], function ( topic ) {
-					// TODO: research faster ways to handle this than _.clone
-					_.each( _.clone( topic ), function ( subDef ) {
-						if ( postal.configuration.resolver.compare( subDef.topic, envelope.topic ) ) {
-							if ( _.all( subDef.constraints, function ( constraint ) {
-								return constraint.call( subDef.context, envelope.data, envelope );
-							} ) ) {
-								if ( typeof subDef.callback === 'function' ) {
-									subDef.callback.call( subDef.context, envelope.data, envelope );
-								}
-							}
-						}
-					} );
-				} );
+	      _.each( this.subscriptions[envelope.channel], function ( subscribers ) {
+	        var idx = 0, len = subscribers.length, subDef;
+	        while(idx < len) {
+	          if( subDef = subscribers[idx++] ){
+	            fireSub(subDef, envelope);
+	          }
+	        }
+	      } );
 			}
 			return envelope;
 		},
