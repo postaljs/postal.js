@@ -454,6 +454,16 @@ describe( "amqpBindingsResolver", function () {
 					expect( cached ).to.be.ok();
 				} );
 			} );
+			describe( "With topic '/sample/topic' and binding '/sample/topic'", function () {
+				var result = bindingsResolver.compare( "/sample/topic", "/sample/topic" ),
+					cached = bindingsResolver.cache["/sample/topic"] ? bindingsResolver.cache["/sample/topic"]["/sample/topic"] : null;
+				it( "Result should be true", function () {
+					expect( result ).to.be.ok();
+				} );
+				it( "Should create a resolver cache entry", function () {
+					expect( cached ).to.be.ok();
+				} );
+			} );
 		});
 	} );
 } );
