@@ -2,7 +2,7 @@
  postal
  Author: Jim Cowart (http://freshbrewedcode.com/jimcowart)
  License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
- Version 0.8.3
+ Version 0.8.4
  */
 (function ( root, factory ) {
 	if ( typeof module === "object" && module.exports ) {
@@ -108,7 +108,9 @@
 		defer : function () {
 			var fn = this.callback;
 			this.callback = function ( data ) {
-				setTimeout( fn, 0, data );
+				setTimeout( function () {
+					fn( data );
+				}, 0 );
 			};
 			return this;
 		},
@@ -207,21 +209,24 @@
 		regex : {},
 	
 		compare : function ( binding, topic ) {
-			var pattern, rgx, prev, result = (this.cache[topic] && this.cache[topic][binding]);
+			var pattern, rgx, prevSegment, result = (this.cache[topic] && this.cache[topic][binding]);
 			if(typeof result !== "undefined") {
 				return result;
 			}
 			if(!(rgx = this.regex[binding])) {
 				pattern = "^" + _.map(binding.split('.'), function(segment) {
-					var res = !!prev && prev !== "#" ? "\\.\\b" : "\\b";
+					var res = "";
+					if (!!prevSegment) {
+						res = prevSegment !== "#" ? "\\.\\b" : "\\b";
+					}
 					if(segment === "#") {
-						res += "[A-Z,a-z,0-9,\\.]*"
+						res += "[\\s\\S]*"
 					} else if (segment === "*") {
-						res += "[A-Z,a-z,0-9]+"
+						res += "[^.]+"
 					} else {
 						res += segment;
 					}
-					prev = segment;
+					prevSegment = segment;
 					return res;
 				} ).join('') + "$";
 				rgx = this.regex[binding] = new RegExp( pattern );
