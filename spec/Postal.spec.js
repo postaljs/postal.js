@@ -50,41 +50,68 @@ describe( "Postal", function () {
 		} );
 	} );
 	describe( "When unsubscribing", function () {
-		var subExistsBefore = false,
-			subExistsAfter = true;
-		var systemSubscription = {};
-		before( function () {
-			systemSubscription = postal.subscribe( {
-				channel : "postal",
-				topic : "subscription.*",
-				callback : function ( data, env ) {
-					if ( data.event &&
-					     data.event == "subscription.removed" &&
-					     data.channel == "MyChannel" &&
-					     data.topic == "MyTopic" ) {
-						caughtUnsubscribeEvent = true;
+		describe( "With a single subscription", function(){
+			var subExistsBefore = false,
+				subExistsAfter = true;
+			var systemSubscription = {};
+			before( function () {
+				systemSubscription = postal.subscribe( {
+					channel : "postal",
+					topic : "subscription.*",
+					callback : function ( data, env ) {
+						if ( data.event &&
+						     data.event == "subscription.removed" &&
+						     data.channel == "MyChannel" &&
+						     data.topic == "MyTopic" ) {
+							caughtUnsubscribeEvent = true;
+						}
 					}
-					;
-				}
+				} );
+				subscription = postal.channel( "MyChannel" ).subscribe( "MyTopic" , function () {} );
+				subExistsBefore = postal.configuration.bus.subscriptions.MyChannel.MyTopic[0] !== undefined;
+				subscription.unsubscribe();
+				subExistsAfter = postal.configuration.bus.subscriptions.MyChannel.MyTopic.length !== 0;
 			} );
-      subscription = postal.channel( "MyChannel" ).subscribe( "MyTopic" , function () {} );
-			subExistsBefore = postal.configuration.bus.subscriptions.MyChannel.MyTopic[0] !== undefined;
-			subscription.unsubscribe();
-			subExistsAfter = postal.configuration.bus.subscriptions.MyChannel.MyTopic.length !== 0;
-		} );
-		after( function () {
-			systemSubscription.unsubscribe();
-			postal.utils.reset();
-		} );
-		it( "subscription should exist before unsubscribe", function () {
-			expect( subExistsBefore ).to.be.ok();
-		} );
-		it( "subscription should not exist after unsubscribe", function () {
-			expect( subExistsAfter ).to.not.be.ok()
-		} );
-		it( "should have captured unsubscription creation event", function () {
-			expect( caughtUnsubscribeEvent ).to.be.ok();
-		} );
+			after( function () {
+				systemSubscription.unsubscribe();
+				postal.utils.reset();
+			} );
+			it( "subscription should exist before unsubscribe", function () {
+				expect( subExistsBefore ).to.be.ok();
+			} );
+			it( "subscription should not exist after unsubscribe", function () {
+				expect( subExistsAfter ).to.not.be.ok()
+			} );
+			it( "should have captured unsubscription creation event", function () {
+				expect( caughtUnsubscribeEvent ).to.be.ok();
+			} );
+		});
+		describe( "With multiple subscribers on one channel", function() {
+			var subscription1, subscription2, results = [];
+			before( function () {
+				channel = postal.channel();
+				subscription1 = channel.subscribe('test', function() {
+					results.push('1 received message');
+				}).once();
+
+				subscription2 = channel.subscribe('test', function() {
+					results.push('2 received message');
+				});
+				channel.publish('test');
+				channel.publish('test');
+
+			});
+			after( function () {
+				subscription2.unsubscribe();
+				postal.utils.reset();
+			});
+			it( "should produce expected messages", function() {
+				expect( results.length ).to.be(3);
+				expect( results[0] ).to.be("1 received message");
+				expect( results[1] ).to.be("2 received message");
+				expect( results[2] ).to.be("2 received message");
+			});
+		});
 	} );
 	describe( "When publishing a message", function () {
 		var msgReceivedCnt = 0,
@@ -131,27 +158,27 @@ describe( "Postal", function () {
 			expect( msgReceivedCnt ).to.be( 5 );
 		} );
 	} );
-  describe( "When subscribing with once()", function () {
-    var msgReceivedCnt = 0;
-    before( function () {
-      channel = postal.channel( "MyChannel" );
-      subscription = channel.subscribe( "MyTopic", function ( data ) {
-        msgReceivedCnt++;
-      } ).once();
-      channel.publish( "MyTopic", "Testing123" );
-      channel.publish( "MyTopic", "Testing123" );
-      channel.publish( "MyTopic", "Testing123" );
-      channel.publish( "MyTopic", "Testing123" );
-      channel.publish( "MyTopic", "Testing123" );
-      channel.publish( "MyTopic", "Testing123" );
-    } );
-    after( function () {
-      postal.utils.reset();
-    } );
-    it( "subscription callback should be invoked 1 time", function () {
-      expect( msgReceivedCnt ).to.be( 1 );
-    } );
-  } );
+	describe( "When subscribing with once()", function () {
+		var msgReceivedCnt = 0;
+		before( function () {
+			channel = postal.channel( "MyChannel" );
+			subscription = channel.subscribe( "MyTopic",function ( data ) {
+				msgReceivedCnt++;
+			} ).once();
+			channel.publish( "MyTopic", "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
+			channel.publish( "MyTopic", "Testing123" );
+		} );
+		after( function () {
+			postal.utils.reset();
+		} );
+		it( "subscription callback should be invoked 1 time", function () {
+			expect( msgReceivedCnt ).to.be( 1 );
+		} );
+	} );
 	describe( "When subscribing and ignoring duplicates", function () {
 		var subInvokedCnt = 0;
 		before( function () {

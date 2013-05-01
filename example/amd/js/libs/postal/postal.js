@@ -93,6 +93,7 @@
 	
 	SubscriptionDefinition.prototype = {
 		unsubscribe : function () {
+			this.inactive = true;
 			postal.configuration.bus.unsubscribe( this );
 			postal.configuration.bus.publish( {
 				channel : SYSTEM_CHANNEL,
@@ -143,6 +144,7 @@
 	
 		once : function () {
 			this.disposeAfter( 1 );
+			return this;
 		},
 	
 		withConstraint : function ( predicate ) {
@@ -242,7 +244,7 @@
 		}
 	};
 	var fireSub = function(subDef, envelope) {
-	  if ( postal.configuration.resolver.compare( subDef.topic, envelope.topic ) ) {
+	  if ( !subDef.inactive && postal.configuration.resolver.compare( subDef.topic, envelope.topic ) ) {
 	    if ( _.all( subDef.constraints, function ( constraint ) {
 	      return constraint.call( subDef.context, envelope.data, envelope );
 	    } ) ) {
@@ -251,6 +253,14 @@
 	      }
 	    }
 	  }
+	};
+	
+	var pubInProgress = false;
+	var unSubQueue = [];
+	var clearUnSubQueue = function() {
+		while(unSubQueue.length) {
+			unSubQueue.shift().unsubscribe();
+		}
 	};
 	
 	var localBus = {
@@ -266,20 +276,22 @@
 		},
 	
 		publish : function ( envelope ) {
+			pubInProgress = true;
 			envelope.timeStamp = new Date();
 			_.each( this.wireTaps, function ( tap ) {
 				tap( envelope.data, envelope );
 			} );
 			if ( this.subscriptions[envelope.channel] ) {
-	      _.each( this.subscriptions[envelope.channel], function ( subscribers ) {
-	        var idx = 0, len = subscribers.length, subDef;
-	        while(idx < len) {
-	          if( subDef = subscribers[idx++] ){
-	            fireSub(subDef, envelope);
-	          }
-	        }
-	      } );
+				_.each( this.subscriptions[envelope.channel], function ( subscribers ) {
+					var idx = 0, len = subscribers.length, subDef;
+					while ( idx < len ) {
+						if ( subDef = subscribers[idx++] ) {
+							fireSub( subDef, envelope );
+						}
+					}
+				} );
 			}
+			pubInProgress = false;
 			return envelope;
 		},
 	
@@ -314,14 +326,19 @@
 		wireTaps : [],
 	
 		unsubscribe : function ( config ) {
+			if(pubInProgress) {
+				unSubQueue.push(config);
+				return;
+			}
 			if ( this.subscriptions[config.channel][config.topic] ) {
 				var len = this.subscriptions[config.channel][config.topic].length,
 					idx = 0;
-				for ( ; idx < len; idx++ ) {
+				while(idx < len) {
 					if ( this.subscriptions[config.channel][config.topic][idx] === config ) {
 						this.subscriptions[config.channel][config.topic].splice( idx, 1 );
 						break;
 					}
+					idx += 1;
 				}
 			}
 		}

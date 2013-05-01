@@ -18,6 +18,7 @@ var SubscriptionDefinition = function ( channel, topic, callback ) {
 
 SubscriptionDefinition.prototype = {
 	unsubscribe : function () {
+		this.inactive = true;
 		postal.configuration.bus.unsubscribe( this );
 		postal.configuration.bus.publish( {
 			channel : SYSTEM_CHANNEL,
@@ -68,6 +69,7 @@ SubscriptionDefinition.prototype = {
 
 	once : function () {
 		this.disposeAfter( 1 );
+		return this;
 	},
 
 	withConstraint : function ( predicate ) {
