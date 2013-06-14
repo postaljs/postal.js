@@ -10,7 +10,7 @@ var fireSub = function(subDef, envelope) {
   }
 };
 
-var pubInProgress = false;
+var pubInProgress = 0;
 var unSubQueue = [];
 var clearUnSubQueue = function() {
 	while(unSubQueue.length) {
@@ -31,7 +31,7 @@ var localBus = {
 	},
 
 	publish : function ( envelope ) {
-		pubInProgress = true;
+		++pubInProgress;
 		envelope.timeStamp = new Date();
 		_.each( this.wireTaps, function ( tap ) {
 			tap( envelope.data, envelope );
@@ -46,7 +46,9 @@ var localBus = {
 				}
 			} );
 		}
-		pubInProgress = false;
+		if (--pubInProgress == 0) {
+			clearUnSubQueue();
+		}
 		return envelope;
 	},
 
@@ -81,7 +83,7 @@ var localBus = {
 	wireTaps : [],
 
 	unsubscribe : function ( config ) {
-		if(pubInProgress) {
+		if (pubInProgress) {
 			unSubQueue.push(config);
 			return;
 		}
