@@ -61,7 +61,7 @@ var postal = {
 				tpc = arguments[ 0 ].topic;
 			}
 			if ( postal.configuration.bus.subscriptions[ channel ] &&
-			     postal.configuration.bus.subscriptions[ channel ].hasOwnProperty( tpc ) ) {
+			     Object.prototype.hasOwnProperty.call( postal.configuration.bus.subscriptions[ channel ], tpc )) {
 				return postal.configuration.bus.subscriptions[ channel ][ tpc ];
 			}
 			return [];
