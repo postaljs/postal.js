@@ -2,7 +2,7 @@
  postal
  Author: Jim Cowart (http://freshbrewedcode.com/jimcowart)
  License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
- Version 0.8.4
+ Version 0.8.5
  */
 (function ( root, factory ) {
 	if ( typeof module === "object" && module.exports ) {
@@ -407,7 +407,7 @@
 					tpc = arguments[ 0 ].topic;
 				}
 				if ( postal.configuration.bus.subscriptions[ channel ] &&
-				     postal.configuration.bus.subscriptions[ channel ].hasOwnProperty( tpc ) ) {
+				     Object.prototype.hasOwnProperty.call( postal.configuration.bus.subscriptions[ channel ], tpc )) {
 					return postal.configuration.bus.subscriptions[ channel ][ tpc ];
 				}
 				return [];
