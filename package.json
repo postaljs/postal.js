@@ -1,7 +1,7 @@
 {
     "name" : "postal",
     "description" : "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
-    "version" : "0.8.5",
+    "version" : "0.8.6",
     "homepage" : "http://github.com/postaljs/postal.js",
     "repository" : {
         "type" : "git",
@@ -38,6 +38,11 @@
 	        "name"  : "Elijah Manor",
 	        "email" : "WhyNotJustComment@OnMyBlog.com",
 	        "url"   : "http://www.elijahmanor.com"
+        },
+        {
+	        "name"  : "Ger Hobbelt",
+	        "email" : "ger@hobbelt.com",
+	        "url"   : "http://hebbut.net/"
         }
     ],
     "keywords": [

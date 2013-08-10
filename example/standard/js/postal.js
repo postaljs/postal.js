@@ -2,7 +2,7 @@
  postal
  Author: Jim Cowart (http://freshbrewedcode.com/jimcowart)
  License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
- Version 0.8.5
+ Version 0.8.6
  */
 (function ( root, factory ) {
 	if ( typeof module === "object" && module.exports ) {
