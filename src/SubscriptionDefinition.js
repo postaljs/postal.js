@@ -18,17 +18,19 @@ var SubscriptionDefinition = function ( channel, topic, callback ) {
 
 SubscriptionDefinition.prototype = {
 	unsubscribe : function () {
-		this.inactive = true;
-		postal.configuration.bus.unsubscribe( this );
-		postal.configuration.bus.publish( {
-			channel : SYSTEM_CHANNEL,
-			topic : "subscription.removed",
-			data : {
-				event : "subscription.removed",
-				channel : this.channel,
-				topic : this.topic
-			}
-		} );
+		if(!this.inactive) {
+			this.inactive = true;
+			postal.configuration.bus.unsubscribe( this );
+			postal.configuration.bus.publish( {
+				channel : SYSTEM_CHANNEL,
+				topic : "subscription.removed",
+				data : {
+					event : "subscription.removed",
+					channel : this.channel,
+					topic : this.topic
+				}
+			} );
+		}
 	},
 
 	defer : function () {

@@ -68,8 +68,10 @@
 	
 	ChannelDefinition.prototype.publish = function () {
 		var envelope = arguments.length === 1 ?
-		                (Object.prototype.toString.call(arguments[0]) === '[object String]' ?
-	                  { topic: arguments[0] } : arguments[0]) : { topic : arguments[0], data : arguments[1] };
+			(Object.prototype.toString.call(arguments[0]) === '[object String]' ?
+				{ topic: arguments[0] } :
+				arguments[0]) :
+			{ topic : arguments[0], data : arguments[1] };
 		envelope.channel = this.channel;
 		return postal.configuration.bus.publish( envelope );
 	};
@@ -93,17 +95,19 @@
 	
 	SubscriptionDefinition.prototype = {
 		unsubscribe : function () {
-			this.inactive = true;
-			postal.configuration.bus.unsubscribe( this );
-			postal.configuration.bus.publish( {
-				channel : SYSTEM_CHANNEL,
-				topic : "subscription.removed",
-				data : {
-					event : "subscription.removed",
-					channel : this.channel,
-					topic : this.topic
-				}
-			} );
+			if(!this.inactive) {
+				this.inactive = true;
+				postal.configuration.bus.unsubscribe( this );
+				postal.configuration.bus.publish( {
+					channel : SYSTEM_CHANNEL,
+					topic : "subscription.removed",
+					data : {
+						event : "subscription.removed",
+						channel : this.channel,
+						topic : this.topic
+					}
+				} );
+			}
 		},
 	
 		defer : function () {
@@ -243,22 +247,22 @@
 			this.regex = {};
 		}
 	};
-	var fireSub = function(subDef, envelope) {
-	  if ( !subDef.inactive && postal.configuration.resolver.compare( subDef.topic, envelope.topic ) ) {
-	    if ( _.all( subDef.constraints, function ( constraint ) {
-	      return constraint.call( subDef.context, envelope.data, envelope );
-	    } ) ) {
-	      if ( typeof subDef.callback === 'function' ) {
-	        subDef.callback.call( subDef.context, envelope.data, envelope );
-	      }
-	    }
-	  }
+	var fireSub = function ( subDef, envelope ) {
+		if ( !subDef.inactive && postal.configuration.resolver.compare( subDef.topic, envelope.topic ) ) {
+			if ( _.all( subDef.constraints, function ( constraint ) {
+				return constraint.call( subDef.context, envelope.data, envelope );
+			} ) ) {
+				if ( typeof subDef.callback === 'function' ) {
+					subDef.callback.call( subDef.context, envelope.data, envelope );
+				}
+			}
+		}
 	};
 	
 	var pubInProgress = 0;
 	var unSubQueue = [];
-	var clearUnSubQueue = function() {
-		while(unSubQueue.length) {
+	var clearUnSubQueue = function () {
+		while ( unSubQueue.length ) {
 			unSubQueue.shift().unsubscribe();
 		}
 	};
@@ -291,7 +295,7 @@
 					}
 				} );
 			}
-			if (--pubInProgress == 0) {
+			if ( --pubInProgress === 0 ) {
 				clearUnSubQueue();
 			}
 			return envelope;
@@ -328,14 +332,14 @@
 		wireTaps : [],
 	
 		unsubscribe : function ( config ) {
-			if (pubInProgress) {
-				unSubQueue.push(config);
+			if ( pubInProgress ) {
+				unSubQueue.push( config );
 				return;
 			}
 			if ( this.subscriptions[config.channel][config.topic] ) {
 				var len = this.subscriptions[config.channel][config.topic].length,
 					idx = 0;
-				while(idx < len) {
+				while ( idx < len ) {
 					if ( this.subscriptions[config.channel][config.topic][idx] === config ) {
 						this.subscriptions[config.channel][config.topic].splice( idx, 1 );
 						break;

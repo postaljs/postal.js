@@ -112,6 +112,41 @@ describe( "Postal", function () {
 				expect( results[2] ).to.be("2 received message");
 			});
 		});
+		describe( "With nested publishing", function() {
+			var subscription1, subscription2, sysub, results = [];
+			before( function () {
+				channel = postal.channel();
+				sysub = postal.subscribe({
+					channel: postal.configuration.SYSTEM_CHANNEL,
+					topic  : "subscription.removed",
+					callback : function(d, e) {
+						results.push("unsubscribed");
+					}
+				});
+				subscription1 = channel.subscribe('nest.test', function() {
+					results.push('1 received message');
+					channel.publish("nest.test2", "Hai");
+				}).once();
+
+				subscription2 = channel.subscribe('nest.test2', function() {
+					results.push('2 received message');
+				});
+				channel.publish('nest.test');
+				channel.publish('nest.test');
+			});
+			after( function () {
+				//subscription2.unsubscribe();
+				sysub.unsubscribe();
+				postal.utils.reset();
+			});
+			it( "should produce expected messages", function() {
+				console.log(results);
+				expect( results.length ).to.be(3);
+				expect( results[0] ).to.be("1 received message");
+				expect( results[1] ).to.be("2 received message");
+				expect( results[2] ).to.be("unsubscribed");
+			});
+		});
 	} );
 	describe( "When publishing a message", function () {
 		var msgReceivedCnt = 0,
