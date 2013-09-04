@@ -107,14 +107,15 @@ describe( "SubscriptionDefinition", function () {
 		var results = [], sDefe;
 
 		it( "Should defer the callback", function ( done ) {
-			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data ) {
+			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
 				results.push( data );
 				expect( results[0] ).to.be( "first" );
 				expect( results[1] ).to.be( "second" );
+				expect( env.topic ).to.be( "TestTopic" );
 				done();
 			} ).defer();
 
-			sDefe.callback( "second" );
+			sDefe.callback( "second", { topic: "TestTopic" } );
 			results.push( "first" );
 		} );
 	} );
@@ -123,13 +124,14 @@ describe( "SubscriptionDefinition", function () {
 		var results = [], sDefe;
 
 		it( "Should delay the callback", function ( done ) {
-			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data ) {
+			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
 				results.push( data );
 				expect( results[0] ).to.be( "first" );
 				expect( results[1] ).to.be( "second" );
+				expect( env.topic ).to.be( "TestTopic" );
 				done();
 			} ).withDelay( 200 );
-			sDefe.callback( "second" );
+			sDefe.callback( "second", { topic: "TestTopic" } );
 			results.push( "first" );
 		} );
 	} );
