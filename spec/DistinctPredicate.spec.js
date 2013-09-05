@@ -1,3 +1,4 @@
+/* global describe, postal, it, after, before, expect, DistinctPredicate */
 describe( 'DistinctPredicate', function () {
 
 	describe( 'When calling the function with the same data object multiple times', function () {

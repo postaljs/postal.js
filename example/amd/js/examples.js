@@ -13,7 +13,6 @@ define( ['postal', 'postaldiags'], function ( postal, diags ) {
 	// To unsubscribe, you:
 	subscription.unsubscribe();
 
-
 	// Subscribing to a wildcard topic using *
 	// The * symbol represents "one word" in a topic (i.e - the text between two periods of a topic).
 	// By subscribing to "*.changed", the binding will match
@@ -21,10 +20,9 @@ define( ['postal', 'postaldiags'], function ( postal, diags ) {
 	var chgSubscription = channel.subscribe( "*.changed", function ( data ) {
 		$( "<li>" + data.type + " changed: " + data.value + "</li>" ).appendTo( "#example2" );
 	} );
-	channel.publish( "name.changed",     { type : "Name",     value : "John Smith" } );
+	channel.publish( "name.changed", { type : "Name", value : "John Smith" } );
 	channel.publish( "location.changed", { type : "Location", value : "Early 20th Century England" } );
 	chgSubscription.unsubscribe();
-
 
 	// Subscribing to a wildcard topic using #
 	// The # symbol represents 0-n number of characters/words in a topic string.
@@ -35,22 +33,22 @@ define( ['postal', 'postaldiags'], function ( postal, diags ) {
 	} );
 	channel.publish( "DrWho.NinthDoctor.Companion.Changed", { type : "Companion Name", value : "Rose"   } );
 	channel.publish( "DrWho.TenthDoctor.Companion.Changed", { type : "Companion Name", value : "Martha" } );
-	channel.publish( "DrWho.Eleventh.Companion.Changed",    { type : "Companion Name", value : "Amy"    } );
-	channel.publish( "DrWho.Location.Changed",              { type : "Location",       value : "The Library" } );
-	channel.publish( "TheMaster.DrumBeat.Changed",          { type : "DrumBeat",       value : "This won't trigger any subscriptions" } );
-	channel.publish( "Changed",                             { type : "Useless",        value : "This won't trigger any subscriptions either" } );
+	channel.publish( "DrWho.Eleventh.Companion.Changed", { type : "Companion Name", value : "Amy"    } );
+	channel.publish( "DrWho.Location.Changed", { type : "Location", value : "The Library" } );
+	channel.publish( "TheMaster.DrumBeat.Changed", { type : "DrumBeat", value : "This won't trigger any subscriptions" } );
+	channel.publish( "Changed", { type : "Useless", value : "This won't trigger any subscriptions either" } );
 	starSubscription.unsubscribe();
 
 // Applying distinctUntilChanged to a subscription
 	var dupSubscription = channel.subscribe( "WeepingAngel.*",function ( data ) {
 		$( "<li>" + data.value + "</li>" ).appendTo( "#example4" );
 	} ).distinctUntilChanged();
-	channel.publish( "WeepingAngel.DontBlink",     { value : "Don't Blink" } );
-	channel.publish( "WeepingAngel.DontBlink",     { value : "Don't Blink" } );
+	channel.publish( "WeepingAngel.DontBlink", { value : "Don't Blink" } );
+	channel.publish( "WeepingAngel.DontBlink", { value : "Don't Blink" } );
 	channel.publish( "WeepingAngel.DontEvenBlink", { value : "Don't Even Blink" } );
-	channel.publish( "WeepingAngel.DontBlink",     { value : "Don't Close Your Eyes" } );
-	channel.publish( "WeepingAngel.DontBlink",     { value : "Don't Blink" } );
-	channel.publish( "WeepingAngel.DontBlink",     { value : "Don't Blink" } );
+	channel.publish( "WeepingAngel.DontBlink", { value : "Don't Close Your Eyes" } );
+	channel.publish( "WeepingAngel.DontBlink", { value : "Don't Blink" } );
+	channel.publish( "WeepingAngel.DontBlink", { value : "Don't Blink" } );
 	dupSubscription.unsubscribe();
 
 	// Using disposeAfter(X) to remove subscription automagically after X number of messages received

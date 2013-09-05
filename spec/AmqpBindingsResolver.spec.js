@@ -1,9 +1,10 @@
+/* global describe, postal, it, after, before, expect, bindingsResolver */
 describe( "amqpBindingsResolver", function () {
 	describe( "When calling compare", function () {
-		beforeEach(function(){
+		beforeEach( function () {
 			bindingsResolver.reset();
-		});
-		describe("With '*' wildcards", function(){
+		} );
+		describe( "With '*' wildcards", function () {
 			// Passing matches
 			describe( "With topic Top.Middle.Bottom and binding *.Middle.Bottom", function () {
 				var result = bindingsResolver.compare( "*.Middle.Bottom", "Top.Middle.Bottom" ),
@@ -148,8 +149,8 @@ describe( "amqpBindingsResolver", function () {
 				} );
 			} );
 
-		});
-		describe("With '#' wildcards", function(){
+		} );
+		describe( "With '#' wildcards", function () {
 			// Passing matches
 			// # at beginning of binding
 			describe( "With topic Top.Middle.Bottom and binding #.Middle.Bottom", function () {
@@ -358,8 +359,8 @@ describe( "amqpBindingsResolver", function () {
 					expect( cached ).to.not.be.ok();
 				} );
 			} );
-		});
-		describe("With both '#' and '*' wildcards", function(){
+		} );
+		describe( "With both '#' and '*' wildcards", function () {
 			// Passing matches
 			describe( "With topic Top.Middle.Bottom and binding #.*.Bottom", function () {
 				var result = bindingsResolver.compare( "#.*.Bottom", "Top.Middle.Bottom" ),
@@ -432,8 +433,8 @@ describe( "amqpBindingsResolver", function () {
 					expect( cached ).to.not.be.ok();
 				} );
 			} );
-		});
-		describe("With plain string matching", function() {
+		} );
+		describe( "With plain string matching", function () {
 			describe( "With topic Top.Middle.Bottom and binding Top.Middle.Bottom", function () {
 				var result = bindingsResolver.compare( "Top.Middle.Bottom", "Top.Middle.Bottom" ),
 					cached = bindingsResolver.cache["Top.Middle.Bottom"]["Top.Middle.Bottom"];
@@ -464,6 +465,6 @@ describe( "amqpBindingsResolver", function () {
 					expect( cached ).to.be.ok();
 				} );
 			} );
-		});
+		} );
 	} );
 } );

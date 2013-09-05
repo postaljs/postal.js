@@ -1,3 +1,4 @@
+/*jshint -W098 */
 var ConsecutiveDistinctPredicate = function () {
 	var previous;
 	return function ( data ) {

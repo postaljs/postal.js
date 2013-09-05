@@ -2,7 +2,7 @@
  postal
  Author: Jim Cowart (http://freshbrewedcode.com/jimcowart)
  License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
- Version 0.8.6
+ Version 0.8.7
  */
 (function ( root, factory ) {
 	if ( typeof module === "object" && module.exports ) {
@@ -112,9 +112,9 @@
 	
 		defer : function () {
 			var fn = this.callback;
-			this.callback = function ( data ) {
+			this.callback = function ( data, env ) {
 				setTimeout( function () {
-					fn( data );
+					fn( data, env );
 				}, 0 );
 			};
 			return this;
@@ -188,9 +188,9 @@
 				throw "Milliseconds must be a number";
 			}
 			var fn = this.callback;
-			this.callback = function ( data ) {
+			this.callback = function ( data, env ) {
 				setTimeout( function () {
-					fn( data );
+					fn( data, env );
 				}, milliseconds );
 			};
 			return this;
