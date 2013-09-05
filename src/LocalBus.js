@@ -101,4 +101,3 @@ var localBus = {
 		}
 	}
 };
-localBus.subscriptions[postal.configuration.SYSTEM_CHANNEL] = {};

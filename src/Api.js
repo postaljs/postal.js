@@ -75,3 +75,4 @@ postal = {
 		}
 	}
 };
+localBus.subscriptions[postal.configuration.SYSTEM_CHANNEL] = {};
