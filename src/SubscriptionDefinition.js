@@ -1,3 +1,5 @@
+/* global postal */
+/*jshint -W117 */
 var SubscriptionDefinition = function ( channel, topic, callback ) {
 	this.channel = channel;
 	this.topic = topic;
@@ -5,12 +7,12 @@ var SubscriptionDefinition = function ( channel, topic, callback ) {
 	this.constraints = [];
 	this.context = null;
 	postal.configuration.bus.publish( {
-		channel : SYSTEM_CHANNEL,
-		topic : "subscription.created",
-		data : {
-			event : "subscription.created",
+		channel : postal.configuration.SYSTEM_CHANNEL,
+		topic   : "subscription.created",
+		data    : {
+			event   : "subscription.created",
 			channel : channel,
-			topic : topic
+			topic   : topic
 		}
 	} );
 	postal.configuration.bus.subscribe( this );
@@ -18,16 +20,16 @@ var SubscriptionDefinition = function ( channel, topic, callback ) {
 
 SubscriptionDefinition.prototype = {
 	unsubscribe : function () {
-		if(!this.inactive) {
+		if ( !this.inactive ) {
 			this.inactive = true;
 			postal.configuration.bus.unsubscribe( this );
 			postal.configuration.bus.publish( {
-				channel : SYSTEM_CHANNEL,
-				topic : "subscription.removed",
-				data : {
-					event : "subscription.removed",
+				channel : postal.configuration.SYSTEM_CHANNEL,
+				topic   : "subscription.removed",
+				data    : {
+					event   : "subscription.removed",
 					channel : this.channel,
-					topic : this.topic
+					topic   : this.topic
 				}
 			} );
 		}

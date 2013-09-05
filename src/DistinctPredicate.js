@@ -1,3 +1,4 @@
+/*jshint -W098 */
 var DistinctPredicate = function () {
 	var previous = [];
 

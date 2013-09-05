@@ -1,4 +1,5 @@
-var NO_OP = function() {};
+/* global describe, postal, it, after, before, expect, SubscriptionDefinition */
+var NO_OP = function () {};
 describe( "SubscriptionDefinition", function () {
 	describe( "When initializing SubscriptionDefinition", function () {
 		var sDef,
@@ -6,8 +7,8 @@ describe( "SubscriptionDefinition", function () {
 			systemSubscription;
 		before( function () {
 			systemSubscription = postal.subscribe( {
-				channel : "postal",
-				topic : "subscription.created",
+				channel  : "postal",
+				topic    : "subscription.created",
 				callback : function ( data, envelope ) {
 					if ( data.event &&
 					     data.event == "subscription.created" &&
@@ -82,7 +83,7 @@ describe( "SubscriptionDefinition", function () {
 					return true;
 				} );
 
-		postal.publish({ channel: "TestChannel", topic: "TestTopic", data: "Oh, hai"})
+		postal.publish( { channel : "TestChannel", topic : "TestTopic", data : "Oh, hai"} )
 
 		it( "Should set context", function () {
 			expect( sDefd.context ).to.be( obj );
@@ -115,7 +116,7 @@ describe( "SubscriptionDefinition", function () {
 				done();
 			} ).defer();
 
-			sDefe.callback( "second", { topic: "TestTopic" } );
+			sDefe.callback( "second", { topic : "TestTopic" } );
 			results.push( "first" );
 		} );
 	} );
@@ -131,7 +132,7 @@ describe( "SubscriptionDefinition", function () {
 				expect( env.topic ).to.be( "TestTopic" );
 				done();
 			} ).withDelay( 200 );
-			sDefe.callback( "second", { topic: "TestTopic" } );
+			sDefe.callback( "second", { topic : "TestTopic" } );
 			results.push( "first" );
 		} );
 	} );

@@ -1,12 +1,14 @@
-var postal = {
+/* global localBus, bindingsResolver, ChannelDefinition, SubscriptionDefinition, postal */
+/*jshint -W020 */
+postal = {
 	configuration : {
-		bus : localBus,
-		resolver : bindingsResolver,
-		DEFAULT_CHANNEL : DEFAULT_CHANNEL,
-		SYSTEM_CHANNEL : SYSTEM_CHANNEL
+		bus             : localBus,
+		resolver        : bindingsResolver,
+		DEFAULT_CHANNEL : "/",
+		SYSTEM_CHANNEL  : "postal"
 	},
 
-	ChannelDefinition : ChannelDefinition,
+	ChannelDefinition      : ChannelDefinition,
 	SubscriptionDefinition : SubscriptionDefinition,
 
 	channel : function ( channelName ) {
@@ -14,11 +16,11 @@ var postal = {
 	},
 
 	subscribe : function ( options ) {
-		return new SubscriptionDefinition( options.channel || DEFAULT_CHANNEL, options.topic, options.callback );
+		return new SubscriptionDefinition( options.channel || postal.configuration.DEFAULT_CHANNEL, options.topic, options.callback );
 	},
 
 	publish : function ( envelope ) {
-		envelope.channel = envelope.channel || DEFAULT_CHANNEL;
+		envelope.channel = envelope.channel || postal.configuration.DEFAULT_CHANNEL;
 		return postal.configuration.bus.publish( envelope );
 	},
 
@@ -27,17 +29,17 @@ var postal = {
 	},
 
 	linkChannels : function ( sources, destinations ) {
-		var result   = [];
-		sources      = !_.isArray( sources ) ? [sources] : sources;
+		var result = [];
+		sources = !_.isArray( sources ) ? [ sources ] : sources;
 		destinations = !_.isArray( destinations ) ? [destinations] : destinations;
 		_.each( sources, function ( source ) {
 			var sourceTopic = source.topic || "#";
 			_.each( destinations, function ( destination ) {
-				var destChannel = destination.channel || DEFAULT_CHANNEL;
+				var destChannel = destination.channel || postal.configuration.DEFAULT_CHANNEL;
 				result.push(
 					postal.subscribe( {
-						channel : source.channel || DEFAULT_CHANNEL,
-						topic : source.topic || "#",
+						channel  : source.channel || postal.configuration.DEFAULT_CHANNEL,
+						topic    : sourceTopic,
 						callback : function ( data, env ) {
 							var newEnv = _.clone( env );
 							newEnv.topic = _.isFunction( destination.topic ) ? destination.topic( env.topic ) : destination.topic || env.topic;
@@ -61,7 +63,7 @@ var postal = {
 				tpc = arguments[ 0 ].topic;
 			}
 			if ( postal.configuration.bus.subscriptions[ channel ] &&
-			     Object.prototype.hasOwnProperty.call( postal.configuration.bus.subscriptions[ channel ], tpc )) {
+			     Object.prototype.hasOwnProperty.call( postal.configuration.bus.subscriptions[ channel ], tpc ) ) {
 				return postal.configuration.bus.subscriptions[ channel ][ tpc ];
 			}
 			return [];

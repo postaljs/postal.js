@@ -1,9 +1,10 @@
+/* global postal */
 var fireSub = function ( subDef, envelope ) {
 	if ( !subDef.inactive && postal.configuration.resolver.compare( subDef.topic, envelope.topic ) ) {
 		if ( _.all( subDef.constraints, function ( constraint ) {
 			return constraint.call( subDef.context, envelope.data, envelope );
 		} ) ) {
-			if ( typeof subDef.callback === 'function' ) {
+			if ( typeof subDef.callback === "function" ) {
 				subDef.callback.call( subDef.context, envelope.data, envelope );
 			}
 		}
@@ -66,7 +67,7 @@ var localBus = {
 	},
 
 	subscribe : function ( subDef ) {
-		var idx, found, fn, channel = this.subscriptions[subDef.channel], subs;
+		var channel = this.subscriptions[subDef.channel], subs;
 		if ( !channel ) {
 			channel = this.subscriptions[subDef.channel] = {};
 		}
@@ -100,4 +101,4 @@ var localBus = {
 		}
 	}
 };
-localBus.subscriptions[SYSTEM_CHANNEL] = {};
+localBus.subscriptions[postal.configuration.SYSTEM_CHANNEL] = {};

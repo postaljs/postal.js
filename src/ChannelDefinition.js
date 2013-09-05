@@ -1,5 +1,6 @@
+/* global postal, SubscriptionDefinition */
 var ChannelDefinition = function ( channelName ) {
-	this.channel = channelName || DEFAULT_CHANNEL;
+	this.channel = channelName || postal.configuration.DEFAULT_CHANNEL;
 };
 
 ChannelDefinition.prototype.subscribe = function () {
@@ -10,10 +11,10 @@ ChannelDefinition.prototype.subscribe = function () {
 
 ChannelDefinition.prototype.publish = function () {
 	var envelope = arguments.length === 1 ?
-		(Object.prototype.toString.call(arguments[0]) === '[object String]' ?
-			{ topic: arguments[0] } :
-			arguments[0]) :
-		{ topic : arguments[0], data : arguments[1] };
+	               ( Object.prototype.toString.call( arguments[0] ) === "[object String]" ?
+	                { topic : arguments[0] } :
+	                arguments[0] ) :
+	               { topic : arguments[0], data : arguments[1] };
 	envelope.channel = this.channel;
 	return postal.configuration.bus.publish( envelope );
 };

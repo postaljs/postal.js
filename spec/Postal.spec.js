@@ -1,3 +1,4 @@
+/* global describe, postal, it, after, before, expect */
 describe( "Postal", function () {
 	var subscription,
 		sub,
@@ -9,8 +10,8 @@ describe( "Postal", function () {
 		var systemSubscription = {};
 		before( function () {
 			systemSubscription = postal.subscribe( {
-				channel : "postal",
-				topic : "subscription.created",
+				channel  : "postal",
+				topic    : "subscription.created",
 				callback : function ( data, envelope ) {
 					if ( data.event &&
 					     data.event == "subscription.created" &&
@@ -20,7 +21,7 @@ describe( "Postal", function () {
 					}
 				}
 			} );
-			subscription = postal.channel( "MyChannel" ).subscribe( "MyTopic" , function () {} );
+			subscription = postal.channel( "MyChannel" ).subscribe( "MyTopic", function () {} );
 			sub = postal.configuration.bus.subscriptions.MyChannel.MyTopic[0];
 		} );
 		after( function () {
@@ -43,21 +44,21 @@ describe( "Postal", function () {
 			expect( sub.constraints.length ).to.be( 0 );
 		} );
 		it( "should have defaulted the subscription context value", function () {
-			expect( sub.context ).to.be(null);
+			expect( sub.context ).to.be( null );
 		} );
 		it( "should have captured subscription creation event", function () {
 			expect( caughtSubscribeEvent ).to.be.ok();
 		} );
 	} );
 	describe( "When unsubscribing", function () {
-		describe( "With a single subscription", function(){
+		describe( "With a single subscription", function () {
 			var subExistsBefore = false,
 				subExistsAfter = true;
 			var systemSubscription = {};
 			before( function () {
 				systemSubscription = postal.subscribe( {
-					channel : "postal",
-					topic : "subscription.*",
+					channel  : "postal",
+					topic    : "subscription.*",
 					callback : function ( data, env ) {
 						if ( data.event &&
 						     data.event == "subscription.removed" &&
@@ -67,7 +68,8 @@ describe( "Postal", function () {
 						}
 					}
 				} );
-				subscription = postal.channel( "MyChannel" ).subscribe( "MyTopic" , function () {} );
+				subscription = postal.channel( "MyChannel" ).subscribe( "MyTopic", function () {
+				} );
 				subExistsBefore = postal.configuration.bus.subscriptions.MyChannel.MyTopic[0] !== undefined;
 				subscription.unsubscribe();
 				subExistsAfter = postal.configuration.bus.subscriptions.MyChannel.MyTopic.length !== 0;
@@ -85,68 +87,68 @@ describe( "Postal", function () {
 			it( "should have captured unsubscription creation event", function () {
 				expect( caughtUnsubscribeEvent ).to.be.ok();
 			} );
-		});
-		describe( "With multiple subscribers on one channel", function() {
+		} );
+		describe( "With multiple subscribers on one channel", function () {
 			var subscription1, subscription2, results = [];
 			before( function () {
 				channel = postal.channel();
-				subscription1 = channel.subscribe('test', function() {
-					results.push('1 received message');
-				}).once();
+				subscription1 = channel.subscribe( 'test',function () {
+					results.push( '1 received message' );
+				} ).once();
 
-				subscription2 = channel.subscribe('test', function() {
-					results.push('2 received message');
-				});
-				channel.publish('test');
-				channel.publish('test');
+				subscription2 = channel.subscribe( 'test', function () {
+					results.push( '2 received message' );
+				} );
+				channel.publish( 'test' );
+				channel.publish( 'test' );
 
-			});
+			} );
 			after( function () {
 				subscription2.unsubscribe();
 				postal.utils.reset();
-			});
-			it( "should produce expected messages", function() {
-				expect( results.length ).to.be(3);
-				expect( results[0] ).to.be("1 received message");
-				expect( results[1] ).to.be("2 received message");
-				expect( results[2] ).to.be("2 received message");
-			});
-		});
-		describe( "With nested publishing", function() {
+			} );
+			it( "should produce expected messages", function () {
+				expect( results.length ).to.be( 3 );
+				expect( results[0] ).to.be( "1 received message" );
+				expect( results[1] ).to.be( "2 received message" );
+				expect( results[2] ).to.be( "2 received message" );
+			} );
+		} );
+		describe( "With nested publishing", function () {
 			var subscription1, subscription2, sysub, results = [];
 			before( function () {
 				channel = postal.channel();
-				sysub = postal.subscribe({
-					channel: postal.configuration.SYSTEM_CHANNEL,
-					topic  : "subscription.removed",
-					callback : function(d, e) {
-						results.push("unsubscribed");
+				sysub = postal.subscribe( {
+					channel  : postal.configuration.SYSTEM_CHANNEL,
+					topic    : "subscription.removed",
+					callback : function ( d, e ) {
+						results.push( "unsubscribed" );
 					}
-				});
-				subscription1 = channel.subscribe('nest.test', function() {
-					results.push('1 received message');
-					channel.publish("nest.test2", "Hai");
-				}).once();
+				} );
+				subscription1 = channel.subscribe( 'nest.test',function () {
+					results.push( '1 received message' );
+					channel.publish( "nest.test2", "Hai" );
+				} ).once();
 
-				subscription2 = channel.subscribe('nest.test2', function() {
-					results.push('2 received message');
-				});
-				channel.publish('nest.test');
-				channel.publish('nest.test');
-			});
+				subscription2 = channel.subscribe( 'nest.test2', function () {
+					results.push( '2 received message' );
+				} );
+				channel.publish( 'nest.test' );
+				channel.publish( 'nest.test' );
+			} );
 			after( function () {
 				//subscription2.unsubscribe();
 				sysub.unsubscribe();
 				postal.utils.reset();
-			});
-			it( "should produce expected messages", function() {
-				console.log(results);
-				expect( results.length ).to.be(3);
-				expect( results[0] ).to.be("1 received message");
-				expect( results[1] ).to.be("2 received message");
-				expect( results[2] ).to.be("unsubscribed");
-			});
-		});
+			} );
+			it( "should produce expected messages", function () {
+				console.log( results );
+				expect( results.length ).to.be( 3 );
+				expect( results[0] ).to.be( "1 received message" );
+				expect( results[1] ).to.be( "2 received message" );
+				expect( results[2] ).to.be( "unsubscribed" );
+			} );
+		} );
 	} );
 	describe( "When publishing a message", function () {
 		var msgReceivedCnt = 0,
@@ -294,8 +296,8 @@ describe( "Postal", function () {
 				recvd = true;
 			} )
 				.withConstraints( [function () {
-				return true;
-			},
+					return true;
+				},
 			                       function () {
 				                       return true;
 			                       },
@@ -323,8 +325,8 @@ describe( "Postal", function () {
 				recvd = true;
 			} )
 				.withConstraints( [function () {
-				return true;
-			},
+					return true;
+				},
 			                       function () {
 				                       return false;
 			                       },
@@ -375,7 +377,7 @@ describe( "Postal", function () {
 		after( function () {
 			postal.utils.reset();
 		} );
-		it( "should have met expected results", function (done) {
+		it( "should have met expected results", function ( done ) {
 			subscription = channel.subscribe( "MyTopic",
 				function ( data ) {
 					results.push( "second" );
@@ -395,8 +397,8 @@ describe( "Postal", function () {
 		after( function () {
 			postal.utils.reset();
 		} );
-		it( "should have met expected results", function (done) {
-			subscription = channel.subscribe("MyTopic",
+		it( "should have met expected results", function ( done ) {
+			subscription = channel.subscribe( "MyTopic",
 				function ( data ) {
 					results.push( "second" );
 					expect( results[0] ).to.be( "first" );
@@ -419,7 +421,7 @@ describe( "Postal", function () {
 		after( function () {
 			postal.utils.reset();
 		} );
-		it( "should have only invoked debounced callback once", function (done) {
+		it( "should have only invoked debounced callback once", function ( done ) {
 			debouncedChannel.publish( "MyTopic", 1 ); // starts the two second clock on debounce
 			setTimeout( function () {
 				debouncedChannel.publish( "MyTopic", 2 );
@@ -455,7 +457,7 @@ describe( "Postal", function () {
 		after( function () {
 			postal.utils.reset();
 		} );
-		it( "should have only invoked throttled callback twice", function (done) {
+		it( "should have only invoked throttled callback twice", function ( done ) {
 			throttledChannel.publish( "MyTopic", 1 ); // starts the two second clock on debounce
 			setTimeout( function () {
 				throttledChannel.publish( "MyTopic", 800 );
@@ -495,7 +497,7 @@ describe( "Postal", function () {
 	describe( "When subscribing with a hierarchical binding, using #", function () {
 		var count, channelB, channelC, channelD, channelE;
 		before( function () {
-    count = 0;
+			count = 0;
 			channel = postal.channel( "MyChannel" );
 			subscription = channel.subscribe( "MyTopic.#.SubTopic", function ( data, env ) {
 				count++;
@@ -563,9 +565,9 @@ describe( "Postal", function () {
 				msgReceivedCnt++;
 				msgData = data;
 			} );
-			postal.publish( { channel: "MyGlobalChannel", topic: "MyTopic", data: "Testing123" } );
+			postal.publish( { channel : "MyGlobalChannel", topic : "MyTopic", data : "Testing123" } );
 			subscription.unsubscribe();
-			postal.publish( { channel: "MyGlobalChannel", topic: "MyTopic", data: "Testing123" } );
+			postal.publish( { channel : "MyGlobalChannel", topic : "MyTopic", data : "Testing123" } );
 		} );
 		after( function () {
 			postal.utils.reset();
@@ -584,8 +586,8 @@ describe( "Postal", function () {
 	describe( "When using global subscribe api", function () {
 		before( function () {
 			subscription = postal.subscribe( {
-				channel : "MyChannel",
-				topic : "MyTopic",
+				channel  : "MyChannel",
+				topic    : "MyTopic",
 				callback : function () {
 				}
 			} );
@@ -613,7 +615,7 @@ describe( "Postal", function () {
 			expect( sub.constraints.length ).to.be( 0 );
 		} );
 		it( "should have defaulted the subscription context value", function () {
-			expect( sub.context ).to.be(null);
+			expect( sub.context ).to.be( null );
 		} );
 	} );
 	describe( "When using global channel api", function () {
@@ -662,7 +664,7 @@ describe( "Postal", function () {
 			expect( wireTapData[0] ).to.be( "I'm in yer bus, tappin' yer subscriptionz..." );
 		} );
 		it( "wireTap envelope should match expected results", function () {
-			expect( wireTapEnvelope[0].channel ).to.be( DEFAULT_CHANNEL );
+			expect( wireTapEnvelope[0].channel ).to.be( postal.configuration.DEFAULT_CHANNEL );
 			expect( wireTapEnvelope[0].topic ).to.be( "Oh.Hai.There" );
 		} );
 	} );
@@ -674,7 +676,7 @@ describe( "Postal", function () {
 			} );
 			postal.channel( "MyChannel" ).publish( "MyTopic", "Oh Hai!" );
 			sub = postal.configuration.bus.subscriptions.MyChannel.MyTopic[0];
-			resolver = postal.configuration.resolver.cache["MyTopic"];
+			resolver = postal.configuration.resolver.cache.MyTopic;
 			postal.utils.reset();
 		} );
 		after( function () {
@@ -683,7 +685,7 @@ describe( "Postal", function () {
 			expect( sub.channel ).to.be( "MyChannel" );
 			expect( sub.topic ).to.be( "MyTopic" );
 			expect( sub.constraints.length ).to.be( 0 );
-			expect( sub.context ).to.be(null);
+			expect( sub.context ).to.be( null );
 		} );
 		it( "should have created a resolver cache entry", function () {
 			expect( _.isEmpty( resolver ) ).to.not.be.ok()
@@ -701,7 +703,7 @@ describe( "Postal", function () {
 		before( function () {
 			i = 10;
 			var ch1 = postal.channel( "MyChannel" ),
-				  ch2 = postal.channel( "MyChannel2" );
+				ch2 = postal.channel( "MyChannel2" );
 			while ( i ) {
 				subs.push( ch1.subscribe( "MyTopic", function () {
 				} ) );
@@ -725,12 +727,12 @@ describe( "Postal", function () {
 	} );
 	describe( "When publishing on a channel where no subscribers exist", function () {
 		it( "should return expected results for MyChannel/MyTopic", function () {
-			var env = postal.publish({
-				channel: "NoOneIsUsingThisOne",
-				topic: "This.Is.A.Lonely.Topic",
-				data: "Y U NO SUBSCRIBE TO ME?"
-			});
-			expect( !_.isEmpty(env) ).to.be( true );
+			var env = postal.publish( {
+				channel : "NoOneIsUsingThisOne",
+				topic   : "This.Is.A.Lonely.Topic",
+				data    : "Y U NO SUBSCRIBE TO ME?"
+			} );
+			expect( !_.isEmpty( env ) ).to.be( true );
 		} );
 	} );
 } );
