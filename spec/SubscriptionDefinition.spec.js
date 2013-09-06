@@ -130,6 +130,17 @@ describe( "SubscriptionDefinition", function () {
 			} ).withContext(context).defer();
 			sDefe.callback.call( sDefe.context, "stuff", { topic : "TestTopic" } );
 		} );
+
+		it( "Should keep the context intact when modified later", function ( done ) {
+			var context = {
+				key : 1234
+			};
+			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+				expect( this ).to.be( context );
+				done();
+			} ).defer().withContext(context);
+			sDefe.callback.call( sDefe.context, "stuff", { topic : "TestTopic" } );
+		} );
 	} );
 
 	describe( "When delaying the callback", function () {
@@ -240,5 +251,28 @@ describe( "SubscriptionDefinition", function () {
 
 			sDefe.callback.call( sDefe.context, 1 );
 		});
+	} );
+
+	describe( "When self disposing", function () {
+
+		it( "Should be inactive", function () {
+			var sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+			} ).withContext(context).disposeAfter( 1 );
+
+			sDefe.callback.call( sDefe.context, "stuff", { topic : "TestTopic" } );
+
+			expect( sDefe.inactive ).to.be( true );
+		} );
+
+		it( "Should keep the context intact", function ( done ) {
+			var context = {
+				key : 1234
+			};
+			var sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+				expect( this ).to.be( context );
+				done();
+			} ).withContext(context).disposeAfter( 200 );
+			sDefe.callback.call( sDefe.context, "stuff", { topic : "TestTopic" } );
+		} );
 	} );
 } );
