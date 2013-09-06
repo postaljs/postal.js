@@ -122,13 +122,13 @@ describe( "SubscriptionDefinition", function () {
 
 		it( "Should keep the context intact", function ( done ) {
 			var context = {
-				key: 1234
+				key : 1234
 			};
 			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
 				expect( this ).to.be( context );
 				done();
 			} ).withContext(context).defer();
-			sDefe.callback( "stuff", { topic : "TestTopic" } );
+			sDefe.callback.call( sDefe.context, "stuff", { topic : "TestTopic" } );
 		} );
 	} );
 
@@ -149,13 +149,13 @@ describe( "SubscriptionDefinition", function () {
 
 		it( "Should keep the context intact", function ( done ) {
 			var context = {
-				key: 1234
+				key : 1234
 			};
 			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
 				expect( this ).to.be( context );
 				done();
 			} ).withContext(context).withDelay( 200 );
-			sDefe.callback( "stuff", { topic : "TestTopic" } );
+			sDefe.callback.call( sDefe.context, "stuff", { topic : "TestTopic" } );
 		} );
 	} );
 
@@ -188,6 +188,21 @@ describe( "SubscriptionDefinition", function () {
 				done();
 			}, 2400 );
 		} );
+
+		it( "Should keep the context intact", function ( done ) {
+			var context = {
+				key : 5678
+			};
+			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+				expect( this ).to.be( context );
+				done();
+			} ).withContext(context).withDebounce( 100 );
+
+			sDefe.callback.call( sDefe.context, 1 );
+			setTimeout( function () {
+				sDefe.callback.call( sDefe.context, 2 );
+			}, 200 ); // should invoke callback
+		});
 	} );
 
 	describe( "When throttling the callback", function () {
@@ -213,5 +228,17 @@ describe( "SubscriptionDefinition", function () {
 				done();
 			}, 1500 );
 		} );
+
+		it( "Should keep the context intact", function ( done ) {
+			var context = {
+				key : 'abcd'
+			};
+			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+				expect( this ).to.be( context );
+				done();
+			} ).withContext(context).withThrottle( 500 );
+
+			sDefe.callback.call( sDefe.context, 1 );
+		});
 	} );
 } );
