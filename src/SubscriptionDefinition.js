@@ -37,9 +37,10 @@ SubscriptionDefinition.prototype = {
 
 	defer : function () {
 		var fn = this.callback;
+		var context = this.context;
 		this.callback = function ( data, env ) {
 			setTimeout( function () {
-				fn( data, env );
+				fn.call( context, data, env );
 			}, 0 );
 		};
 		return this;
@@ -113,9 +114,10 @@ SubscriptionDefinition.prototype = {
 			throw "Milliseconds must be a number";
 		}
 		var fn = this.callback;
+		var context = this.context;
 		this.callback = function ( data, env ) {
 			setTimeout( function () {
-				fn( data, env );
+				fn.call( context, data, env );
 			}, milliseconds );
 		};
 		return this;

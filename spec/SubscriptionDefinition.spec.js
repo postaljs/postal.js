@@ -119,6 +119,17 @@ describe( "SubscriptionDefinition", function () {
 			sDefe.callback( "second", { topic : "TestTopic" } );
 			results.push( "first" );
 		} );
+
+		it( "Should keep the context intact", function ( done ) {
+			var context = {
+				key: 1234
+			};
+			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+				expect( this ).to.be( context );
+				done();
+			} ).withContext(context).defer();
+			sDefe.callback( "stuff", { topic : "TestTopic" } );
+		} );
 	} );
 
 	describe( "When delaying the callback", function () {
@@ -134,6 +145,17 @@ describe( "SubscriptionDefinition", function () {
 			} ).withDelay( 200 );
 			sDefe.callback( "second", { topic : "TestTopic" } );
 			results.push( "first" );
+		} );
+
+		it( "Should keep the context intact", function ( done ) {
+			var context = {
+				key: 1234
+			};
+			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+				expect( this ).to.be( context );
+				done();
+			} ).withContext(context).withDelay( 200 );
+			sDefe.callback( "stuff", { topic : "TestTopic" } );
 		} );
 	} );
 
