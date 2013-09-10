@@ -11,9 +11,9 @@ describe( "SubscriptionDefinition", function () {
 				topic    : "subscription.created",
 				callback : function ( data, envelope ) {
 					if ( data.event &&
-					     data.event == "subscription.created" &&
-					     data.channel == "SubDefTestChannel" &&
-					     data.topic == "SubDefTestTopic" ) {
+					     data.event === "subscription.created" &&
+					     data.channel === "SubDefTestChannel" &&
+					     data.topic === "SubDefTestTopic" ) {
 						caughtSubscribeEvent = true;
 					}
 				}
@@ -143,11 +143,49 @@ describe( "SubscriptionDefinition", function () {
 		} );
 	} );
 
+	describe( "When throttling the callback", function () {
+		var results = [],
+			sDefe = new SubscriptionDefinition( "ThrottleTest", "TestTopic", function ( data ) {
+				results.push( data );
+			} ).withThrottle( 500 );
+		var timeout1, timeout2;
+
+		it( "should have only invoked throttled callback twice", function ( done ) {
+			sDefe.callback( 1 ); // starts the two second clock on debounce
+			timeout1 = setTimeout( function () {
+				sDefe.callback( 800 );
+			}, 900 ); // should invoke callback
+			for ( var i = 0; i < 20; i++ ) {
+				(function ( x ) {
+					sDefe.callback( x );
+				})( i );
+			}
+			timeout2 = setTimeout( function () {
+				expect( results[0] ).to.be( 1 );
+				expect( results[1] ).to.be( 800 );
+				expect( results.length ).to.be( 2 );
+				done();
+			}, 1500 );
+		} );
+
+		it( "Should keep the context intact", function( done ) {
+			var context = {
+				key : 'abcd'
+			};
+			sDefe = new SubscriptionDefinition( "ThrottleTest", "TestTopic", function( data, env ) {
+				expect( this ).to.be( context );
+				done();
+			} ).withContext( context ).withThrottle( 500 );
+
+			sDefe.callback.call( sDefe.context, 1 );
+		} );
+	} );
+
 	describe( "When delaying the callback", function () {
 		var results = [], sDefe;
 
 		it( "Should delay the callback", function ( done ) {
-			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+			sDefe = new SubscriptionDefinition( "DelayTest", "TestTopic", function ( data, env ) {
 				results.push( data );
 				expect( results[0] ).to.be( "first" );
 				expect( results[1] ).to.be( "second" );
@@ -162,7 +200,7 @@ describe( "SubscriptionDefinition", function () {
 			var context = {
 				key : 1234
 			};
-			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+			sDefe = new SubscriptionDefinition( "DelayTest", "TestTopic", function ( data, env ) {
 				expect( this ).to.be( context );
 				done();
 			} ).withContext(context).withDelay( 200 );
@@ -172,7 +210,7 @@ describe( "SubscriptionDefinition", function () {
 
 	describe( "When debouncing the callback", function () {
 		var results = [],
-			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data ) {
+			sDefe = new SubscriptionDefinition( "DebounceTest", "TestTopic", function ( data ) {
 				results.push( data );
 			} ).withDebounce( 800 );
 
@@ -185,78 +223,40 @@ describe( "SubscriptionDefinition", function () {
 				sDefe.callback( 3 );
 			}, 80 ); // should not invoke callback
 			setTimeout( function () {
-				sDefe.callback( 4 );
-			}, 250 ); // should not invoke callback
-			setTimeout( function () {
-				sDefe.callback( 5 );
-			}, 500 ); // should not invoke callback
-			setTimeout( function () {
 				sDefe.callback( 6 );
-			}, 1000 ); // should invoke callback
+			}, 800 ); // should invoke callback
 			setTimeout( function () {
 				expect( results[0] ).to.be( 6 );
 				expect( results.length ).to.be( 1 );
 				done();
-			}, 2400 );
+			}, 2300 );
 		} );
 
 		it( "Should keep the context intact", function ( done ) {
 			var context = {
 				key : 5678
 			};
-			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+			var timeout;
+			sDefe = new SubscriptionDefinition( "DebounceTest", "TestTopic", function ( data, env ) {
 				expect( this ).to.be( context );
+				clearTimeout(timeout);
 				done();
 			} ).withContext(context).withDebounce( 100 );
 
 			sDefe.callback.call( sDefe.context, 1 );
-			setTimeout( function () {
+			timeout = setTimeout( function () {
 				sDefe.callback.call( sDefe.context, 2 );
 			}, 200 ); // should invoke callback
 		});
 	} );
 
-	describe( "When throttling the callback", function () {
-		var results = [],
-			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data ) {
-				results.push( data );
-			} ).withThrottle( 500 );
-
-		it( "should have only invoked throttled callback twice", function ( done ) {
-			sDefe.callback( 1 ); // starts the two second clock on debounce
-			setTimeout( function () {
-				sDefe.callback( 800 );
-			}, 800 ); // should invoke callback
-			for ( var i = 0; i < 20; i++ ) {
-				(function ( x ) {
-					sDefe.callback( x );
-				})( i );
-			}
-			setTimeout( function () {
-				expect( results[0] ).to.be( 1 );
-				expect( results[1] ).to.be( 800 );
-				expect( results.length ).to.be( 2 );
-				done();
-			}, 1500 );
-		} );
-
-		it( "Should keep the context intact", function ( done ) {
-			var context = {
-				key : 'abcd'
-			};
-			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
-				expect( this ).to.be( context );
-				done();
-			} ).withContext(context).withThrottle( 500 );
-
-			sDefe.callback.call( sDefe.context, 1 );
-		});
-	} );
-
 	describe( "When self disposing", function () {
+		var context = {
+			key : 'abcd'
+		};
 
 		it( "Should be inactive", function () {
-			var sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+			var sDefe = new SubscriptionDefinition( "DisposeTest", "TestTopic", function ( data, env ) {
 			} ).withContext(context).disposeAfter( 1 );
 
 			sDefe.callback.call( sDefe.context, "stuff", { topic : "TestTopic" } );
@@ -265,10 +265,7 @@ describe( "SubscriptionDefinition", function () {
 		} );
 
 		it( "Should keep the context intact", function ( done ) {
-			var context = {
-				key : 1234
-			};
-			var sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+			var sDefe = new SubscriptionDefinition( "DisposeTest", "TestTopic", function ( data, env ) {
 				expect( this ).to.be( context );
 				done();
 			} ).withContext(context).disposeAfter( 200 );

@@ -36,11 +36,11 @@ SubscriptionDefinition.prototype = {
 	},
 
 	defer : function () {
-		var that = this;
+		var self = this;
 		var fn = this.callback;
 		this.callback = function ( data, env ) {
 			setTimeout( function () {
-				fn.call( that.context, data, env );
+				fn.call( self.context, data, env );
 			}, 0 );
 		};
 		return this;
@@ -50,14 +50,14 @@ SubscriptionDefinition.prototype = {
 		if ( _.isNaN( maxCalls ) || maxCalls <= 0 ) {
 			throw "The value provided to disposeAfter (maxCalls) must be a number greater than zero.";
 		}
-		var that = this;
+		var self = this;
 		var fn = this.callback;
 		var dispose = _.after( maxCalls, _.bind( function () {
 			this.unsubscribe();
 		}, this ) );
 
 		this.callback = function () {
-			fn.apply( that.context, arguments );
+			fn.apply( self.context, arguments );
 			dispose();
 		};
 		return this;
@@ -101,12 +101,12 @@ SubscriptionDefinition.prototype = {
 		return this;
 	},
 
-	withDebounce : function ( milliseconds ) {
+	withDebounce : function ( milliseconds, immediate ) {
 		if ( _.isNaN( milliseconds ) ) {
 			throw "Milliseconds must be a number";
 		}
 		var fn = this.callback;
-		this.callback = _.debounce( fn, milliseconds );
+		this.callback = _.debounce( fn, milliseconds, !!immediate );
 		return this;
 	},
 
@@ -114,11 +114,11 @@ SubscriptionDefinition.prototype = {
 		if ( _.isNaN( milliseconds ) ) {
 			throw "Milliseconds must be a number";
 		}
-		var that = this;
+		var self = this;
 		var fn = this.callback;
 		this.callback = function ( data, env ) {
 			setTimeout( function () {
-				fn.call( that.context, data, env );
+				fn.call( self.context, data, env );
 			}, milliseconds );
 		};
 		return this;

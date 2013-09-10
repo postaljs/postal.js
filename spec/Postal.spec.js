@@ -142,7 +142,6 @@ describe( "Postal", function () {
 				postal.utils.reset();
 			} );
 			it( "should produce expected messages", function () {
-				console.log( results );
 				expect( results.length ).to.be( 3 );
 				expect( results[0] ).to.be( "1 received message" );
 				expect( results[1] ).to.be( "2 received message" );
@@ -285,7 +284,7 @@ describe( "Postal", function () {
 			expect( postal.configuration.bus.subscriptions.MyChannel.MyTopic[0].constraints.length ).to.be( 1 );
 		} );
 		it( "should not have invoked the subscription callback", function () {
-			expect( recvd ).to.not.be.ok()
+			expect( recvd ).to.not.be.ok();
 		} );
 	} );
 	describe( "When subscribing with multiple constraints returning true", function () {
@@ -354,7 +353,7 @@ describe( "Postal", function () {
 				}
 			};
 		before( function () {
-			channel = postal.channel( "MyChannel" );
+			channel = postal.channel( "ContextChannel" );
 			subscription = channel.subscribe( "MyTopic", function ( data ) {
 				this.increment();
 			} )
@@ -371,7 +370,7 @@ describe( "Postal", function () {
 	describe( "When subscribing with defer", function () {
 		var results = [];
 		before( function () {
-			channel = postal.channel( "MyChannel" );
+			channel = postal.channel( "DeferChannel" );
 
 		} );
 		after( function () {
@@ -392,7 +391,7 @@ describe( "Postal", function () {
 	describe( "When subscribing with delay", function () {
 		var results = [];
 		before( function () {
-			channel = postal.channel( "MyChannel" );
+			channel = postal.channel( "DelayChannel" );
 		} );
 		after( function () {
 			postal.utils.reset();
@@ -412,7 +411,7 @@ describe( "Postal", function () {
 	describe( "When subscribing with debounce", function () {
 		var results = [], debouncedChannel;
 		before( function () {
-			debouncedChannel = postal.channel( "MyChannel" );
+			debouncedChannel = postal.channel( "DebounceChannel" );
 			subscription = debouncedChannel.subscribe( "MyTopic",
 				function ( data ) {
 					results.push( data );
@@ -448,7 +447,7 @@ describe( "Postal", function () {
 	describe( "When subscribing with throttle", function () {
 		var results = [], throttledChannel;
 		before( function () {
-			throttledChannel = postal.channel( "MyChannel" );
+			throttledChannel = postal.channel( "ThrottleChannel" );
 			subscription = throttledChannel.subscribe( "MyTopic",
 				function ( data ) {
 					results.push( data );
