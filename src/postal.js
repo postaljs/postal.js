@@ -28,7 +28,7 @@
 	//import("Api.js");
 
 	/*jshint -W106 */
-	if ( global.hasOwnProperty( "__postalReady__" ) && _.isArray( global.__postalReady__ ) ) {
+	if ( global && global.hasOwnProperty( "__postalReady__" ) && _.isArray( global.__postalReady__ ) ) {
 		while(global.__postalReady__.length) {
 			global.__postalReady__.shift().onReady(postal);
 		}
