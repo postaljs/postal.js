@@ -119,6 +119,28 @@ describe( "SubscriptionDefinition", function () {
 			sDefe.callback( "second", { topic : "TestTopic" } );
 			results.push( "first" );
 		} );
+
+		it( "Should keep the context intact", function ( done ) {
+			var context = {
+				key : 1234
+			};
+			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+				expect( this ).to.be( context );
+				done();
+			} ).withContext(context).defer();
+			sDefe.callback.call( sDefe.context, "stuff", { topic : "TestTopic" } );
+		} );
+
+		it( "Should keep the context intact when modified later", function ( done ) {
+			var context = {
+				key : 1234
+			};
+			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+				expect( this ).to.be( context );
+				done();
+			} ).defer().withContext(context);
+			sDefe.callback.call( sDefe.context, "stuff", { topic : "TestTopic" } );
+		} );
 	} );
 
 	describe( "When delaying the callback", function () {
@@ -134,6 +156,17 @@ describe( "SubscriptionDefinition", function () {
 			} ).withDelay( 200 );
 			sDefe.callback( "second", { topic : "TestTopic" } );
 			results.push( "first" );
+		} );
+
+		it( "Should keep the context intact", function ( done ) {
+			var context = {
+				key : 1234
+			};
+			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+				expect( this ).to.be( context );
+				done();
+			} ).withContext(context).withDelay( 200 );
+			sDefe.callback.call( sDefe.context, "stuff", { topic : "TestTopic" } );
 		} );
 	} );
 
@@ -166,6 +199,21 @@ describe( "SubscriptionDefinition", function () {
 				done();
 			}, 2400 );
 		} );
+
+		it( "Should keep the context intact", function ( done ) {
+			var context = {
+				key : 5678
+			};
+			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+				expect( this ).to.be( context );
+				done();
+			} ).withContext(context).withDebounce( 100 );
+
+			sDefe.callback.call( sDefe.context, 1 );
+			setTimeout( function () {
+				sDefe.callback.call( sDefe.context, 2 );
+			}, 200 ); // should invoke callback
+		});
 	} );
 
 	describe( "When throttling the callback", function () {
@@ -190,6 +238,41 @@ describe( "SubscriptionDefinition", function () {
 				expect( results.length ).to.be( 2 );
 				done();
 			}, 1500 );
+		} );
+
+		it( "Should keep the context intact", function ( done ) {
+			var context = {
+				key : 'abcd'
+			};
+			sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+				expect( this ).to.be( context );
+				done();
+			} ).withContext(context).withThrottle( 500 );
+
+			sDefe.callback.call( sDefe.context, 1 );
+		});
+	} );
+
+	describe( "When self disposing", function () {
+
+		it( "Should be inactive", function () {
+			var sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+			} ).withContext(context).disposeAfter( 1 );
+
+			sDefe.callback.call( sDefe.context, "stuff", { topic : "TestTopic" } );
+
+			expect( sDefe.inactive ).to.be( true );
+		} );
+
+		it( "Should keep the context intact", function ( done ) {
+			var context = {
+				key : 1234
+			};
+			var sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", function ( data, env ) {
+				expect( this ).to.be( context );
+				done();
+			} ).withContext(context).disposeAfter( 200 );
+			sDefe.callback.call( sDefe.context, "stuff", { topic : "TestTopic" } );
 		} );
 	} );
 } );
