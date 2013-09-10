@@ -2,7 +2,7 @@
  postal
  Author: Jim Cowart (http://freshbrewedcode.com/jimcowart)
  License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
- Version 0.8.8
+ Version 0.8.9
  */
 /*jshint -W098 */
 (function ( root, factory ) {
@@ -439,7 +439,7 @@
 	localBus.subscriptions[postal.configuration.SYSTEM_CHANNEL] = {};
 
 	/*jshint -W106 */
-	if ( global.hasOwnProperty( "__postalReady__" ) && _.isArray( global.__postalReady__ ) ) {
+	if ( global && global.hasOwnProperty( "__postalReady__" ) && _.isArray( global.__postalReady__ ) ) {
 		while(global.__postalReady__.length) {
 			global.__postalReady__.shift().onReady(postal);
 		}
