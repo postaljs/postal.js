@@ -43,6 +43,10 @@
 	        "name"  : "Ger Hobbelt",
 	        "email" : "ger@hobbelt.com",
 	        "url"   : "http://hebbut.net/"
+        },
+        {
+	        "name"  : "Christian Haas",
+	        "url"   : "http://github.com/dertseha"
         }
     ],
     "keywords": [
