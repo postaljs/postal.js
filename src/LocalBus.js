@@ -34,7 +34,7 @@ var localBus = {
 	publish : function ( envelope ) {
 		++pubInProgress;
 		envelope.timeStamp = new Date();
-		_.each( this.wireTaps, function ( tap ) {
+		this.wireTaps.forEach( function ( tap ) {
 			tap( envelope.data, envelope );
 		} );
 		if ( this.subscriptions[envelope.channel] ) {

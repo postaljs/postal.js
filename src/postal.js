@@ -19,6 +19,7 @@
 
 	var postal;
 
+	//import("Shim.js");
 	//import("ConsecutiveDistinctPredicate.js");
 	//import("DistinctPredicate.js");
 	//import("ChannelDefinition.js");
@@ -28,7 +29,7 @@
 	//import("Api.js");
 
 	/*jshint -W106 */
-	if ( global && global.hasOwnProperty( "__postalReady__" ) && _.isArray( global.__postalReady__ ) ) {
+	if ( global && global.hasOwnProperty( "__postalReady__" ) && Array.isArray( global.__postalReady__ ) ) {
 		while(global.__postalReady__.length) {
 			global.__postalReady__.shift().onReady(postal);
 		}

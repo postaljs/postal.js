@@ -30,11 +30,11 @@ postal = {
 
 	linkChannels : function ( sources, destinations ) {
 		var result = [];
-		sources = !_.isArray( sources ) ? [ sources ] : sources;
-		destinations = !_.isArray( destinations ) ? [destinations] : destinations;
-		_.each( sources, function ( source ) {
+		sources = !Array.isArray( sources ) ? [ sources ] : sources;
+		destinations = !Array.isArray( destinations ) ? [destinations] : destinations;
+		sources.forEach( function ( source ) {
 			var sourceTopic = source.topic || "#";
-			_.each( destinations, function ( destination ) {
+			destinations.forEach( function ( destination ) {
 				var destChannel = destination.channel || postal.configuration.DEFAULT_CHANNEL;
 				result.push(
 					postal.subscribe( {

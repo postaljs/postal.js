@@ -52,9 +52,9 @@ SubscriptionDefinition.prototype = {
 		}
 		var self = this;
 		var fn = this.callback;
-		var dispose = _.after( maxCalls, _.bind( function () {
+		var dispose = _.after( maxCalls, function () {
 			this.unsubscribe();
-		}, this ) );
+		}.bind( this ) );
 
 		this.callback = function () {
 			fn.apply( self.context, arguments );
@@ -88,8 +88,8 @@ SubscriptionDefinition.prototype = {
 
 	withConstraints : function ( predicates ) {
 		var self = this;
-		if ( _.isArray( predicates ) ) {
-			_.each( predicates, function ( predicate ) {
+		if ( Array.isArray( predicates ) ) {
+			predicates.forEach( function ( predicate ) {
 				self.withConstraint( predicate );
 			} );
 		}
