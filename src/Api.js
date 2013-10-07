@@ -42,7 +42,7 @@ postal = {
 						topic    : sourceTopic,
 						callback : function ( data, env ) {
 							var newEnv = _.clone( env );
-							newEnv.topic = _.isFunction( destination.topic ) ? destination.topic( env.topic ) : destination.topic || env.topic;
+							newEnv.topic = typeof destination.topic === 'function' ? destination.topic( env.topic ) : destination.topic || env.topic;
 							newEnv.channel = destChannel;
 							newEnv.data = data;
 							postal.publish( newEnv );

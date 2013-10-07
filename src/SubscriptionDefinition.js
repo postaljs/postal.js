@@ -79,7 +79,7 @@ SubscriptionDefinition.prototype = {
 	},
 
 	withConstraint : function ( predicate ) {
-		if ( !_.isFunction( predicate ) ) {
+		if ( typeof predicate !== 'function' ) {
 			throw "Predicate constraint must be a function";
 		}
 		this.constraints.push( predicate );

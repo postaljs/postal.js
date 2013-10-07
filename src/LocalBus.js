@@ -38,14 +38,15 @@ var localBus = {
 			tap( envelope.data, envelope );
 		} );
 		if ( this.subscriptions[envelope.channel] ) {
-			_.each( this.subscriptions[envelope.channel], function ( subscribers ) {
-				var idx = 0, len = subscribers.length, subDef;
+			for( var subs in this.subscriptions[envelope.channel]) {
+				var subscribers = this.subscriptions[envelope.channel][subs],
+					idx = 0, len = subscribers.length, subDef;
 				while ( idx < len ) {
 					if ( subDef = subscribers[idx++] ) {
 						fireSub( subDef, envelope );
 					}
 				}
-			} );
+			}
 		}
 		if ( --pubInProgress === 0 ) {
 			clearUnSubQueue();
@@ -55,13 +56,13 @@ var localBus = {
 
 	reset : function () {
 		if ( this.subscriptions ) {
-			_.each( this.subscriptions, function ( channel ) {
-				_.each( channel, function ( topic ) {
-					while ( topic.length ) {
-						topic.pop().unsubscribe();
+			for ( var channel in this.subscriptions ) {
+				for ( var topic in this.subscriptions[channel] ) {
+					while ( this.subscriptions[channel][topic].length ) {
+						this.subscriptions[channel][topic].pop().unsubscribe();
 					}
-				} );
-			} );
+				}
+			}
 			this.subscriptions = {};
 		}
 	},

@@ -3,7 +3,7 @@ var ConsecutiveDistinctPredicate = function () {
 	var previous;
 	return function ( data ) {
 		var eq = false;
-		if ( _.isString( data ) ) {
+		if ( typeof data === 'string' ) {
 			eq = data === previous;
 			previous = data;
 		}
