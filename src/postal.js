@@ -19,7 +19,6 @@
 
 	var postal;
 
-	//import("Shim.js");
 	//import("ConsecutiveDistinctPredicate.js");
 	//import("DistinctPredicate.js");
 	//import("ChannelDefinition.js");
