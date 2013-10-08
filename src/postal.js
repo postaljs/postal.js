@@ -2,24 +2,24 @@
 (function ( root, factory ) {
 	if ( typeof module === "object" && module.exports ) {
 		// Node, or CommonJS-Like environments
-		module.exports = function ( ) {
-			return factory();
+		module.exports = function ( _ ) {
+			_ = _ || require( "underscore" );
+			return factory( _ );
 		};
 	} else if ( typeof define === "function" && define.amd ) {
 		// AMD. Register as an anonymous module.
-		define( function () {
-			return factory( root );
+		define( ["underscore"], function ( _ ) {
+			return factory( _, root );
 		} );
 	} else {
 		// Browser globals
-		root.postal = factory( root );
+		root.postal = factory( root._, root );
 	}
-}( this, function ( global, undefined ) {
+}( this, function ( _, global, undefined ) {
 
 	var postal;
 
 	//import("Shim.js");
-	//import("Util.js");
 	//import("ConsecutiveDistinctPredicate.js");
 	//import("DistinctPredicate.js");
 	//import("ChannelDefinition.js");
