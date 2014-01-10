@@ -3,12 +3,18 @@ var DistinctPredicate = function () {
 	var previous = [];
 
 	return function ( data ) {
-		var isDistinct = !_.any( previous, function ( p ) {
-			if ( _.isObject( data ) || _.isArray( data ) ) {
-				return _.isEqual( data, p );
+		var isDistinct = true;
+		for ( var p in previous ) {
+			if ( typeof data === 'object' ) {
+				if ( _.isEqual( data, previous[ p ] ) ) {
+					isDistinct = false;
+					break;
+				}
+			} else if ( data === previous[ p ] ) {
+				isDistinct = false;
+				break;
 			}
-			return data === p;
-		} );
+		}
 		if ( isDistinct ) {
 			previous.push( data );
 		}

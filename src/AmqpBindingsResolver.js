@@ -9,7 +9,7 @@ var bindingsResolver = {
 			return result;
 		}
 		if ( !( rgx = this.regex[ binding ] )) {
-			pattern = "^" + _.map( binding.split( "." ),function ( segment ) {
+			pattern = "^" + binding.split( "." ).map(function ( segment ) {
 				var res = "";
 				if ( !!prevSegment ) {
 					res = prevSegment !== "#" ? "\\.\\b" : "\\b";
