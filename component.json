@@ -1,0 +1,24 @@
+{
+    "name": "postal.js",
+    "repo": "postaljs/postal.js",
+    "description": "Client-side messaging library",
+    "version": "0.8.9",
+    "keywords": [
+        "pub/sub",
+        "pub",
+        "sub",
+        "messaging",
+        "message",
+        "bus",
+        "event",
+        "eventing",
+        "mediator",
+        "broker",
+        "envelope"
+    ],
+    "dependencies": {
+        "component/underscore": "*"
+    },
+    "scripts": ["lib/postal.min.js", "lib/postal.js"],
+    "license": "MIT"
+}
