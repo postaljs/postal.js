@@ -20,7 +20,7 @@
         "type": "git",
         "url": "git://github.com/postaljs/postal.js.git"
         },
-    "version": "0.8.10",
+    "version": "0.8.11",
     "main": [
         "lib/postal.min.js",
         "lib/postal.js"

@@ -2,7 +2,7 @@
  postal
  Author: Jim Cowart (http://freshbrewedcode.com/jimcowart)
  License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
- Version 0.8.10
+ Version 0.8.11
  */
 /*jshint -W098 */
 (function ( root, factory ) {
@@ -273,7 +273,7 @@
 	var unSubQueue = [];
 	var clearUnSubQueue = function () {
 		while ( unSubQueue.length ) {
-			unSubQueue.shift().unsubscribe();
+			localBus.unsubscribe(unSubQueue.shift());
 		}
 	};
 	

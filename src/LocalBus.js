@@ -15,7 +15,7 @@ var pubInProgress = 0;
 var unSubQueue = [];
 var clearUnSubQueue = function () {
 	while ( unSubQueue.length ) {
-		unSubQueue.shift().unsubscribe();
+		localBus.unsubscribe(unSubQueue.shift());
 	}
 };
 
