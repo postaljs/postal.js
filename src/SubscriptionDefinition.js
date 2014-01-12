@@ -1,6 +1,12 @@
 /* global postal */
 /*jshint -W117 */
 var SubscriptionDefinition = function ( channel, topic, callback ) {
+    if(arguments.length !== 3) {
+        throw new Error("You must provide a channel, topic and callback when creating a SubscriptionDefinition instance.");
+    }
+    if(topic.length === 0) {
+        throw new Error("Topics cannot be empty");
+    }
 	this.channel = channel;
 	this.topic = topic;
 	this.callback = callback;
