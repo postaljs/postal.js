@@ -4,7 +4,7 @@
 		// Node, or CommonJS-Like environments
 		module.exports = function ( _ ) {
 			_ = _ || require( "underscore" );
-			return factory( _ );
+			return factory( _, this );
 		};
 	} else if ( typeof define === "function" && define.amd ) {
 		// AMD. Register as an anonymous module.
@@ -18,6 +18,7 @@
 }( this, function ( _, global, undefined ) {
 
 	var postal;
+    var prevPostal = global.postal;
 
 	//import("ConsecutiveDistinctPredicate.js");
 	//import("DistinctPredicate.js");

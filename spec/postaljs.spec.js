@@ -1,5 +1,5 @@
 /* global describe, postal, it, after, before, expect */
-(function() {
+(function(global) {
     var postal = typeof window === "undefined" ? require("../lib/postal.js")() : window.postal;
     var expect = typeof window === "undefined" ? require("expect.js") : window.expect;
     var _ = typeof window === "undefined" ? require("underscore") : window._;
@@ -8,6 +8,25 @@
     var channel;
     var caughtSubscribeEvent = false;
     var caughtUnsubscribeEvent = false;
+
+    describe("noConflict", function() {
+        it("should return control to the previous postal value", function() {
+            if(typeof window === "undefined" || (typeof window !== "undefined" && typeof require === "function" && define.amd)) {
+                var err = false;
+                try {
+                    postal.noConflict();
+                } catch(e) {
+                    err = true;
+                }
+                expect(err).to.be( true );
+            } else {
+                var _postal = global.postal; // hang on to postal value
+                postal.noConflict(); // return previous postal
+                expect( global.postal.foo ).to.be( "bar" );
+                global.postal = _postal; // return postal back as it was
+            }
+        });
+    });
 
     describe("subscription creation", function(){
         describe( "When creating basic subscription", function () {
@@ -694,4 +713,4 @@
             } );
         } );
     });
-}());
+}(this));

@@ -88,7 +88,7 @@ var localBus = {
 			unSubQueue.push( config );
 			return;
 		}
-		if ( this.subscriptions[config.channel][config.topic] ) {
+		if ( this.subscriptions[config.channel] && this.subscriptions[config.channel][config.topic] ) {
 			var len = this.subscriptions[config.channel][config.topic].length,
 				idx = 0;
 			while ( idx < len ) {

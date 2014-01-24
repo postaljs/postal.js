@@ -1,4 +1,4 @@
-/* global localBus, bindingsResolver, ChannelDefinition, SubscriptionDefinition, postal */
+/* global localBus, bindingsResolver, ChannelDefinition, SubscriptionDefinition, postal, prevPostal, global */
 /*jshint -W020 */
 postal = {
 	configuration : {
@@ -53,6 +53,14 @@ postal = {
 		} );
 		return result;
 	},
+
+    noConflict: function() {
+        if(typeof window === "undefined") {
+            throw new Error("noConflict can only be used in browser clients which aren't using AMD modules");
+        }
+        global.postal = prevPostal;
+        return this;
+    },
 
 	utils : {
 		getSubscribersFor : function () {
