@@ -6,28 +6,12 @@
     var SubscriptionDefinition = postal.SubscriptionDefinition;
     describe( "SubscriptionDefinition", function () {
         describe( "When initializing SubscriptionDefinition", function () {
-            var sDef,
-                caughtSubscribeEvent,
-                systemSubscription;
+            var sDef;
             before( function () {
-                systemSubscription = postal.subscribe( {
-                    channel  : "postal",
-                    topic    : "subscription.created",
-                    callback : function ( data, envelope ) {
-                        if ( data.event &&
-                            data.event === "subscription.created" &&
-                            data.channel === "SubDefTestChannel" &&
-                            data.topic === "SubDefTestTopic" ) {
-                            caughtSubscribeEvent = true;
-                        }
-                    }
-                } );
                 sDef = new SubscriptionDefinition( "SubDefTestChannel", "SubDefTestTopic", NO_OP );
             } );
             after( function () {
                 sDef.unsubscribe();
-                systemSubscription.unsubscribe();
-                caughtSubscribeEvent = false;
             } );
             it( "should set the channel to SubDefTestChannel", function () {
                 expect( sDef.channel ).to.be( "SubDefTestChannel" );
@@ -43,9 +27,6 @@
             } );
             it( "should default the context", function () {
                 expect( sDef.context ).to.be( null );
-            } );
-            it( "should fire the subscription.created message", function () {
-                expect( caughtSubscribeEvent ).to.be( true );
             } );
         } );
 
@@ -67,10 +48,12 @@
         } );
 
         describe( "When adding multiple constraints", function () {
-            var sDefc = new SubscriptionDefinition( "TestChannel", "TestTopic", NO_OP ).withConstraints( [function () {
-            }, function () {
-            }, function () {
-            }] );
+            var sDefc = new SubscriptionDefinition( "TestChannel", "TestTopic", NO_OP )
+                            .withConstraints( [
+                                function () {},
+                                function () {},
+                                function () {}
+                            ]);
 
             it( "Should add a constraint", function () {
                 expect( sDefc.constraints.length ).to.be( 3 );
@@ -87,20 +70,14 @@
                         return true;
                     } );
 
-            postal.publish( { channel : "TestChannel", topic : "TestTopic", data : "Oh, hai"} );
-
             it( "Should set context", function () {
                 expect( sDefd.context ).to.be( obj );
-            } );
-            it( "Should apply context to predicate/constraint", function () {
-                expect( name ).to.be( "Rose" );
             } );
         } );
 
         describe( "When calling subscribe to set the callback", function () {
             var sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", NO_OP ),
-                fn = function () {
-                };
+                fn = function () {};
             sDefe.subscribe( fn );
 
             it( "Should set the callback", function () {

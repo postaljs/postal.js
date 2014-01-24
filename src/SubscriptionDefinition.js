@@ -12,32 +12,13 @@ var SubscriptionDefinition = function ( channel, topic, callback ) {
 	this.callback = callback;
 	this.constraints = [];
 	this.context = null;
-	postal.configuration.bus.publish( {
-		channel : postal.configuration.SYSTEM_CHANNEL,
-		topic   : "subscription.created",
-		data    : {
-			event   : "subscription.created",
-			channel : channel,
-			topic   : topic
-		}
-	} );
-	postal.configuration.bus.subscribe( this );
 };
 
 SubscriptionDefinition.prototype = {
 	unsubscribe : function () {
 		if ( !this.inactive ) {
 			this.inactive = true;
-			postal.configuration.bus.unsubscribe( this );
-			postal.configuration.bus.publish( {
-				channel : postal.configuration.SYSTEM_CHANNEL,
-				topic   : "subscription.removed",
-				data    : {
-					event   : "subscription.removed",
-					channel : this.channel,
-					topic   : this.topic
-				}
-			} );
+			postal.unsubscribe( this );
 		}
 	},
 

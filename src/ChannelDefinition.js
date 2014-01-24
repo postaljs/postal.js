@@ -4,9 +4,9 @@ var ChannelDefinition = function ( channelName ) {
 };
 
 ChannelDefinition.prototype.subscribe = function () {
-	return arguments.length === 1 ?
+	return postal.subscribe(arguments.length === 1 ?
 	       new SubscriptionDefinition( this.channel, arguments[0].topic, arguments[0].callback ) :
-	       new SubscriptionDefinition( this.channel, arguments[0], arguments[1] );
+	       new SubscriptionDefinition( this.channel, arguments[0], arguments[1] ));
 };
 
 ChannelDefinition.prototype.publish = function () {
