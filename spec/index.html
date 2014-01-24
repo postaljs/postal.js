@@ -1,34 +1,25 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-    <link rel="stylesheet" href="../ext/mocha.css" />
+    <link rel="stylesheet" href="../bower/mocha/mocha.css" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 </head>
 <body>
 <div id="mocha"></div>
-<script type="text/javascript" src="../ext/jquery-1.7.1.js"></script>
-<script type="text/javascript" src="../ext/underscore.js"></script>
-<script type="text/javascript" src="../ext/expect.js"></script>
-<script type="text/javascript" src="../ext/mocha.js"></script>
+<script type="text/javascript" src="../bower/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../bower/underscore/underscore-min.js"></script>
+<script type="text/javascript" src="../bower/expect/expect.js"></script>
+<script type="text/javascript" src="../bower/mocha/mocha.js"></script>
 <script type="text/javascript">
     mocha.setup({ ui: 'bdd', timeout: 60000 });
 </script>
-<script type="text/javascript" src="../ext/amplify.core.js"></script>
-<script type="text/javascript" src="../ext/amplify.store.js"></script>
-<script type="text/javascript" src="../ext/underscore.js"></script>
-<script type="text/javascript" src="../src/DistinctPredicate.js"></script>
-<script type="text/javascript" src="../src/ConsecutiveDistinctPredicate.js"></script>
-<script type="text/javascript" src="../src/ChannelDefinition.js"></script>
-<script type="text/javascript" src="../src/SubscriptionDefinition.js"></script>
-<script type="text/javascript" src="../src/AmqpBindingsResolver.js"></script>
-<script type="text/javascript" src="../src/LocalBus.js"></script>
-<script type="text/javascript" src="../src/Api.js"></script>
-<script type="text/javascript" src="DistinctPredicate.spec.js"></script>
-<script type="text/javascript" src="ConsecutiveDistinctPredicate.spec.js"></script>
-<script type="text/javascript" src="SubscriptionDefinition.spec.js"></script>
-<script type="text/javascript" src="ChannelDefinition.spec.js"></script>
-<script type="text/javascript" src="AmqpBindingsResolver.spec.js"></script>
-<script type="text/javascript" src="Postal.spec.js"></script>
+<script type="text/javascript" src="../lib/postal.js"></script>
+<script type="text/javascript" src="postaljs.spec.js"></script>
+<script type="text/javascript" src="utils.spec.js"></script>
 <script type="text/javascript" src="linkedChannels.spec.js"></script>
+<script type="text/javascript" src="bindingsResolver.spec.js"></script>
+<script type="text/javascript" src="channelDefinition.spec.js"></script>
+<script type="text/javascript" src="subscriptionDefinition.spec.js"></script>
 <script type="text/javascript">
     mocha.run();
 </script>

@@ -8,9 +8,9 @@ lib/amd
 diags
 .gitignore
 .idea
-build.json
 header.js
 .anvil
 component.json
 .npmignore
 classic-resolver*
+bower*

@@ -130,12 +130,13 @@ SubscriptionDefinition.prototype = {
 		return this;
 	},
 
-	withThrottle : function ( milliseconds ) {
+	withThrottle : function ( milliseconds, options ) {
+        options = options || { };
 		if ( _.isNaN( milliseconds ) ) {
 			throw "Milliseconds must be a number";
 		}
 		var fn = this.callback;
-		this.callback = _.throttle( fn, milliseconds );
+		this.callback = _.throttle( fn, milliseconds, options );
 		return this;
 	},
 

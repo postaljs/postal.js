@@ -1,52 +1,52 @@
 {
-    "name" : "postal",
-    "description" : "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
-    "version" : "0.8.11",
-    "homepage" : "http://github.com/postaljs/postal.js",
-    "repository" : {
-        "type" : "git",
-        "url" : "git://github.com/postaljs/postal.js.git"
+    "name": "postal",
+    "description": "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
+    "version": "0.8.11",
+    "homepage": "http://github.com/postaljs/postal.js",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/postaljs/postal.js.git"
     },
-    "author" : "Jim Cowart (http://freshbrewedcode.com/jimcowart)",
+    "author": "Jim Cowart (http://freshbrewedcode.com/jimcowart)",
     "contributors": [
         {
-            "name"  : "Jim Cowart",
-            "email" : "WhyNotJustComment@OnMyBlog.com",
-            "url"   : "http://freshbrewedcode.com/jimcowart"
+            "name": "Jim Cowart",
+            "email": "WhyNotJustComment@OnMyBlog.com",
+            "url": "http://freshbrewedcode.com/jimcowart"
         },
         {
-            "name"  : "Alex Robson",
-            "email" : "WhyNotJustComment@OnMyBlog.com",
-            "url"   : "http://freshbrewedcode.com/alexrobson"
+            "name": "Alex Robson",
+            "email": "WhyNotJustComment@OnMyBlog.com",
+            "url": "http://freshbrewedcode.com/alexrobson"
         },
         {
-            "name"  : "Nicholas Cloud",
-            "email" : "WhyNotJustComment@OnMyBlog.com",
-            "url"   : "http://nicholascloud.com"
+            "name": "Nicholas Cloud",
+            "email": "WhyNotJustComment@OnMyBlog.com",
+            "url": "http://nicholascloud.com"
         },
         {
-            "name"  : "Doug Neiner",
-            "email" : "WhyNotJustComment@OnMyBlog.com",
-            "url"   : "http://dougneiner.com"
+            "name": "Doug Neiner",
+            "email": "WhyNotJustComment@OnMyBlog.com",
+            "url": "http://dougneiner.com"
         },
         {
-            "name"  : "Jonathan Creamer",
-            "email" : "WhyNotJustComment@OnMyBlog.com",
-            "url"   : "http://freshbrewedcode.com/jonathancreamer"
+            "name": "Jonathan Creamer",
+            "email": "WhyNotJustComment@OnMyBlog.com",
+            "url": "http://freshbrewedcode.com/jonathancreamer"
         },
         {
-	        "name"  : "Elijah Manor",
-	        "email" : "WhyNotJustComment@OnMyBlog.com",
-	        "url"   : "http://www.elijahmanor.com"
+            "name": "Elijah Manor",
+            "email": "WhyNotJustComment@OnMyBlog.com",
+            "url": "http://www.elijahmanor.com"
         },
         {
-	        "name"  : "Ger Hobbelt",
-	        "email" : "ger@hobbelt.com",
-	        "url"   : "http://hebbut.net/"
+            "name": "Ger Hobbelt",
+            "email": "ger@hobbelt.com",
+            "url": "http://hebbut.net/"
         },
         {
-	        "name"  : "Christian Haas",
-	        "url"   : "http://github.com/dertseha"
+            "name": "Christian Haas",
+            "url": "http://github.com/dertseha"
         }
     ],
     "keywords": [
@@ -61,28 +61,53 @@
         "broker",
         "envelope"
     ],
-    "bugs" : {
-        "email" : "PleaseJustUseTheIssuesPage@github.com",
-        "url" : "http://github.com/postaljs/postal.js/issues"
+    "bugs": {
+        "email": "PleaseJustUseTheIssuesPage@github.com",
+        "url": "http://github.com/postaljs/postal.js/issues"
     },
-    "directories" : { "lib" : "lib" },
-    "main" : "lib/postal.js",
-    "engines" : {
-        "node" : ">=0.4.0"
+    "directories": {
+        "lib": "lib"
     },
-    "dependencies" : {
-        "underscore" : ">=1.1.7"
+    "main": "lib/postal.js",
+    "engines": {
+        "node": ">=0.4.0"
     },
-    "bundleDependencies" : [ "underscore" ],
-    "devDependencies" : {},
-    "licenses" : [
+    "dependencies": {
+        "underscore": "~1.5.2"
+    },
+    "bundleDependencies": [
+        "underscore"
+    ],
+    "devDependencies": {
+        "bower": "~1.2.8",
+        "gulp-util": "~2.2.9",
+        "gulp": "~3.3.1",
+        "gulp-imports": "~0.0.1",
+        "gulp-header": "~1.0.2",
+        "gulp-hint-not": "~0.0.3",
+        "gulp-uglify": "~0.1.0",
+        "gulp-rename": "~0.2.1",
+        "gulp-plato": "~0.1.0",
+        "gulp-beautify": "~1.0.3",
+        "tiny-lr": "0.0.5",
+        "express": "~3.4.7",
+        "gulp-rimraf": "0.0.8",
+        "open": "~0.0.4",
+        "expect.js": "~0.2.0"
+    },
+    "licenses": [
         {
-            "type" : "MIT",
-            "url" : "http://www.opensource.org/licenses/mit-license.php"
+            "type": "MIT",
+            "url": "http://www.opensource.org/licenses/mit-license.php"
         },
         {
-            "type" : "GPL",
-            "url" : "http://www.opensource.org/licenses/gpl-3.0.html"
+            "type": "GPL",
+            "url": "http://www.opensource.org/licenses/gpl-3.0.html"
         }
-    ]
+    ],
+    "scripts": {
+        "test": "mocha ./spec/*.js",
+        "build": "gulp",
+        "start": "gulp server"
+    }
 }

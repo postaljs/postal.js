@@ -130,6 +130,20 @@ There are four main ways you can extend Postal:
 
 It's also possible to extend the monitoring of messages passing through Postal by adding a "wire tap".  A wire tap is a callback that will get invoked for any published message (even if no actual subscriptions would bind to the message's topic).  Wire taps should _not_ be used in lieu of an actual subscription - but instead should be used for diagnostics, logging, forwarding (to a websocket publisher or a local storage wrapper, for example) or other concerns that fall along those lines.  This repository used to include a console logging wiretap called postal.diagnostics.js - you can now find it [here in it's own repo](https://github.com/postaljs/postal.diagnostics).  This diagnostics wiretap can be configured with filters to limit the firehose of message data to specific channels/topics and more.
 
+## Build, Dependencies, etc.
+
+* postal depends on [underscore.js](http://underscorejs.org/)
+* postal uses [gulp.js](http://gulpjs.com/) for building, running tests and examples.
+	* To build
+        * run `npm install` (to install all deps)
+        * run `npm run build` - then check the lib folder for the output
+    * To run tests & examples
+        * To run node-based tests: `npm run test`
+        * To run browser-based tests & examples:
+            * run `npm start`
+            * navigate in your browser to <http://localhost:3080/>
+
+
 ## Can I contribute?
 Please - by all means!  While I hope the API is relatively stable, I'm open to pull requests.  (Hint - if you want a feature implemented, a pull request gives it a much higher probability of being included than simply asking me.)  As I said, pull requests are most certainly welcome - but please include tests for your additions.  Otherwise, it will disappear into the ether.
 
