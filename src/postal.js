@@ -17,7 +17,9 @@
 	var postal;
     var prevPostal = global.postal;
 
-	//import("ConsecutiveDistinctPredicate.js");
+    //import("strategy.js");
+    //import("strategies.js");
+    //import("ConsecutiveDistinctPredicate.js");
 	//import("DistinctPredicate.js");
 	//import("ChannelDefinition.js");
 	//import("SubscriptionDefinition.js");

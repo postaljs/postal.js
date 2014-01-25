@@ -48,8 +48,7 @@
             it( "should have created a subscription definition", function () {
                 expect( sub.channel ).to.be( "MyChannel" );
                 expect( sub.topic ).to.be( "MyTopic" );
-                expect( sub.constraints.length ).to.be( 0 );
-                expect( sub.context ).to.be( null );
+                expect( sub.context ).to.be( undefined );
             } );
             it( "should have created a resolver cache entry", function () {
                 expect( _.isEmpty( resolver ) ).to.not.be.ok()
