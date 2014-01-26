@@ -68,8 +68,7 @@ SubscriptionDefinition.prototype = {
         if ( _.isNaN( milliseconds ) ) {
             throw "Milliseconds must be a number";
         }
-        var fn = this.callback;
-        this.callback = _.debounce( fn, milliseconds, !!immediate );
+        this.callback.useStrategy(postal.configuration.strategies.debounce(milliseconds, immediate));
         return this;
     },
 

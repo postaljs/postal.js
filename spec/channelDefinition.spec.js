@@ -1,6 +1,6 @@
 /* global describe, postal, it, after, before, expect */
 (function(){
-    var postal = typeof window === "undefined" ? require("../lib/postal.js")() : window.postal;
+    var postal = typeof window === "undefined" ? require("../lib/postal.js") : window.postal;
     var expect = typeof window === "undefined" ? require("expect.js") : window.expect;
     var ChannelDefinition = postal.ChannelDefinition;
     describe( "channel definition", function () {
