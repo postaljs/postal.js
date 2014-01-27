@@ -17,10 +17,9 @@
 	var postal;
     var prevPostal = global.postal;
 
-    //import("SubscriptionDefinition.js");
     //import("strategy.js");
-    //import("strategies.js");
 	//import("ChannelDefinition.js");
+	//import("SubscriptionDefinition.js");
 	//import("AmqpBindingsResolver.js");
 	//import("LocalBus.js");
 	//import("Api.js");

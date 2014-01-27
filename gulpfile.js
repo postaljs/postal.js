@@ -35,6 +35,28 @@ gulp.task("combine", function() {
         .pipe(header(banner, { pkg : pkg }))
         .pipe(rename("postal.min.js"))
         .pipe(gulp.dest("./lib/"));
+
+    gulp.src(["./src/postal.basic.js"])
+        .pipe(header(banner, { pkg : pkg }))
+        .pipe(fileImports())
+        .pipe(hintNot())
+        .pipe(beautify({indentSize: 4}))
+        .pipe(gulp.dest("./lib/basic/"))
+        .pipe(uglify({ compress: { negate_iife: false }}))
+        .pipe(header(banner, { pkg : pkg }))
+        .pipe(rename("postal.basic.min.js"))
+        .pipe(gulp.dest("./lib/basic/"));
+
+    gulp.src(["./src/postal.strategies.js"])
+        .pipe(header(banner, { pkg : pkg }))
+        .pipe(fileImports())
+        .pipe(hintNot())
+        .pipe(beautify({indentSize: 4}))
+        .pipe(gulp.dest("./lib/strategies-add-on/"))
+        .pipe(uglify({ compress: { negate_iife: false }}))
+        .pipe(header(banner, { pkg : pkg }))
+        .pipe(rename("postal.strategies.min.js"))
+        .pipe(gulp.dest("./lib/strategies-add-on/"));
 });
 
 gulp.task("default", function() {
@@ -62,7 +84,7 @@ var createServer = function(port) {
 var servers;
 
 gulp.task("server", function(){
-    gulp.run("report");
+    gulp.run("combine", "report");
     if(!servers) {
         servers = createServer(port);
     }

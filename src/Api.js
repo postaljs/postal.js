@@ -5,8 +5,7 @@ postal = {
 		bus             : localBus,
 		resolver        : bindingsResolver,
 		DEFAULT_CHANNEL : "/",
-		SYSTEM_CHANNEL  : "postal",
-        strategies      : strats
+		SYSTEM_CHANNEL  : "postal"
 	},
 
 	ChannelDefinition      : ChannelDefinition,
