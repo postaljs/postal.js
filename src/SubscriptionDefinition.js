@@ -1,4 +1,4 @@
-/* global postal */
+/* global _postal */
 /*jshint -W117 */
 var SubscriptionDefinition = function ( channel, topic, callback ) {
     if(arguments.length !== 3) {
@@ -16,10 +16,11 @@ SubscriptionDefinition.prototype = {
 	unsubscribe : function () {
 		if ( !this.inactive ) {
 			this.inactive = true;
-			postal.unsubscribe( this );
+            _postal.unsubscribe( this );
 		}
 	},
 
+    // Move strat optimization here....
     subscribe : function ( callback ) {
         this.callback = callback;
         this.callback = new Strategy({

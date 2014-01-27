@@ -26,11 +26,11 @@
                 channel.publish( "MyTopic", "Testing123" );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
                 subInvokedCnt = 0;
             } );
             it( "callback should be a strategy", function () {
-                expect( typeof postal.configuration.bus.subscriptions.MyChannel.MyTopic[0].callback.context ).to.be( "function" );
+                expect( typeof postal.subscriptions.MyChannel.MyTopic[0].callback.context ).to.be( "function" );
             } );
             it( "subscription callback should be invoked once", function () {
                 expect( subInvokedCnt ).to.be( 1 );
@@ -62,10 +62,10 @@
                 channel.publish( "MyTopic", "Testing123" );
                 channel.publish( "MyTopic", "Testing123" );
                 channel.publish( "MyTopic", "Testing123" );
-                subExistsAfter = postal.configuration.bus.subscriptions.MyChannel.MyTopic.length !== 0;
+                subExistsAfter = postal.subscriptions.MyChannel.MyTopic.length !== 0;
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
             } );
             it( "subscription callback should be invoked 5 times", function () {
                 expect( msgReceivedCnt ).to.be( 5 );
@@ -77,7 +77,7 @@
                 expect( caughtUnsubscribeEvent ).to.be.ok();
             } );
             it( "postal.getSubscribersFor('MyChannel', 'MyTopic') should not return any subscriptions", function () {
-                expect( postal.utils.getSubscribersFor("MyChannel", "MyTopic").length ).to.be(0);
+                expect( postal.getSubscribersFor("MyChannel", "MyTopic").length ).to.be(0);
             } );
         } );
         describe( "When subscribing with debounce", function () {
@@ -90,7 +90,7 @@
                     } ).withDebounce( 800 );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
             } );
             it( "should have only invoked debounced callback once", function ( done ) {
                 debouncedChannel.publish( "MyTopic", 1 ); // starts the two second clock on debounce
@@ -123,7 +123,7 @@
 
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
             } );
             it( "should have met expected results", function ( done ) {
                 subscription = channel.subscribe( "MyTopic",
@@ -143,7 +143,7 @@
                 channel = postal.channel( "DelayChannel" );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
             } );
             it( "should have met expected results", function ( done ) {
                 subscription = channel.subscribe( "MyTopic",
@@ -172,7 +172,7 @@
                 channel.publish( "MyTopic", "Testing123" );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
             } );
             it( "subscription callback should be invoked 1 time", function () {
                 expect( msgReceivedCnt ).to.be( 1 );
@@ -197,7 +197,7 @@
                 channel.publish( "MyTopic", "Testing123" );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
                 recvd = false;
             } );
             it( "should overwrite constraint with last one passed in", function () {
@@ -220,7 +220,7 @@
                 channel.publish( "MyTopic", "Testing123" );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
                 recvd = false;
             } );
             it( "should have a constraint on the subscription", function () {
@@ -243,7 +243,7 @@
                 channel.publish( "MyTopic", "Testing123" );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
                 recvd = false;
             } );
             it( "should have a constraint on the subscription", function () {
@@ -263,7 +263,7 @@
                     } ).withThrottle( 500 );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
             } );
             it( "should have only invoked throttled callback twice", function ( done ) {
                 throttledChannel.publish( "MyTopic", 1 ); // starts the two second clock on debounce

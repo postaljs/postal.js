@@ -1,10 +1,10 @@
-/* global postal, SubscriptionDefinition */
+/* global _postal, SubscriptionDefinition */
 var ChannelDefinition = function ( channelName ) {
-	this.channel = channelName || postal.configuration.DEFAULT_CHANNEL;
+	this.channel = channelName || _postal.configuration.DEFAULT_CHANNEL;
 };
 
 ChannelDefinition.prototype.subscribe = function () {
-	return postal.subscribe(arguments.length === 1 ?
+	return _postal.subscribe(arguments.length === 1 ?
 	       new SubscriptionDefinition( this.channel, arguments[0].topic, arguments[0].callback ) :
 	       new SubscriptionDefinition( this.channel, arguments[0], arguments[1] ));
 };
@@ -16,5 +16,5 @@ ChannelDefinition.prototype.publish = function () {
 	                arguments[0] ) :
 	               { topic : arguments[0], data : arguments[1] };
 	envelope.channel = this.channel;
-	return postal.configuration.bus.publish( envelope );
+	return _postal.publish( envelope );
 };

@@ -45,17 +45,17 @@
                     }
                 } );
                 subscription = postal.channel( "MyChannel" ).subscribe( "MyTopic", function () {} );
-                sub = postal.configuration.bus.subscriptions.MyChannel.MyTopic[0];
+                sub = postal.subscriptions.MyChannel.MyTopic[0];
             } );
             after( function () {
                 systemSubscription.unsubscribe();
-                postal.utils.reset();
+                postal.reset();
             } );
             it( "should create a channel called MyChannel", function () {
-                expect( postal.configuration.bus.subscriptions["MyChannel"] !== undefined ).to.be.ok();
+                expect( postal.subscriptions["MyChannel"] !== undefined ).to.be.ok();
             } );
             it( "should create a topic under MyChannel called MyTopic", function () {
-                expect( postal.configuration.bus.subscriptions["MyChannel"]["MyTopic"] !== undefined ).to.be.ok();
+                expect( postal.subscriptions["MyChannel"]["MyTopic"] !== undefined ).to.be.ok();
             } );
             it( "should have set subscription channel value", function () {
                 expect( sub.channel ).to.be( "MyChannel" );
@@ -82,7 +82,7 @@
                 channel.publish( "MyTopic.MiddleTopic.SubTopic.YetAnother", "Testing123" );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
                 count = 0;
             } );
             it( "should have invoked subscription callback only once", function () {
@@ -103,7 +103,7 @@
                 channel.publish( "MyTopic.MiddleTopic.SubTopic.YetAnother", "Testing123" );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
                 count = 0;
             } );
             it( "should have invoked subscription callback twice", function () {
@@ -123,7 +123,7 @@
                 channel.publish( "MyTopic.MiddleTopic.SubTopic.YetAnother", "Testing123" );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
                 count = 0;
             } );
             it( "should have invoked subscription callback twice", function () {
@@ -144,7 +144,7 @@
                 channel.publish( "OtherTopic.MiddleTopic.SubTopic.YetAnother", "Testing123" );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
                 count = 0;
             } );
             it( "should have invoked subscription callback twice", function () {
@@ -167,7 +167,7 @@
                 channel.publish( "MyTopic", "Testing123" );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
             } );
             it( "should have called obj.increment", function () {
                 expect( count ).to.be( 1 );
@@ -181,19 +181,19 @@
                     callback : function () {
                     }
                 } );
-                sub = postal.configuration.bus.subscriptions.MyChannel.MyTopic[0];
+                sub = postal.subscriptions.MyChannel.MyTopic[0];
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
             } );
             it( "subscription should be of type SubscriptionDefinition", function () {
                 expect( subscription instanceof postal.SubscriptionDefinition ).to.be.ok();
             } );
             it( "should create an channel called MyChannel", function () {
-                expect( postal.configuration.bus.subscriptions["MyChannel"] !== undefined ).to.be.ok();
+                expect( postal.subscriptions["MyChannel"] !== undefined ).to.be.ok();
             } );
             it( "should create a topic under MyChannel called MyTopic", function () {
-                expect( postal.configuration.bus.subscriptions["MyChannel"]["MyTopic"] !== undefined ).to.be.ok();
+                expect( postal.subscriptions["MyChannel"]["MyTopic"] !== undefined ).to.be.ok();
             } );
             it( "should have set subscription channel value", function () {
                 expect( sub.channel ).to.be( "MyChannel" );
@@ -222,7 +222,7 @@
                 channel.publish( "MyTopic", "Testing123" );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
             } );
             it( "subscription callback should be invoked once", function () {
                 expect( msgReceivedCnt ).to.be( 1 );
@@ -255,7 +255,7 @@
                 postal.publish( { channel : "MyGlobalChannel", topic : "MyTopic", data : "Testing123" } );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
                 msgReceivedCnt = 0;
             } );
             it( "channel should be of type ChannelDefinition", function () {
@@ -289,13 +289,13 @@
                     }
                 } );
                 subscription = postal.channel( "MyChannel" ).subscribe( "MyTopic", function () { });
-                subExistsBefore = postal.configuration.bus.subscriptions.MyChannel.MyTopic[0] !== undefined;
+                subExistsBefore = postal.subscriptions.MyChannel.MyTopic[0] !== undefined;
                 subscription.unsubscribe();
-                subExistsAfter = postal.configuration.bus.subscriptions.MyChannel.MyTopic.length !== 0;
+                subExistsAfter = postal.subscriptions.MyChannel.MyTopic.length !== 0;
             } );
             after( function () {
                 systemSubscription.unsubscribe();
-                postal.utils.reset();
+                postal.reset();
             } );
             it( "subscription should exist before unsubscribe", function () {
                 expect( subExistsBefore ).to.be.ok();
@@ -307,7 +307,7 @@
                 expect( caughtUnsubscribeEvent ).to.be.ok();
             } );
             it( "postal.getSubscribersFor('MyChannel', 'MyTopic') should not return any subscriptions", function () {
-                expect( postal.utils.getSubscribersFor("MyChannel", "MyTopic").length ).to.be(0);
+                expect( postal.getSubscribersFor("MyChannel", "MyTopic").length ).to.be(0);
             } );
         } );
         describe( "With multiple subscribers on one channel", function () {
@@ -327,7 +327,7 @@
             } );
             after( function () {
                 subscription2.unsubscribe();
-                postal.utils.reset();
+                postal.reset();
             } );
             it( "should produce expected messages", function () {
                 expect( results.length ).to.be( 3 );
@@ -359,15 +359,13 @@
                 channel.publish( "nest.test" );
             } );
             after( function () {
-                //subscription2.unsubscribe();
-                sysub.unsubscribe();
-                postal.utils.reset();
+                postal.reset();
             } );
             it( "should produce expected messages", function () {
                 expect( results.length ).to.be( 3 );
-                expect( results[0] ).to.be( "unsubscribed" );
-                expect( results[1] ).to.be( "1 received message" );
-                expect( results[2] ).to.be( "2 received message" );
+                expect( results[0] ).to.be( "1 received message" );
+                expect( results[1] ).to.be( "2 received message" );
+                expect( results[2] ).to.be( "unsubscribed" );
             } );
         } );
     });
@@ -390,7 +388,7 @@
                 postal.publish( { topic : "Oh.Hai.There", data : "I'm in yer bus, tappin' yer subscriptionz..."} );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
             } );
             it( "wire tap should have been invoked only once", function () {
                 expect( wireTapData.length ).to.be( 1 );

@@ -1,4 +1,4 @@
-/* global DistinctPredicate,ConsecutiveDistinctPredicate,SubscriptionDefinition,postal */
+/* global DistinctPredicate,ConsecutiveDistinctPredicate,SubscriptionDefinition */
 /*jshint -W098 */
 var ConsecutiveDistinctPredicate = function () {
     var previous;

@@ -34,6 +34,8 @@ var Strategy = function( options ) {
     strategy.strategies = function() {
         return _strategies;
     };
+
+    // TODO: add option to shift or push
     strategy.useStrategy = function( strategy ) {
         var idx = 0,
             exists = false;

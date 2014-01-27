@@ -42,7 +42,7 @@
                 channel = postal.channel( "OhHai" );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
                 channel = undefined;
                 subscription = undefined;
             } );

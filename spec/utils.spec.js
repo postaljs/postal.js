@@ -8,7 +8,7 @@
     var sub;
 
     describe("postal.utils", function() {
-        describe( "When calling postal.utils.getSubscribersFor", function () {
+        describe( "When calling postal.getSubscribersFor", function () {
             var subs = [], i;
             before( function () {
                 i = 10;
@@ -22,26 +22,26 @@
             } );
             after( function () {
                 subs = [];
-                postal.utils.reset();
+                postal.reset();
             } );
             it( "should return expected results for MyChannel/MyTopic", function () {
-                var results = postal.utils.getSubscribersFor( { channel : "MyChannel", topic : "MyTopic" } );
+                var results = postal.getSubscribersFor( { channel : "MyChannel", topic : "MyTopic" } );
                 expect( results.length ).to.be( 10 );
             } );
             it( "should return expected results for MyChannel2/MyTopic2", function () {
-                var results = postal.utils.getSubscribersFor( { channel : "MyChannel2", topic : "MyTopic2" } );
+                var results = postal.getSubscribersFor( { channel : "MyChannel2", topic : "MyTopic2" } );
                 expect( results.length ).to.be( 10 );
             } );
         } );
-        describe( "When calling postal.utils.reset", function () {
+        describe( "When calling postal.reset", function () {
             var resolver;
             before( function () {
-                postal.utils.reset();
+                postal.reset();
                 subscription = postal.channel( "MyChannel" ).subscribe( "MyTopic", function () {});
                 postal.channel( "MyChannel" ).publish( "MyTopic", "Oh Hai!" );
-                sub = postal.configuration.bus.subscriptions.MyChannel.MyTopic[0];
+                sub = postal.subscriptions.MyChannel.MyTopic[0];
                 resolver = postal.configuration.resolver.cache.MyTopic;
-                postal.utils.reset();
+                postal.reset();
             } );
             after( function () {
             } );
@@ -55,7 +55,7 @@
                 expect( resolver.MyTopic ).to.be.ok();
             } );
             it( "subscriptions cache should now be empty", function () {
-                expect( _.isEmpty( postal.configuration.bus.subscriptions ) ).to.be.ok();
+                expect( _.isEmpty( postal.subscriptions ) ).to.be.ok();
             } );
             it( "resolver cache should now be empty", function () {
                 expect( _.isEmpty( postal.configuration.resolver.cache ) ).to.be.ok();

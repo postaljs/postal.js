@@ -14,7 +14,7 @@
 	}
 }( this, function ( _, global, undefined ) {
 
-	var postal;
+	var _postal;
     var prevPostal = global.postal;
 
     //import("SubscriptionDefinition.js");
@@ -22,16 +22,15 @@
     //import("strategies.js");
 	//import("ChannelDefinition.js");
 	//import("AmqpBindingsResolver.js");
-	//import("LocalBus.js");
 	//import("Api.js");
 
 	/*jshint -W106 */
 	if ( global && Object.prototype.hasOwnProperty.call( global, "__postalReady__" ) && _.isArray( global.__postalReady__ ) ) {
 		while(global.__postalReady__.length) {
-			global.__postalReady__.shift().onReady(postal);
+			global.__postalReady__.shift().onReady(_postal);
 		}
 	}
 	/*jshint +W106 */
 
-	return postal;
+	return _postal;
 } ));

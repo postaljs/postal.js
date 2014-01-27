@@ -20,7 +20,7 @@
                     postal.publish( { channel : "sourceChannel", topic : "Oh.Hai.There", data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
                 } );
                 after( function () {
-                    postal.utils.reset();
+                    postal.reset();
                 } );
                 it( "linked subscription should only have been invoked once", function () {
                     expect( destData.length ).to.be( 1 );
@@ -49,7 +49,7 @@
                     postal.publish( { channel : "sourceChannel", topic : "Oh.Hai.There", data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
                 } );
                 after( function () {
-                    postal.utils.reset();
+                    postal.reset();
                 } );
                 it( "linked subscription should only have been invoked once", function () {
                     expect( destData.length ).to.be( 1 );
@@ -80,7 +80,7 @@
                     postal.publish( { channel : "sourceChannel", topic : "Oh.Hai.There", data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
                 } );
                 after( function () {
-                    postal.utils.reset();
+                    postal.reset();
                 } );
                 it( "linked subscription should only have been invoked once", function () {
                     expect( destData.length ).to.be( 1 );
@@ -115,7 +115,7 @@
                 postal.publish( { channel : "sourceChannel", topic : "Oh.Hai.There", data : "I'm in yer bus, linkin' to yer subscriptionz..."} );
             } );
             after( function () {
-                postal.utils.reset();
+                postal.reset();
             } );
             it( "linked subscriptions should each have been called once", function () {
                 expect( destData.length ).to.be( 2 );
