@@ -23,6 +23,7 @@
     //import("strategies.js");
 	//import("AmqpBindingsResolver.js");
 	//import("Api.js");
+    //import("linkChannels.js");
 
 	/*jshint -W106 */
 	if ( global && Object.prototype.hasOwnProperty.call( global, "__postalReady__" ) && _.isArray( global.__postalReady__ ) ) {
