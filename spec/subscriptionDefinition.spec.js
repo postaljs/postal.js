@@ -19,9 +19,6 @@
             it( "should set the topic to SubDefTestTopic", function () {
                 expect( sDef.topic ).to.be( "SubDefTestTopic" );
             } );
-            it( "should set the callback", function () {
-                expect( sDef.callback ).to.be( NO_OP );
-            } );
             it( "should default the context", function () {
                 expect( sDef.context ).to.be( undefined );
             } );
@@ -43,16 +40,6 @@
             } );
             it( "Should apply context to predicate/constraint", function () {
                 expect( name ).to.be( "Rose" );
-            } );
-        } );
-
-        describe( "When calling subscribe to set the callback", function () {
-            var sDefe = new SubscriptionDefinition( "TestChannel", "TestTopic", NO_OP ),
-                fn = function () {};
-            sDefe.subscribe( fn );
-
-            it( "Should set the callback", function () {
-                expect( sDefe.callback ).to.be( fn );
             } );
         } );
     } );

@@ -2,13 +2,7 @@
 /*jshint -W020 */
 var fireSub = function ( subDef, envelope ) {
     if ( !subDef.inactive && _postal.configuration.resolver.compare( subDef.topic, envelope.topic ) ) {
-        if ( _.all( subDef.constraints, function ( constraint ) {
-            return constraint.call( subDef.context, envelope.data, envelope );
-        } ) ) {
-            if ( typeof subDef.callback === "function" ) {
-                subDef.callback.call( subDef.context, envelope.data, envelope );
-            }
-        }
+        subDef.callback.call( subDef.context || this, envelope.data, envelope );
     }
 };
 var pubInProgress = 0;
@@ -78,7 +72,6 @@ _postal = {
         if ( --pubInProgress === 0 ) {
             clearUnSubQueue();
         }
-        return envelope;
 	},
 
     unsubscribe: function( subDef ) {

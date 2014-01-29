@@ -20,20 +20,13 @@ SubscriptionDefinition.prototype = {
 		}
 	},
 
-    // Move strat optimization here....
     subscribe : function ( callback ) {
         this.callback = callback;
-        this.callback = new Strategy({
-            owner    : this,
-            prop     : "callback",
-            context  : this, // TODO: is this the best option?
-            lazyInit : true
-        });
         return this;
     },
 
     withContext : function ( context ) {
-        this.callback.context(context);
+        this.context = context;
         return this;
     }
 };

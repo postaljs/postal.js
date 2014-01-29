@@ -1,4 +1,4 @@
-/* global DistinctPredicate,ConsecutiveDistinctPredicate,SubscriptionDefinition */
+/* global DistinctPredicate,ConsecutiveDistinctPredicate,SubscriptionDefinition,Conduit */
 /*jshint -W098 */
 var ConsecutiveDistinctPredicate = function () {
     var previous;
@@ -117,25 +117,25 @@ var strats = {
 };
 
 SubscriptionDefinition.prototype.defer = function () {
-    this.callback.useStrategy(strats.defer());
+    this.callback.before(strats.defer());
     return this;
 };
 
 SubscriptionDefinition.prototype.disposeAfter = function ( maxCalls ) {
     var self = this;
-    self.callback.useStrategy(strats.stopAfter(maxCalls, function() {
+    self.callback.before(strats.stopAfter(maxCalls, function() {
         self.unsubscribe.call(self);
     }));
     return self;
 };
 
 SubscriptionDefinition.prototype.distinctUntilChanged = function () {
-    this.callback.useStrategy(strats.distinct());
+    this.callback.before(strats.distinct());
     return this;
 };
 
 SubscriptionDefinition.prototype.distinct = function () {
-    this.callback.useStrategy(strats.distinct({ all : true }));
+    this.callback.before(strats.distinct({ all : true }));
     return this;
 };
 
@@ -145,21 +145,34 @@ SubscriptionDefinition.prototype.once = function () {
 };
 
 SubscriptionDefinition.prototype.withConstraint = function ( predicate ) {
-    this.callback.useStrategy(strats.withConstraint(predicate));
+    this.callback.before(strats.withConstraint(predicate));
     return this;
 };
 
 SubscriptionDefinition.prototype.withDebounce = function ( milliseconds, immediate ) {
-    this.callback.useStrategy(strats.withDebounce(milliseconds, immediate));
+    this.callback.before(strats.withDebounce(milliseconds, immediate));
     return this;
 };
 
 SubscriptionDefinition.prototype.withDelay = function ( milliseconds ) {
-    this.callback.useStrategy(strats.withDelay(milliseconds));
+    this.callback.before(strats.withDelay(milliseconds));
     return this;
 };
 
 SubscriptionDefinition.prototype.withThrottle = function ( milliseconds ) {
-    this.callback.useStrategy(strats.withThrottle(milliseconds));
+    this.callback.before(strats.withThrottle(milliseconds));
+    return this;
+};
+
+SubscriptionDefinition.prototype.subscribe = function ( callback ) {
+    this.callback = new Conduit({
+        target  : callback,
+        context : this
+    });
+    return this;
+};
+
+SubscriptionDefinition.prototype.withContext = function ( context ) {
+    this.callback.context(context);
     return this;
 };

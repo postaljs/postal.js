@@ -9,7 +9,7 @@
     var caughtSubscribeEvent = false;
     var caughtUnsubscribeEvent = false;
 
-    describe("Subscription Creation - Strategies", function(){
+    describe("Subscription Creation - Pipeline Steps", function(){
         describe( "When subscribing and ignoring duplicates", function () {
             var subInvokedCnt = 0;
             before( function () {
@@ -186,10 +186,10 @@
                     recvd = true;
                 } )
                     .withConstraint(function () {
-                        return false;
+                        return true;
                     })
                     .withConstraint(function () {
-                        return false;
+                        return true;
                     })
                     .withConstraint(function () {
                         return true;
@@ -200,8 +200,8 @@
                 postal.reset();
                 recvd = false;
             } );
-            it( "should overwrite constraint with last one passed in", function () {
-                expect( subscription.callback.strategies().length ).to.be( 1 );
+            it( "should show all 4 constraints added", function () {
+                expect( subscription.callback.steps().length ).to.be( 4 );
             } );
             it( "should have invoked the callback", function () {
                 expect( recvd ).to.be.ok();
@@ -224,7 +224,7 @@
                 recvd = false;
             } );
             it( "should have a constraint on the subscription", function () {
-                expect( subscription.callback.strategies()[0].name ).to.be( "withConstraint" );
+                expect( subscription.callback.steps()[0].name ).to.be( "withConstraint" );
             } );
             it( "should not have invoked the subscription callback", function () {
                 expect( recvd ).to.not.be.ok();
@@ -247,7 +247,7 @@
                 recvd = false;
             } );
             it( "should have a constraint on the subscription", function () {
-                expect( subscription.callback.strategies()[0].name ).to.be( "withConstraint" );
+                expect( subscription.callback.steps()[0].name ).to.be( "withConstraint" );
             } );
             it( "should have invoked the subscription callback", function () {
                 expect( recvd ).to.be.ok();

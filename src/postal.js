@@ -17,10 +17,10 @@
 	var _postal;
     var prevPostal = global.postal;
 
+    //import("conduit.js");
+    //import("ChannelDefinition.js");
     //import("SubscriptionDefinition.js");
-    //import("strategy.js");
     //import("strategies.js");
-	//import("ChannelDefinition.js");
 	//import("AmqpBindingsResolver.js");
 	//import("Api.js");
 

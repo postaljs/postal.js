@@ -63,9 +63,6 @@
             it( "should have set subscription topic value", function () {
                 expect( sub.topic ).to.be( "MyTopic" );
             } );
-            it( "should have defaulted the subscription context value", function () {
-                expect( sub.callback.context() ).to.be( sub );
-            } );
             it( "should have captured subscription creation event", function () {
                 expect( caughtSubscribeEvent ).to.be.ok();
             } );
@@ -162,8 +159,7 @@
                 channel = postal.channel( "ContextChannel" );
                 subscription = channel.subscribe( "MyTopic", function ( data ) {
                     this.increment();
-                } )
-                    .withContext( obj );
+                }).withContext( obj );
                 channel.publish( "MyTopic", "Testing123" );
             } );
             after( function () {
@@ -201,9 +197,6 @@
             it( "should have set subscription topic value", function () {
                 expect( sub.topic ).to.be( "MyTopic" );
             } );
-            it( "should have defaulted the subscription context value", function () {
-                expect( sub.callback.context() ).to.be( sub );
-            } );
         } );
     });
 
@@ -229,16 +222,6 @@
             } );
             it( "subscription callback should receive published data", function () {
                 expect( msgData ).to.be( "Testing123" );
-            } );
-        } );
-        describe( "When publishing on a channel where no subscribers exist", function () {
-            it( "should return expected results for MyChannel/MyTopic", function () {
-                var env = postal.publish( {
-                    channel : "NoOneIsUsingThisOne",
-                    topic   : "This.Is.A.Lonely.Topic",
-                    data    : "Y U NO SUBSCRIBE TO ME?"
-                } );
-                expect( !_.isEmpty( env ) ).to.be( true );
             } );
         } );
         describe( "When using global publish api", function () {
