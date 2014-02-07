@@ -1,4 +1,4 @@
-/* global DistinctPredicate,ConsecutiveDistinctPredicate,SubscriptionDefinition,Conduit */
+/* global DistinctPredicate,ConsecutiveDistinctPredicate,SubscriptionDefinition,Conduit,ChannelDefinition */
 /*jshint -W098 */
 var ConsecutiveDistinctPredicate = function () {
     var previous;
@@ -149,6 +149,13 @@ SubscriptionDefinition.prototype.withConstraint = function ( predicate ) {
     return this;
 };
 
+SubscriptionDefinition.prototype.withConstraints = function ( preds ) {
+    while(preds.length) {
+        this.callback.before(strats.withConstraint(preds.shift()));
+    }
+    return this;
+};
+
 SubscriptionDefinition.prototype.withDebounce = function ( milliseconds, immediate ) {
     this.callback.before(strats.withDebounce(milliseconds, immediate));
     return this;
@@ -175,4 +182,20 @@ SubscriptionDefinition.prototype.subscribe = function ( callback ) {
 SubscriptionDefinition.prototype.withContext = function ( context ) {
     this.callback.context(context);
     return this;
+};
+
+SubscriptionDefinition.prototype.after = function() {
+    this.callback.after.apply(this, arguments);
+};
+
+SubscriptionDefinition.prototype.before = function() {
+    this.callback.before.apply(this, arguments);
+};
+
+ChannelDefinition.prototype.initialize = function() {
+    var oldPub = this.publish;
+    this.publish = new Conduit({
+        target  : oldPub,
+        context : this
+    });
 };
