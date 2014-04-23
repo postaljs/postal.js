@@ -127,12 +127,12 @@ _postal = {
         return this;
     },
 
-    getSubscribersFor: function() {
-        var channel = arguments[0],
-            tpc = arguments[1];
-        if (arguments.length === 1) {
-            channel = arguments[0].channel || this.configuration.DEFAULT_CHANNEL;
-            tpc = arguments[0].topic;
+    getSubscribersFor : function () {
+        var channel = arguments[ 0 ],
+            tpc = arguments[ 1 ];
+        if ( arguments.length === 1 ) {
+            channel = arguments[ 0 ].channel || this.configuration.DEFAULT_CHANNEL;
+            tpc = arguments[ 0 ].topic || arguments[ 0 ];
         }
         if (this.subscriptions[channel] &&
             Object.prototype.hasOwnProperty.call(this.subscriptions[channel], tpc)) {
