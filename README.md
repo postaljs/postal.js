@@ -1,6 +1,6 @@
 # Postal.js
 
-## Version 0.9.0-rc1	 (Dual Licensed [MIT](http://www.opensource.org/licenses/mit-license) & [GPL](http://www.opensource.org/licenses/gpl-license))
+## Version 0.9.0-rc2	 (Dual Licensed [MIT](http://www.opensource.org/licenses/mit-license) & [GPL](http://www.opensource.org/licenses/gpl-license))
 *(Note: this is the first release candidate for v0.9.0)*
 
 ## What is it?
