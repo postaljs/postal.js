@@ -49,7 +49,7 @@
 	"globalstrict" : false,  //suppresses warnings about the use of global strict mode
 	"iterator"     : false,  //suppresses warnings about the `__iterator__` property
 	"lastsemic"    : false,  //suppresses warnings about missing semicolons, but only when the semicolon is omitted for the last statement in a one-line block
-	"laxbreak"     : false,  //suppresses most of the warnings about possibly unsafe line breakings in your code
+	"laxbreak"     : true,  //suppresses most of the warnings about possibly unsafe line breakings in your code
 	"laxcomma"     : false,  //suppresses warnings about comma-first coding style
 	"loopfunc"     : false,  //suppresses warnings about functions inside of loops
 	"multistr"     : false,  //suppresses warnings about multi-line strings

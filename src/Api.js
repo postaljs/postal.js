@@ -1,4 +1,4 @@
-/* global bindingsResolver, ChannelDefinition, SubscriptionDefinition, _postal, prevPostal, global */
+/* global bindingsResolver, ChannelDefinition, SubscriptionDefinition, _postal, prevPostal, global, Conduit */
 /*jshint -W020 */
 var fireSub = function(subDef, envelope) {
     if (!subDef.inactive && _postal.configuration.resolver.compare(subDef.topic, envelope.topic)) {
@@ -86,8 +86,8 @@ _postal = {
                 return;
             }
             if (this.subscriptions[subDef.channel] && this.subscriptions[subDef.channel][subDef.topic]) {
-                var len = this.subscriptions[subDef.channel][subDef.topic].length,
-                    idx = 0;
+                var len = this.subscriptions[subDef.channel][subDef.topic].length;
+                idx = 0;
                 while (idx < len) {
                     if (this.subscriptions[subDef.channel][subDef.topic][idx] === subDef) {
                         this.subscriptions[subDef.channel][subDef.topic].splice(idx, 1);
@@ -127,12 +127,12 @@ _postal = {
         return this;
     },
 
-    getSubscribersFor : function () {
-        var channel = arguments[ 0 ],
-            tpc = arguments[ 1 ];
-        if ( arguments.length === 1 ) {
-            channel = arguments[ 0 ].channel || this.configuration.DEFAULT_CHANNEL;
-            tpc = arguments[ 0 ].topic || arguments[ 0 ];
+    getSubscribersFor: function() {
+        var channel = arguments[0],
+            tpc = arguments[1];
+        if (arguments.length === 1) {
+            channel = arguments[0].channel || this.configuration.DEFAULT_CHANNEL;
+            tpc = arguments[0].topic || arguments[0];
         }
         if (this.subscriptions[channel] &&
             Object.prototype.hasOwnProperty.call(this.subscriptions[channel], tpc)) {
@@ -142,17 +142,55 @@ _postal = {
     },
 
     reset: function() {
-        if (this.subscriptions) {
-            _.each(this.subscriptions, function(channel) {
-                _.each(channel, function(topic) {
-                    while (topic.length) {
-                        topic.pop().unsubscribe();
+        this.unsubscribeFor();
+        this.configuration.resolver.reset();
+        this.subscriptions = {};
+    },
+
+    unsubscribeFor: function(options) {
+        var predicate = options || function() {
+                return true;
+            };
+        var toDispose = [];
+        if (typeof options === "object") {
+            predicate = function(sub) {
+                var compared = 0,
+                    matched = 0;
+                _.each(options, function(val, prop) {
+                    compared += 1;
+                    if (
+                        // We use the bindings resolver to compare the options.topic to subDef.topic
+                        (prop === "topic" && _postal.configuration.resolver.compare(sub.topic, options.topic))
+                        // We need to account for the context possibly being available on callback due to Conduit
+                        || (prop === "context" && options.context === (sub.callback.context && sub.callback.context() || sub.context))
+                        // Any other potential prop/value matching outside topic & context...
+                        || (sub[prop] === options[prop])) {
+                        matched += 1;
                     }
                 });
-            });
-            this.subscriptions = {};
+                return compared === matched;
+            };
         }
-        this.configuration.resolver.reset();
+        if (this.subscriptions) {
+            // Dear lord, it's an iterative pyramid of doom!
+            // I suppose I could optimize this by adding
+            // a data structure that flattens the total
+            // list of subscription definition instances...
+            // we'll see if it becomes necessary
+            _.each(this.subscriptions, function(channel) {
+                _.each(channel, function(subList) {
+                    toDispose = toDispose.concat(_.filter(subList, predicate));
+                });
+            });
+            this.unsubscribe.apply(this, toDispose);
+        }
     }
 };
+
+var _publish = _postal.publish;
+_postal.publish = new Conduit({
+    target: _publish,
+    context: _postal
+});
+
 _postal.subscriptions[_postal.configuration.SYSTEM_CHANNEL] = {};
