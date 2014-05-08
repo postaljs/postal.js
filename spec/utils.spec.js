@@ -156,6 +156,7 @@
                 });
                 afterEach(function() {
                     res = 0;
+                    subs = [];
                     postal.reset();
                 });
                 it("should have removed correct subscribers", function() {
@@ -206,6 +207,56 @@
                 });
                 afterEach(function() {
                     res = 0;
+                    subs = [];
+                    postal.reset();
+                });
+                it("should have removed correct subscribers", function() {
+                    expect(postal.subscriptions.B["even.more.topics"].length).to.be(0);
+                });
+                it("should have not invoked subscriber callbacks when publishing", function() {
+                    expect(res).to.be(1);
+                });
+            });
+            describe("with a predicate passed", function() {
+                var subs = [];
+                var res = 0;
+                var cb = function() {
+                    res += 1;
+                };
+                beforeEach(function() {
+                    subs.push(postal.subscribe({
+                        channel: "A",
+                        topic: "some.topic",
+                        callback: cb
+                    }));
+                    subs.push(postal.subscribe({
+                        channel: "B",
+                        topic: "another.topic",
+                        callback: cb
+                    }));
+                    subs.push(postal.subscribe({
+                        channel: "B",
+                        topic: "even.more.topics",
+                        callback: cb
+                    }));
+                    subs[2].someProp = "hai";
+                    postal.unsubscribeFor(function(sub) {
+                        return sub.someProp === "hai";
+                    });
+                    postal.publish({
+                        channel: "B",
+                        topic: "another.topic",
+                        data: {}
+                    });
+                    postal.publish({
+                        channel: "B",
+                        topic: "even.more.topics",
+                        data: {}
+                    });
+                });
+                afterEach(function() {
+                    res = 0;
+                    subs = [];
                     postal.reset();
                 });
                 it("should have removed correct subscribers", function() {
