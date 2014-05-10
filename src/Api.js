@@ -181,7 +181,7 @@ _postal = {
 };
 
 var _publish = _postal.publish;
-_postal.publish = new Conduit({
+_postal.publish = new Conduit.Async({
     target: _publish,
     context: _postal
 });

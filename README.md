@@ -1,10 +1,68 @@
 # Postal.js
 
-## Version 0.9.0-rc3	 (Dual Licensed [MIT](http://www.opensource.org/licenses/mit-license) & [GPL](http://www.opensource.org/licenses/gpl-license))
-*(Note: this is the first release candidate for v0.9.0)*
+## Version 0.9.0	 (Dual Licensed [MIT](http://www.opensource.org/licenses/mit-license) & [GPL](http://www.opensource.org/licenses/gpl-license))
+
+> v0.9.0 did include some breaking changes. See the [changelog](https://github.com/postaljs/postal.js/blob/master/changelog.md) for specifics. NOTE: the CommonJS wrapper has changed. It no longer exports a factory function that needs to be invoked, instead it exports the postal object itself.
 
 ## What is it?
-Postal.js is an in-memory message bus - very loosely inspired by [AMQP](http://www.amqp.org/) - written in JavaScript. Postal.js runs in the browser, or on the server-side using Node.js. It takes the familiar "eventing-style" paradigm (of which most JavaScript developers are familiar) and extends it by providing "broker" and subscriber implementations which are more sophisticated than what you typically find in simple event delegation.
+Postal.js is an in-memory message bus - very loosely inspired by [AMQP](http://www.amqp.org/) - written in JavaScript. Postal.js runs in the browser, or on the server using node.js. It takes the familiar "eventing-style" paradigm (of which most JavaScript developers are familiar) and extends it by providing "broker" and subscriber implementations which are more sophisticated than what you typically find in simple event delegation.
+
+## Usage - at a glance
+If you want to subscribe to a message, you tell postal what channel and topic to listen on (channel is optional, as postal provides a default one if you don't), and a callback to be invoked when a message arrives:
+
+```javascript
+	var subscription = postal.susbcribe({
+		channel: "orders",
+		topic: "item.add",
+		callback: function(data, envelope) {
+			// data is the data published by the publisher
+			// envelope is a wrapper around the data & contains
+			// metadata about the message like the channel, topic,
+			// timestamp and any other data which might have been 
+			// added by the sender.
+		}
+	});
+```
+
+The publisher might do something similar to this:
+
+```javascript
+	postal.publish({
+	    channel: "orders",
+	    topic: "item.add",
+	    data: {
+	        sku: "AZDTF4346",
+	        qty: 21
+	    }
+	});
+```
+
+### Channels? WAT?
+A channel is a logical partition of topics. Conceptually, it's like a dedicated highway for a specific set of communication. At first glance it might seem like that's overkill for an environment that runs in an event loop, but it actually proves to be quite useful. Every library has architectural opinions that it either imposes or nudges you toward. Channel-oriented messaging nudges you to separate your communication by bounded context, and enables the kind of fine-tuned visibility you need into the interactions between components as your application grows.
+
+While the above code snippets work just fine, it's possible to get a more terse API if you want to hang onto an `ChannelDefinition` instance - which is really a convenience wrapper around publishing and subscribing on a specific channel (instead of having to specify it each time):
+
+```javascript
+	var channel = postal.channel("orders");
+
+	var subscription = channel.subscribe("item.add", function(data, envelope) {
+		/*do stuff with data */
+	});
+	
+	channel.publish("item.add", {
+        sku: "AZDTF4346",
+        qty: 21
+    });
+```
+
+###But Wait - How's This Different Than {Insert "X" Eventing Library Here}?
+
+* postal is not an event emitter - it's not meant to be mixed into an instance. Instead, it's a stand alone "broker" – a *message bus*.
+* postal uses an *envelope* to pass messages. This means you get a consistent method signature in ALL of your subscriber callbacks. Most eventing libs take what I call the "0-n args approach", and what gets passed to the subscriber in those libs is solely at the mercy/whim of the developer that wrote the code emitting the event.
+* Most "event aggregator" libs are *single channel* - which can lead to event name collision, and reduce the performance of matching an event to the correct subscribers. postal is *multi-channel*.
+* postal's design *strongly discourages publishing behavior (functions/methods)*! This is intentional. In an observer-subject scenario, it's common to pass callbacks on the event data. This is an anti-pattern when it comes to messaging (and I'd argue is often an anti-pattern even in Observer pattern scenarios). A postal envelope should be *serializable* and then *de-serializable with no loss of fidelity*.
+* postal can work across frame and web worker boundaries (by utilizing the [postal.federation](https://github.com/postaljs/postal.federation) and [postal.xframe](https://github.com/postaljs/postal.xframe) plugins).
+* postal's built-in topic logic supports hierarchical wildcard topic bindings - supporting the same logic as topic bindings in the AMQP spec. And if you don't like that approach, you can easily provide your own bindings resolver.
 
 ## Why would I use it?
 Using a local message bus can enable to you de-couple your web application's components in a way not possible with other 'eventing' approaches. In addition, strategically adopting messaging at the 'seams' of your application (e.g. - between modules, at entry/exit points for browser data and storage) can not only help enforce better overall architectural design, but also insulate you from the risks of tightly coupling your application to 3rd party libraries.  For example:
@@ -15,27 +73,30 @@ Using a local message bus can enable to you de-couple your web application's com
 * postal.js is extensible. Plugins like [postal.when](https://github.com/postaljs/postal.when) can be included to provide even more targeted functionality to subscribers. [Postal.federation](https://github.com/postaljs/postal.federation) provides the core bits needed to federate postal instances running in different environments (currently the only federation plugin available is [postal.xframe](https://github.com/postaljs/postal.xframe) for federating between windows in the browser, but more plugins are in the works). These - and more - are all things Postal can do for you.
 
 ## Philosophy
-Postal.js is in good company - there are many options for &lt;airquotes&gt;pub/sub&lt;/airquotes&gt; in the browser. However, I grew frustrated with most of them because they often closely followed an event-delegation-paradigm, instead of providing a structured in-memory message bus. Central to postal.js are four concepts:
+Dang - you've read this far! AMAZING! If I had postal t-shirts, I'd send you one!
+
+These four concepts are central to postal:
 
 * channels should be provided to allow for logical partitioning of "topics"
 * topics should be hierarchical and allow plain string or wildcard bindings
 * messages should include envelope metadata
 * subscriber callbacks should get a consistent method signature
 
-### Channels? WAT?
-A channel is a logical partition of topics. Conceptually, it's like a dedicated highway for a specific set of communication. At first glance it might seem like that's overkill for an environment that runs in an event loop, but it actually proves to be quite useful. Every library has architectural opinions that it either imposes or nudges you toward. Channel-oriented messaging nudges you to separate your communication by bounded context, and enables the kind of fine-tuned visibility you need into the interactions between components as your application grows.
+Most eventing libraries focus on providing Observer Pattern utilities to an instance (i.e. - creating an event emitter), OR they take the idea of an event emitter and turn it into an event aggregator (so a single channel, stand alone emitter that acts as a go-between for publishers and subscribers). I'm a big fan of the Observer Pattern, but its downside is that it requires a direct reference to the subject in order to listen to events. This can become a big source of tight coupling in your app, and once you go down that road, your abstractions tend to leak, if not hemorrhage. 
+
+postal is *not* intended to replace Observer pattern scenarios. Inside a module, where it makes sense for an observer to have a direct reference to the subject, by all means, use the Observer pattern. However - when it comes to inter-module communication (view-to-view, for example), inter-library communication, cross frame communication, or even hierarchical state change notifications with libraries like ReactJS, postal is the glue to help your components communicate without glueing them with tight coupling.
 
 ### Hierarchical Topics
 In my experience, seeing publish and subscribe calls all over application logic is usually a strong code smell. Ideally, the majority of message-bus integration should be concealed within application infrastructure. Having a hierarchical-wildcard-bindable topic system makes it very easy to keep things concise (especially subscribe calls!). For example, if you have a module that needs to listen to every message published on the ShoppingCart channel, you'd simply subscribe to "\#", and never have to worry about additional subscribes on that channel again - even if you add new messages in the future. If you need to capture all messages with ".validation" at the end of the topic, you'd simply subscribe to "\#.validation". If you needed to target all messages with topics that started with "Customer.", ended with ".validation" and had only one period-delimited segment in between, you'd subscribe to "Customer.*.validation" (thus your subscription would capture Customer.address.validation and Customer.email.validation").
 
-## How do I use it?
+## More on How to Use It
 
-Here are four examples of using Postal. All of these examples - AND MORE! - can run live [here](http://jsfiddle.net/ifandelse/BJC8L/). (Please bear in mind this fiddle is pulling the postal lib from github, so running these in IE will not work due to the mime type mismatch.) Be sure to check out the [wiki](https://github.com/postaljs/postal.js/wiki) for API documentation and conceptual walk-throughs.
+Here are four examples of using Postal. All of these examples - AND MORE! - can run live [here](http://jsfiddle.net/ifandelse/FA2NY/). Be sure to check out the [wiki](https://github.com/postaljs/postal.js/wiki) for API documentation and conceptual walk-throughs.
 
 ```javascript
 // This gets you a handle to the default postal channel...
 // For grins, you can get a named channel instead like this:
-// var channel = postal.channel( 'DoctorWho' );
+// var channel = postal.channel( "DoctorWho" );
 var channel = postal.channel();
 
 // subscribe to 'name.change' topics
@@ -99,7 +160,6 @@ starSubscription.unsubscribe();
 ```
 
 
-
 ### Applying distinctUntilChanged to a subscription
 
 ```javascript
@@ -119,7 +179,7 @@ dupSubscription.unsubscribe();
 ```
 
 ## More References
-Please visit the [postal.js wiki](https://github.com/postaljs/postal.js/wiki) for API documentation, discussion of concepts and links to blogs/articles on postal.js. Just bear in mind that the wiki won't be updated for v0.9.0 until a release is final.
+Please visit the [postal.js wiki](https://github.com/postaljs/postal.js/wiki) for API documentation, discussion of concepts and links to blogs/articles on postal.js. 
 
 ## How can I extend it?
 There are four main ways you can extend Postal:
