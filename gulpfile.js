@@ -6,11 +6,9 @@ var hintNot     = require("gulp-hint-not");
 var uglify      = require("gulp-uglify");
 var rename      = require("gulp-rename");
 var plato       = require("gulp-plato");
-var rimraf      = require("gulp-rimraf");
 var gutil       = require("gulp-util");
 var express     = require("express");
 var path        = require("path");
-var tinylr      = require("tiny-lr");
 var pkg         = require("./package.json");
 var open        = require("open");
 var port        = 3080;
@@ -24,8 +22,10 @@ var banner = ["/**",
     " */",
     ""].join("\n");
 
-gulp.task("combine", function() {
-    gulp.src(["./src/postal.js"])
+gulp.task("combine", ["combine.postal", "combine.postal.basic", "combine.postal.strategies"]);
+
+gulp.task("combine.postal", function() {
+    return gulp.src(["./src/postal.js"])
         .pipe(header(banner, { pkg : pkg }))
         .pipe(fileImports())
         .pipe(hintNot())
@@ -35,8 +35,10 @@ gulp.task("combine", function() {
         .pipe(header(banner, { pkg : pkg }))
         .pipe(rename("postal.min.js"))
         .pipe(gulp.dest("./lib/"));
+});
 
-    gulp.src(["./src/postal.basic.js"])
+gulp.task("combine.postal.basic", function() {
+    return gulp.src(["./src/postal.basic.js"])
         .pipe(header(banner, { pkg : pkg }))
         .pipe(fileImports())
         .pipe(hintNot())
@@ -46,8 +48,10 @@ gulp.task("combine", function() {
         .pipe(header(banner, { pkg : pkg }))
         .pipe(rename("postal.basic.min.js"))
         .pipe(gulp.dest("./lib/basic/"));
+});
 
-    gulp.src(["./src/postal.strategies.js"])
+gulp.task("combine.postal.strategies", function() {
+    return gulp.src(["./src/postal.strategies.js"])
         .pipe(header(banner, { pkg : pkg }))
         .pipe(fileImports())
         .pipe(hintNot())
@@ -59,12 +63,10 @@ gulp.task("combine", function() {
         .pipe(gulp.dest("./lib/strategies-add-on/"));
 });
 
-gulp.task("default", function() {
-    gulp.run("combine");
-});
+gulp.task("default", ["combine"]);
 
 gulp.task("report", function () {
-    gulp.src("./lib/postal.js")
+    return gulp.src("./lib/postal.js")
         .pipe(plato("report"));
 });
 
@@ -83,8 +85,7 @@ var createServer = function(port) {
 
 var servers;
 
-gulp.task("server", function(){
-    gulp.run("combine", "report");
+gulp.task("server", ["combine", "report"], function(){
     if(!servers) {
         servers = createServer(port);
     }
