@@ -63,9 +63,7 @@ gulp.task("combine.postal.strategies", function() {
         .pipe(gulp.dest("./lib/strategies-add-on/"));
 });
 
-gulp.task("default", function() {
-    gulp.run("combine");
-});
+gulp.task("default", ["combine"]);
 
 gulp.task("report", function () {
     gulp.src("./lib/postal.js")
@@ -87,8 +85,7 @@ var createServer = function(port) {
 
 var servers;
 
-gulp.task("server", function(){
-    gulp.run("combine", "report");
+gulp.task("server", ["combine", "report"], function(){
     if(!servers) {
         servers = createServer(port);
     }
