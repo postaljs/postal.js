@@ -22,8 +22,10 @@ var banner = ["/**",
     " */",
     ""].join("\n");
 
-gulp.task("combine", function() {
-    gulp.src(["./src/postal.js"])
+gulp.task("combine", ["combine.postal", "combine.postal.basic", "combine.postal.strategies"]);
+
+gulp.task("combine.postal", function() {
+    return gulp.src(["./src/postal.js"])
         .pipe(header(banner, { pkg : pkg }))
         .pipe(fileImports())
         .pipe(hintNot())
@@ -33,8 +35,10 @@ gulp.task("combine", function() {
         .pipe(header(banner, { pkg : pkg }))
         .pipe(rename("postal.min.js"))
         .pipe(gulp.dest("./lib/"));
+});
 
-    gulp.src(["./src/postal.basic.js"])
+gulp.task("combine.postal.basic", function() {
+    return gulp.src(["./src/postal.basic.js"])
         .pipe(header(banner, { pkg : pkg }))
         .pipe(fileImports())
         .pipe(hintNot())
@@ -44,8 +48,10 @@ gulp.task("combine", function() {
         .pipe(header(banner, { pkg : pkg }))
         .pipe(rename("postal.basic.min.js"))
         .pipe(gulp.dest("./lib/basic/"));
+});
 
-    gulp.src(["./src/postal.strategies.js"])
+gulp.task("combine.postal.strategies", function() {
+    return gulp.src(["./src/postal.strategies.js"])
         .pipe(header(banner, { pkg : pkg }))
         .pipe(fileImports())
         .pipe(hintNot())
