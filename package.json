@@ -80,9 +80,7 @@
         "gulp-rename": "^1.2.0",
         "gulp-plato": "^0.2.1",
         "gulp-beautify": "~1.0.3",
-        "tiny-lr": "0.0.5",
         "express": "~3.4.7",
-        "gulp-rimraf": "0.0.8",
         "open": "~0.0.4",
         "expect.js": "~0.2.0"
     },
