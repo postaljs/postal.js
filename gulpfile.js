@@ -66,7 +66,7 @@ gulp.task("combine.postal.strategies", function() {
 gulp.task("default", ["combine"]);
 
 gulp.task("report", function () {
-    gulp.src("./lib/postal.js")
+    return gulp.src("./lib/postal.js")
         .pipe(plato("report"));
 });
 
