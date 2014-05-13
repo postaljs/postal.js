@@ -64,7 +64,8 @@
         "node": ">=0.4.0"
     },
     "dependencies": {
-        "underscore": "~1.5.2"
+        "underscore": "~1.5.2",
+        "conduitjs": "~0.3.0"
     },
     "bundleDependencies": [
         "underscore"

@@ -26,7 +26,8 @@
         "lib/postal.js"
     ],
     "dependencies": {
-        "underscore": "~1.5.2"
+    "underscore": "~1.5.2",
+    "conduitjs": "~0.3.0"
     },
     "devDependencies": {
         "jquery": "~1.10.2",
