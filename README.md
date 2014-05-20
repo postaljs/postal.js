@@ -11,7 +11,7 @@ Postal.js is an in-memory message bus - very loosely inspired by [AMQP](http://w
 If you want to subscribe to a message, you tell postal what channel and topic to listen on (channel is optional, as postal provides a default one if you don't), and a callback to be invoked when a message arrives:
 
 ```javascript
-	var subscription = postal.susbcribe({
+	var subscription = postal.subscribe({
 		channel: "orders",
 		topic: "item.add",
 		callback: function(data, envelope) {
