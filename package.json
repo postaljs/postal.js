@@ -39,6 +39,11 @@
     }, {
         "name": "Christian Haas",
         "url": "http://github.com/dertseha"
+    },
+    {
+        "name": "Zach Silveira",
+        "email": "zackify@gmail.com",
+        "url": "http://github.com/zackify"
     }],
     "keywords": [
         "pub/sub",
