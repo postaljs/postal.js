@@ -1,3 +1,8 @@
+##v0.9.1
+
+* Replaced underscore dependency with lodash. (You can still use underscore if you need to - but you'll have to replace the lib's references to "lodash" with "underscore")
+* [ConduitJS](https://github.com/ifandelse/ConduitJS) has been an *embedded* dependency since v0.9.0. I've promoted it to an external dependency because it's clear that Conduit will be useful in add-ons as well. No need to force consumers of postal and its add-ons to double the Conduit line count. 
+
 ##v0.9.0
 
 * Merged `localBus` with `postal` namespace. Postal originally supported the idea of swappable bus implementations. This gold plating has been ripped out finally.

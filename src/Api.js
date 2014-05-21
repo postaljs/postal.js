@@ -7,12 +7,26 @@ var fireSub = function(subDef, envelope) {
 };
 var pubInProgress = 0;
 var unSubQueue = [];
-var clearUnSubQueue = function() {
+
+function clearUnSubQueue() {
     while (unSubQueue.length) {
         _postal.unsubscribe(unSubQueue.shift());
     }
-};
-var getPredicate = function(options) {
+}
+
+function getSystemMessage(kind, subDef) {
+    return {
+        channel: _postal.configuration.SYSTEM_CHANNEL,
+        topic: "subscription." + kind,
+        data: {
+            event: "subscription." + kind,
+            channel: subDef.channel,
+            topic: subDef.topic
+        }
+    };
+}
+
+function getPredicate(options) {
     if (typeof options === "function") {
         return options;
     } else if (!options) {
@@ -38,7 +52,70 @@ var getPredicate = function(options) {
             return compared === matched;
         };
     }
-};
+}
+
+function subscribe(options) {
+    var subDef = new SubscriptionDefinition(options.channel || this.configuration.DEFAULT_CHANNEL, options.topic, options.callback);
+    var channel = this.subscriptions[subDef.channel];
+    var subs;
+    if (!channel) {
+        channel = this.subscriptions[subDef.channel] = {};
+    }
+    subs = this.subscriptions[subDef.channel][subDef.topic];
+    if (!subs) {
+        subs = this.subscriptions[subDef.channel][subDef.topic] = [];
+    }
+    subs.push(subDef);
+    return subDef;
+}
+
+function publish(envelope) {
+    ++pubInProgress;
+    envelope.channel = envelope.channel || this.configuration.DEFAULT_CHANNEL;
+    envelope.timeStamp = new Date();
+    _.each(this.wireTaps, function(tap) {
+        tap(envelope.data, envelope);
+    });
+    if (this.subscriptions[envelope.channel]) {
+        _.each(this.subscriptions[envelope.channel], function(subscribers) {
+            var idx = 0,
+                len = subscribers.length,
+                subDef;
+            while (idx < len) {
+                if (subDef = subscribers[idx++]) {
+                    fireSub(subDef, envelope);
+                }
+            }
+        });
+    }
+    if (--pubInProgress === 0) {
+        clearUnSubQueue();
+    }
+}
+
+function unsubscribe() {
+    var idx = 0;
+    var subs = Array.prototype.slice.call(arguments, 0);
+    var subDef;
+    while (subDef = subs.shift()) {
+        if (pubInProgress) {
+            unSubQueue.push(subDef);
+            return;
+        }
+        if (this.subscriptions[subDef.channel] && this.subscriptions[subDef.channel][subDef.topic]) {
+            var len = this.subscriptions[subDef.channel][subDef.topic].length;
+            idx = 0;
+            while (idx < len) {
+                if (this.subscriptions[subDef.channel][subDef.topic][idx] === subDef) {
+                    this.subscriptions[subDef.channel][subDef.topic].splice(idx, 1);
+                    break;
+                }
+                idx += 1;
+            }
+        }
+        _postal.publish(getSystemMessage("removed", subDef));
+    }
+}
 
 _postal = {
     configuration: {
@@ -54,86 +131,6 @@ _postal = {
 
     channel: function(channelName) {
         return new ChannelDefinition(channelName);
-    },
-
-    subscribe: function(options) {
-        var subDef = new SubscriptionDefinition(options.channel || this.configuration.DEFAULT_CHANNEL, options.topic, options.callback);
-        var channel = this.subscriptions[subDef.channel];
-        var subs;
-        this.publish({
-            channel: this.configuration.SYSTEM_CHANNEL,
-            topic: "subscription.created",
-            data: {
-                event: "subscription.created",
-                channel: subDef.channel,
-                topic: subDef.topic
-            }
-        });
-        if (!channel) {
-            channel = this.subscriptions[subDef.channel] = {};
-        }
-        subs = this.subscriptions[subDef.channel][subDef.topic];
-        if (!subs) {
-            subs = this.subscriptions[subDef.channel][subDef.topic] = [];
-        }
-        subs.push(subDef);
-        return subDef;
-    },
-
-    publish: function(envelope) {
-        ++pubInProgress;
-        envelope.channel = envelope.channel || this.configuration.DEFAULT_CHANNEL;
-        envelope.timeStamp = new Date();
-        _.each(this.wireTaps, function(tap) {
-            tap(envelope.data, envelope);
-        });
-        if (this.subscriptions[envelope.channel]) {
-            _.each(this.subscriptions[envelope.channel], function(subscribers) {
-                var idx = 0,
-                    len = subscribers.length,
-                    subDef;
-                while (idx < len) {
-                    if (subDef = subscribers[idx++]) {
-                        fireSub(subDef, envelope);
-                    }
-                }
-            });
-        }
-        if (--pubInProgress === 0) {
-            clearUnSubQueue();
-        }
-    },
-
-    unsubscribe: function() {
-        var idx = 0;
-        var subs = Array.prototype.slice.call(arguments, 0);
-        var subDef;
-        while (subDef = subs.shift()) {
-            if (pubInProgress) {
-                unSubQueue.push(subDef);
-                return;
-            }
-            if (this.subscriptions[subDef.channel] && this.subscriptions[subDef.channel][subDef.topic]) {
-                var len = this.subscriptions[subDef.channel][subDef.topic].length;
-                idx = 0;
-                while (idx < len) {
-                    if (this.subscriptions[subDef.channel][subDef.topic][idx] === subDef) {
-                        this.subscriptions[subDef.channel][subDef.topic].splice(idx, 1);
-                        break;
-                    }
-                    idx += 1;
-                }
-            }
-            this.publish({
-                channel: this.configuration.SYSTEM_CHANNEL,
-                topic: "subscription.removed",
-                data: {
-                    event: "subscription.removed",
-                    channel: subDef.channel,
-                    topic: subDef.topic
-                }
-            });
-        }
     },
 
     addWireTap: function(callback) {
@@ -180,10 +177,23 @@ _postal = {
     }
 };
 
-var _publish = _postal.publish;
-_postal.publish = new Conduit.Async({
-    target: _publish,
+_postal.subscribe = new Conduit.Sync({
+    target: subscribe,
     context: _postal
+});
+
+_postal.publish = Conduit.Async({
+    target: publish,
+    context: _postal
+});
+
+_postal.unsubscribe = new Conduit.Sync({
+    target: unsubscribe,
+    context: _postal
+});
+
+_postal.subscribe.after(function(subDef /*, options */ ) {
+    _postal.publish(getSystemMessage("created", subDef));
 });
 
 _postal.subscriptions[_postal.configuration.SYSTEM_CHANNEL] = {};

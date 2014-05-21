@@ -2,7 +2,7 @@
 (function(global) {
     var postal = typeof window === "undefined" ? require("../lib/postal.js") : window.postal;
     var expect = typeof window === "undefined" ? require("expect.js") : window.expect;
-    var _ = typeof window === "undefined" ? require("underscore") : window._;
+    var _ = typeof window === "undefined" ? require("lodash") : window._;
     var subscription;
     var sub;
     var channel;
@@ -344,64 +344,8 @@
                 expect(postal.getSubscribersFor("MyChannel", "MyTopic").length).to.be(0);
             });
         });
-        describe("With multiple subscribers on one channel", function() {
-            var subscription1, subscription2, results = [];
-            before(function() {
-                channel = postal.channel();
-                subscription1 = channel.subscribe('test', function() {
-                    results.push('1 received message');
-                }).once();
 
-                subscription2 = channel.subscribe('test', function() {
-                    results.push('2 received message');
-                });
-                channel.publish('test');
-                channel.publish('test');
 
-            });
-            after(function() {
-                subscription2.unsubscribe();
-                postal.reset();
-            });
-            it("should produce expected messages", function() {
-                expect(results.length).to.be(3);
-                expect(results[0]).to.be("1 received message");
-                expect(results[1]).to.be("2 received message");
-                expect(results[2]).to.be("2 received message");
-            });
-        });
-        describe("With nested publishing", function() {
-            var subscription1, subscription2, sysub, results = [];
-            before(function() {
-                channel = postal.channel();
-                sysub = postal.subscribe({
-                    channel: postal.configuration.SYSTEM_CHANNEL,
-                    topic: "subscription.removed",
-                    callback: function(d, e) {
-                        results.push("unsubscribed");
-                    }
-                });
-                subscription1 = channel.subscribe("nest.test", function() {
-                    results.push("1 received message");
-                    channel.publish("nest.test2", "Hai");
-                }).once();
-
-                subscription2 = channel.subscribe("nest.test2", function() {
-                    results.push("2 received message");
-                });
-                channel.publish("nest.test");
-                channel.publish("nest.test");
-            });
-            after(function() {
-                postal.reset();
-            });
-            it("should produce expected messages", function() {
-                expect(results.length).to.be(3);
-                expect(results[0]).to.be("1 received message");
-                expect(results[1]).to.be("2 received message");
-                expect(results[2]).to.be("unsubscribed");
-            });
-        });
     });
 
     describe("wiretaps", function() {

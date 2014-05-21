@@ -2,22 +2,21 @@
 (function(root, factory) {
     if (typeof module === "object" && module.exports) {
         // Node, or CommonJS-Like environments
-        module.exports = factory(require("underscore"), this);
+        module.exports = factory(require("lodash"), require("conduitjs"), this);
     } else if (typeof define === "function" && define.amd) {
         // AMD. Register as an anonymous module.
-        define(["underscore"], function(_) {
-            return factory(_, root);
+        define(["lodash", "conduitjs"], function(_, Conduit) {
+            return factory(_, Conduit, root);
         });
     } else {
         // Browser globals
-        root.postal = factory(root._, root);
+        root.postal = factory(root._, root.Conduit, root);
     }
-}(this, function(_, global, undefined) {
+}(this, function(_, Conduit, global, undefined) {
 
     var _postal;
     var prevPostal = global.postal;
 
-    //import("conduit.js");
     //import("ChannelDefinition.js");
     //import("SubscriptionDefinition.js");
     //import("strategies.js");
