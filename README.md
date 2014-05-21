@@ -1,6 +1,6 @@
 # Postal.js
 
-## Version 0.9.0	 (Dual Licensed [MIT](http://www.opensource.org/licenses/mit-license) & [GPL](http://www.opensource.org/licenses/gpl-license))
+## Version 0.9.1 (Dual Licensed [MIT](http://www.opensource.org/licenses/mit-license) & [GPL](http://www.opensource.org/licenses/gpl-license))
 
 > v0.9.0 did include some breaking changes. See the [changelog](https://github.com/postaljs/postal.js/blob/master/changelog.md) for specifics. NOTE: the CommonJS wrapper has changed. It no longer exports a factory function that needs to be invoked, instead it exports the postal object itself.
 

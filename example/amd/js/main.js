@@ -1,15 +1,10 @@
 require.config({
     paths: {
-        underscore: "../../../bower/underscore/underscore-min",
+        lodash: "../../../bower/lodash/dist/lodash",
         postal: "../../../lib/postal",
         postaldiags: "../../../bower/postal.diagnostics/lib/postal.diagnostics",
         jquery: "../../../bower/jquery/jquery.min",
-        conduit: "../../../bower/conduitjs/lib/conduit.min"
-    },
-    shim: {
-        underscore: {
-            exports: "_"
-        }
+        conduitjs: "../../../bower/conduitjs/lib/conduit.min"
     }
 });
 

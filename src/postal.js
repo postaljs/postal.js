@@ -2,10 +2,10 @@
 (function(root, factory) {
     if (typeof module === "object" && module.exports) {
         // Node, or CommonJS-Like environments
-        module.exports = factory(require("underscore"), require("conduit"), this);
+        module.exports = factory(require("lodash"), require("conduitjs"), this);
     } else if (typeof define === "function" && define.amd) {
         // AMD. Register as an anonymous module.
-        define(["underscore", "conduit"], function(_, Conduit) {
+        define(["lodash", "conduitjs"], function(_, Conduit) {
             return factory(_, Conduit, root);
         });
     } else {

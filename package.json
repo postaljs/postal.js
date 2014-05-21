@@ -1,7 +1,7 @@
 {
     "name": "postal",
     "description": "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
-    "version": "0.9.0",
+    "version": "0.9.1",
     "homepage": "http://github.com/postaljs/postal.js",
     "repository": {
         "type": "git",
@@ -64,11 +64,11 @@
         "node": ">=0.4.0"
     },
     "dependencies": {
-        "underscore": "~1.5.2",
+        "lodash": "~2.4.1",
         "conduitjs": "~0.3.0"
     },
     "bundleDependencies": [
-        "underscore"
+        "lodash"
     ],
     "devDependencies": {
         "bower": "~1.2.8",

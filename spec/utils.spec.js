@@ -2,7 +2,7 @@
 (function() {
     var postal = typeof window === "undefined" ? require("../lib/postal.js") : window.postal;
     var expect = typeof window === "undefined" ? require("expect.js") : window.expect;
-    var _ = typeof window === "undefined" ? require("underscore") : window._;
+    var _ = typeof window === "undefined" ? require("lodash") : window._;
     var NO_OP = function() {};
     var subscription;
     var sub;
