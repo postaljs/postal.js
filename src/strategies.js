@@ -173,8 +173,16 @@ SubscriptionDefinition.prototype.withThrottle = function(milliseconds) {
 };
 
 SubscriptionDefinition.prototype.subscribe = function(callback) {
+    var def = this,
+        safeCallback = function() {
+        try {
+            callback.apply( this, arguments );
+        } catch( err ) {
+            def.errorHandler( err, arguments[ 0 ] );
+        }
+    };
     this.callback = new Conduit.Async({
-        target: callback,
+        target: safeCallback,
         context: this
     });
     return this;
@@ -184,6 +192,11 @@ SubscriptionDefinition.prototype.withContext = function(context) {
     this.callback.context(context);
     return this;
 };
+
+SubscriptionDefinition.prototype.catch = function( errorHandler ) {
+    this.errorHandler = errorHandler;
+    return this;
+}
 
 SubscriptionDefinition.prototype.after = function() {
     this.callback.after.apply(this, arguments);

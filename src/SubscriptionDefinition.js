@@ -7,6 +7,17 @@ var SubscriptionDefinition = function ( channel, topic, callback ) {
     if(topic.length === 0) {
         throw new Error("Topics cannot be empty");
     }
+
+    var report = function() {};
+    if( console ) {
+        if( console.warn ) {
+            report = console.warn;
+        } else {
+            report = console.log;
+        }
+    }
+
+    this.errorHandler = report;
     this.channel = channel;
     this.topic = topic;
     this.subscribe(callback);
