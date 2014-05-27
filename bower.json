@@ -27,7 +27,7 @@
     ],
     "dependencies": {
         "lodash": "~2.4.1",
-        "conduitjs": "~0.3.0"
+        "conduitjs": "~0.3.2"
     },
     "devDependencies": {
         "jquery": "~1.10.2",
