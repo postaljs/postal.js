@@ -19,7 +19,6 @@
 
     //import("ChannelDefinition.js");
     //import("SubscriptionDefinition.js");
-    //import("strategies.js");
     //import("AmqpBindingsResolver.js");
     //import("Api.js");
     //import("linkChannels.js");

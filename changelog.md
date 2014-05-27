@@ -1,3 +1,8 @@
+##v0.10.0
+
+* (Breaking) Removed the "basic" build of postal. The conclusion was the best (and least confusing) option was to focus on a customized build of lodash - rather than risk fragmentation of postal's features...
+* Added `logError` and `catch` to the `SubscriptionDefinition` courtesy of @arobson.
+
 ##v0.9.1
 
 * Replaced underscore dependency with lodash. (You can still use underscore if you need to - but you'll have to replace the lib's references to "lodash" with "underscore")
