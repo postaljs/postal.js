@@ -185,8 +185,7 @@ SubscriptionDefinition.prototype = {
             } else {
                 report = console.log;
             }
-            this.
-            catch (report);
+            this['catch'](report);
         }
         return this;
     },
