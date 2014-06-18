@@ -139,7 +139,7 @@ SubscriptionDefinition.prototype = {
         return this;
     },
 
-    catch: function(errorHandler) {
+    "catch": function(errorHandler) {
         var original = this.callback.target();
         var safeTarget = function() {
             try {
@@ -185,8 +185,7 @@ SubscriptionDefinition.prototype = {
             } else {
                 report = console.log;
             }
-            this.
-            catch (report);
+            this["catch"](report);
         }
         return this;
     },
