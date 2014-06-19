@@ -1,3 +1,11 @@
+##v0.10.1
+* Apparently IE 8 doesn't allow "catch" to be used as a method/prop name, unless you utilize bracket notation. (Seriously - With IE6 now a distant memory, I long for the day that IE 8 is *dead*.) @swaff was kind enough to catch this and submit a patch to take care of it.
+
+##v0.10.0
+
+* (Breaking) Removed the "basic" build of postal. The conclusion was the best (and least confusing) option was to focus on a customized build of lodash - rather than risk fragmentation of postal's features...
+* Added `logError` and `catch` to the `SubscriptionDefinition` courtesy of @arobson.
+
 ##v0.9.1
 
 * Replaced underscore dependency with lodash. (You can still use underscore if you need to - but you'll have to replace the lib's references to "lodash" with "underscore")

@@ -1,7 +1,7 @@
 {
     "name": "postal",
     "description": "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
-    "version": "0.9.1",
+    "version": "0.10.1",
     "homepage": "http://github.com/postaljs/postal.js",
     "repository": {
         "type": "git",
@@ -39,6 +39,9 @@
     }, {
         "name": "Christian Haas",
         "url": "http://github.com/dertseha"
+    }, {
+        "name": "Mark Swaffer",
+        "url": "https://github.com/swaff"
     }],
     "keywords": [
         "pub/sub",
@@ -65,7 +68,7 @@
     },
     "dependencies": {
         "lodash": "~2.4.1",
-        "conduitjs": "~0.3.0"
+        "conduitjs": "~0.3.2"
     },
     "bundleDependencies": [
         "lodash"
@@ -83,7 +86,8 @@
         "gulp-beautify": "~1.0.3",
         "express": "~3.4.7",
         "open": "~0.0.4",
-        "expect.js": "~0.2.0"
+        "expect.js": "~0.2.0",
+        "mocha": "~1.19.0"
     },
     "licenses": [{
         "type": "MIT",

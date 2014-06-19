@@ -1,8 +1,8 @@
 # Postal.js
 
-## Version 0.9.1 (Dual Licensed [MIT](http://www.opensource.org/licenses/mit-license) & [GPL](http://www.opensource.org/licenses/gpl-license))
+## Version 0.10.1 (Dual Licensed [MIT](http://www.opensource.org/licenses/mit-license) & [GPL](http://www.opensource.org/licenses/gpl-license))
 
-> v0.9.0 did include some breaking changes. See the [changelog](https://github.com/postaljs/postal.js/blob/master/changelog.md) for specifics. NOTE: the CommonJS wrapper has changed. It no longer exports a factory function that needs to be invoked, instead it exports the postal object itself.
+> See the [changelog](https://github.com/postaljs/postal.js/blob/master/changelog.md) for information on if the current version of postal has breaking changes compared to any older version(s) you might be using.
 
 ## What is it?
 Postal.js is an in-memory message bus - very loosely inspired by [AMQP](http://www.amqp.org/) - written in JavaScript. Postal.js runs in the browser, or on the server using node.js. It takes the familiar "eventing-style" paradigm (of which most JavaScript developers are familiar) and extends it by providing "broker" and subscriber implementations which are more sophisticated than what you typically find in simple event delegation.
@@ -193,10 +193,11 @@ It's also possible to extend the monitoring of messages passing through Postal b
 
 ## Build, Dependencies, etc.
 
-* postal depends on [underscore.js](http://underscorejs.org/)
+* postal depends on [lodash.js](http://lodash.com/)
 * postal uses [gulp.js](http://gulpjs.com/) for building, running tests and examples.
 	* To build
         * run `npm install` (to install all deps)
+        * run `bower install` (yep, we're using at least one thing only found on bower in the local project runner)
         * run `npm run build` - then check the lib folder for the output
     * To run tests & examples
         * To run node-based tests: `npm run test`

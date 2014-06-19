@@ -2,7 +2,7 @@
 /*jshint -W020 */
 var fireSub = function(subDef, envelope) {
     if (!subDef.inactive && _postal.configuration.resolver.compare(subDef.topic, envelope.topic)) {
-        subDef.callback.call(subDef.context || this, envelope.data, envelope);
+        subDef.callback(envelope.data, envelope);
     }
 };
 var pubInProgress = 0;
