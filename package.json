@@ -39,6 +39,9 @@
     }, {
         "name": "Christian Haas",
         "url": "http://github.com/dertseha"
+    }, {
+        "name": "Mark Swaffer",
+        "url": "https://github.com/swaff"
     }],
     "keywords": [
         "pub/sub",
