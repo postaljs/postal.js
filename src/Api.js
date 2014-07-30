@@ -115,6 +115,12 @@ function unsubscribe() {
                 idx += 1;
             }
         }
+        if (topicSubs.length === 0) {
+            delete channelSubs[subDef.topic];
+            if (_.isEmpty(channelSubs)) {
+                delete this.subscriptions[subDef.channel];
+            }
+        }
         _postal.publish(getSystemMessage("removed", subDef));
     }
 }
