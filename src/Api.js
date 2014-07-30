@@ -96,18 +96,20 @@ function publish(envelope) {
 function unsubscribe() {
     var idx = 0;
     var subs = Array.prototype.slice.call(arguments, 0);
-    var subDef;
+    var subDef, channelSubs, topicSubs;
     while (subDef = subs.shift()) {
         if (pubInProgress) {
             unSubQueue.push(subDef);
             return;
         }
-        if (this.subscriptions[subDef.channel] && this.subscriptions[subDef.channel][subDef.topic]) {
-            var len = this.subscriptions[subDef.channel][subDef.topic].length;
+        channelSubs = this.subscriptions[subDef.channel];
+        topicSubs = channelSubs && channelSubs[subDef.topic];
+        if (topicSubs) {
+            var len = topicSubs.length;
             idx = 0;
             while (idx < len) {
-                if (this.subscriptions[subDef.channel][subDef.topic][idx] === subDef) {
-                    this.subscriptions[subDef.channel][subDef.topic].splice(idx, 1);
+                if (topicSubs[idx] === subDef) {
+                    topicSubs.splice(idx, 1);
                     break;
                 }
                 idx += 1;
