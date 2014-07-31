@@ -67,7 +67,7 @@
                 expect(_.isEmpty(postal.configuration.resolver.cache)).to.be.ok();
             });
         });
-        describe("When calling postal.unsubscribeEach", function() {
+        describe("When calling postal.unsubscribeFor", function() {
             describe("With a channel passed", function() {
                 var subs = [];
                 var res = 0;
@@ -108,10 +108,8 @@
                     res = 0;
                     postal.reset();
                 });
-                it("should have removed correct subscribers", function() {
-                    expect(_.reduce(postal.subscriptions.B, function(memo, val) {
-                        return memo + val.length;
-                    }, 0)).to.be(0);
+                it("should have removed the whole channel", function() {
+                    expect(postal.subscriptions.B).to.be(undefined);
                 });
                 it("should have not invoked subscriber callbacks when publishing", function() {
                     expect(res).to.be(0);
@@ -131,26 +129,26 @@
                     }));
                     subs.push(postal.subscribe({
                         channel: "B",
-                        topic: "another.topic",
+                        topic: "some.topic",
                         callback: cb
                     }));
                     subs.push(postal.subscribe({
                         channel: "B",
-                        topic: "even.more.topics",
+                        topic: "another.topic",
                         callback: cb
                     }));
                     postal.unsubscribeFor({
                         channel: "B",
-                        topic: "even.more.topics"
+                        topic: "some.topic"
                     });
                     postal.publish({
                         channel: "B",
-                        topic: "another.topic",
+                        topic: "some.topic",
                         data: {}
                     });
                     postal.publish({
                         channel: "B",
-                        topic: "even.more.topics",
+                        topic: "another.topic",
                         data: {}
                     });
                 });
@@ -160,7 +158,13 @@
                     postal.reset();
                 });
                 it("should have removed correct subscribers", function() {
-                    expect(postal.subscriptions.B["even.more.topics"].length).to.be(0);
+                    expect(postal.subscriptions.B["some.topic"]).to.be(undefined);
+                });
+                it("should have kept subscribers in other topics", function() {
+                    expect(postal.subscriptions.B["another.topic"].length).to.be(1);
+                });
+                it("should have kept subscribers in other channels", function() {
+                    expect(postal.subscriptions.A["some.topic"].length).to.be(1);
                 });
                 it("should have not invoked subscriber callbacks when publishing", function() {
                     expect(res).to.be(1);
@@ -211,7 +215,7 @@
                     postal.reset();
                 });
                 it("should have removed correct subscribers", function() {
-                    expect(postal.subscriptions.B["even.more.topics"].length).to.be(0);
+                    expect(postal.subscriptions.B["even.more.topics"]).to.be(undefined);
                 });
                 it("should have not invoked subscriber callbacks when publishing", function() {
                     expect(res).to.be(1);
@@ -260,7 +264,7 @@
                     postal.reset();
                 });
                 it("should have removed correct subscribers", function() {
-                    expect(postal.subscriptions.B["even.more.topics"].length).to.be(0);
+                    expect(postal.subscriptions.B["even.more.topics"]).to.be(undefined);
                 });
                 it("should have not invoked subscriber callbacks when publishing", function() {
                     expect(res).to.be(1);

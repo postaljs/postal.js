@@ -284,7 +284,7 @@
                 subscription = postal.channel("MyChannel").subscribe("MyTopic", function() {});
                 subExistsBefore = postal.subscriptions.MyChannel.MyTopic[0] !== undefined;
                 subscription.unsubscribe();
-                subExistsAfter = postal.subscriptions.MyChannel.MyTopic.length !== 0;
+                subExistsAfter = postal.subscriptions.MyChannel !== undefined;
             });
             afterEach(function() {
                 systemSubscription.unsubscribe();
@@ -305,6 +305,7 @@
         });
         describe("With multiple subscriptions", function() {
             var subsExistsBefore, subsExistsAfter, unsubscribeMsgs, sub2;
+            var channelAfter;
             var systemSubscription = {};
             before(function() {
                 subsExistsBefore = false;
@@ -325,7 +326,8 @@
                 sub2 = postal.channel("MyChannel").subscribe("MyTopic2", function() {});
                 subExistsBefore = postal.subscriptions.MyChannel.MyTopic[0] !== undefined;
                 subscription.unsubscribe();
-                subExistsAfter = postal.subscriptions.MyChannel.MyTopic.length !== 0;
+                channelAfter = postal.subscriptions.MyChannel;
+                subExistsAfter = channelAfter && (channelAfter.MyTopic !== undefined);
             });
             after(function() {
                 systemSubscription.unsubscribe();

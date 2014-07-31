@@ -62,7 +62,9 @@
                 channel.publish("MyTopic", "Testing123");
                 channel.publish("MyTopic", "Testing123");
                 channel.publish("MyTopic", "Testing123");
-                subExistsAfter = postal.subscriptions.MyChannel.MyTopic.length !== 0;
+                subExistsAfter =
+                    (postal.subscriptions.MyChannel &&
+                        postal.subscriptions.MyChannel.MyTopic) !== undefined;
             });
             after(function() {
                 postal.reset();
