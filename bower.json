@@ -1,6 +1,6 @@
 {
     "name": "postal.js",
-    "version": "0.10.1",
+    "version": "0.10.2",
     "description": "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
     "homepage": "https://github.com/postaljs/postal.js",
     "keywords": [

@@ -2,7 +2,7 @@
     "name": "postal.js",
     "repo": "postaljs/postal.js",
     "description": "Client-side messaging library",
-    "version": "0.10.1",
+    "version": "0.10.2",
     "keywords": [
         "pub/sub",
         "pub",

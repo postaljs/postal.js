@@ -1,3 +1,8 @@
+##v0.10.2
+* Empty topic subscriptions arrays (on `postal.subscriptions.whateverChannel`) will be removed during unsubscription if the subscriber being removed is the last subscriber.
+* Empty channel objects (on `postal.susbcriptions`) will be removed during unsubscription if no topic binding properties exist on the channel any longer.
+* Special thanks to @sergiopereiraTT for adding these features. :smile:
+
 ##v0.10.1
 * Apparently IE 8 doesn't allow "catch" to be used as a method/prop name, unless you utilize bracket notation. (Seriously - With IE6 now a distant memory, I long for the day that IE 8 is *dead*.) @swaff was kind enough to catch this and submit a patch to take care of it.
 

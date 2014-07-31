@@ -1,7 +1,7 @@
 {
     "name": "postal",
     "description": "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
-    "version": "0.10.1",
+    "version": "0.10.2",
     "homepage": "http://github.com/postaljs/postal.js",
     "repository": {
         "type": "git",
@@ -42,6 +42,9 @@
     }, {
         "name": "Mark Swaffer",
         "url": "https://github.com/swaff"
+    }, {
+        "name": "Sergio Pereira",
+        "url": "https://github.com/sergiopereiraTT"    
     }],
     "keywords": [
         "pub/sub",
