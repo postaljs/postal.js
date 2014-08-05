@@ -74,7 +74,7 @@ function publish(envelope) {
     envelope.channel = envelope.channel || this.configuration.DEFAULT_CHANNEL;
     envelope.timeStamp = new Date();
     _.each(this.wireTaps, function(tap) {
-        tap(envelope.data, envelope);
+        tap(envelope.data, envelope, pubInProgress);
     });
     if (this.subscriptions[envelope.channel]) {
         _.each(this.subscriptions[envelope.channel], function(subscribers) {

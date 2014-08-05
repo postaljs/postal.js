@@ -354,15 +354,32 @@
         describe("When subscribing and unsubscribing a wire tap", function() {
             var wireTapData,
                 wireTapEnvelope,
+                wireTapNesting,
                 wiretap;
             before(function() {
                 caughtUnsubscribeEvent = false;
                 wireTapData = [];
                 wireTapEnvelope = [];
-                wiretap = postal.addWireTap(function(msg, envelope) {
+                wireTapNesting = [];
+
+                postal.subscribe({
+                    topic: "Oh.Hai.There",
+                    callback: function() {
+                        console.log('test');
+                        postal.publish({
+                            topic: "Oh.Hai.There.Nested",
+                            data: "I'm in yer bus, nested"
+                        });
+                    }
+                });
+
+                wiretap = postal.addWireTap(function(msg, envelope, nesting) {
+                    console.log(envelope.topic);
                     wireTapData.push(msg);
                     wireTapEnvelope.push(envelope);
+                    wireTapNesting.push(nesting);
                 });
+                
                 postal.publish({
                     topic: "Oh.Hai.There",
                     data: "I'm in yer bus, tappin' yer subscriptionz..."
@@ -376,9 +393,10 @@
             after(function() {
                 postal.reset();
             });
-            it("wire tap should have been invoked only once", function() {
-                expect(wireTapData.length).to.be(1);
-                expect(wireTapEnvelope.length).to.be(1);
+            it("wire tap should have been invoked only twice", function() {
+                expect(wireTapData.length).to.be(2);
+                expect(wireTapEnvelope.length).to.be(2);
+                expect(wireTapNesting.length).to.be(2);
             });
             it("wireTap data should match expected results", function() {
                 expect(wireTapData[0]).to.be("I'm in yer bus, tappin' yer subscriptionz...");
@@ -386,6 +404,10 @@
             it("wireTap envelope should match expected results", function() {
                 expect(wireTapEnvelope[0].channel).to.be(postal.configuration.DEFAULT_CHANNEL);
                 expect(wireTapEnvelope[0].topic).to.be("Oh.Hai.There");
+            });
+            it("wireTap nesting should match expected results", function() {
+                expect(wireTapNesting[0]).to.be(1);
+                expect(wireTapNesting[1]).to.be(2);
             });
         });
     });
