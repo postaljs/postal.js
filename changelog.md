@@ -1,3 +1,6 @@
+##v0.10.3
+* Wiretaps now get a third argument, the `nesting` (or `publishDepth`) argument, which is a number to indicate the 'nested' publish depth for the message being passed to the wiretap. Thanks to @avanderhoorn for this addition. :smile:
+
 ##v0.10.2
 * Empty topic subscriptions arrays (on `postal.subscriptions.whateverChannel`) will be removed during unsubscription if the subscriber being removed is the last subscriber.
 * Empty channel objects (on `postal.susbcriptions`) will be removed during unsubscription if no topic binding properties exist on the channel any longer.

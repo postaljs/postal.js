@@ -365,7 +365,6 @@
                 postal.subscribe({
                     topic: "Oh.Hai.There",
                     callback: function() {
-                        console.log('test');
                         postal.publish({
                             topic: "Oh.Hai.There.Nested",
                             data: "I'm in yer bus, nested"
@@ -374,7 +373,6 @@
                 });
 
                 wiretap = postal.addWireTap(function(msg, envelope, nesting) {
-                    console.log(envelope.topic);
                     wireTapData.push(msg);
                     wireTapEnvelope.push(envelope);
                     wireTapNesting.push(nesting);
