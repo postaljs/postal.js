@@ -17,7 +17,7 @@
         "envelope"
     ],
     "dependencies": {
-        "component/lodash": "*",
+        "lodash/lodash": "*",
         "ifandelse/ConduitJS": "~0.3.2"
     },
     "scripts": ["lib/postal.min.js", "lib/postal.js"],
