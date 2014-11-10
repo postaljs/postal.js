@@ -193,7 +193,7 @@ It's also possible to extend the monitoring of messages passing through Postal b
 
 ## Build, Dependencies, etc.
 
-* postal depends on [lodash.js](http://lodash.com/)
+* postal depends on [lodash.js](http://lodash.com/) and [ConduitJS](https://github.com/ifandelse/ConduitJS)
 * postal uses [gulp.js](http://gulpjs.com/) for building, running tests and examples.
 	* To build
         * run `npm install` (to install all deps)
