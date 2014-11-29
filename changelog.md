@@ -1,3 +1,9 @@
+##v0.11.0
+* ConduitJS is no longer a dependency.
+* `invokeSubscriber` has been added to the `SubscriptionDefinition` prototype. This method is called during publish cycles. The `postal.publish` method no longer does the heavy lifting of determining if a subscriber callback should be invoked, the subscriber now handles that via this new method.
+* The `SubscriptionDefinition` prototype methods `withContext`, `withThrottle`, `withDebounce`, `withDelay`, `withConstraint`, `withConstraints` have been deprecated and replaced with `context`, `throttle`, `debounce`, `delay`, `constraint` and `constraints` (respectively). They will continue to work in v0.11, but will warn of the deprecation.
+* postal has been optimized for publishing (subscriptions matched to a topic via the resolver are cached).
+
 ##v0.10.3
 * Wiretaps now get a third argument, the `nesting` (or `publishDepth`) argument, which is a number to indicate the 'nested' publish depth for the message being passed to the wiretap. Thanks to @avanderhoorn for this addition. :smile:
 
@@ -17,7 +23,7 @@
 ##v0.9.1
 
 * Replaced underscore dependency with lodash. (You can still use underscore if you need to - but you'll have to replace the lib's references to "lodash" with "underscore")
-* [ConduitJS](https://github.com/ifandelse/ConduitJS) has been an *embedded* dependency since v0.9.0. I've promoted it to an external dependency because it's clear that Conduit will be useful in add-ons as well. No need to force consumers of postal and its add-ons to double the Conduit line count. 
+* [ConduitJS](https://github.com/ifandelse/ConduitJS) has been an *embedded* dependency since v0.9.0. I've promoted it to an external dependency because it's clear that Conduit will be useful in add-ons as well. No need to force consumers of postal and its add-ons to double the Conduit line count.
 
 ##v0.9.0
 

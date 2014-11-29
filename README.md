@@ -1,8 +1,8 @@
 # Postal.js
 
-## Version 0.10.3 (Dual Licensed [MIT](http://www.opensource.org/licenses/mit-license) & [GPL](http://www.opensource.org/licenses/gpl-license))
+## Version 0.11.0 ([MIT](http://www.opensource.org/licenses/mit-license))
 
-> See the [changelog](https://github.com/postaljs/postal.js/blob/master/changelog.md) for information on if the current version of postal has breaking changes compared to any older version(s) you might be using.
+> See the [changelog](https://github.com/postaljs/postal.js/blob/master/changelog.md) for information on if the current version of postal has breaking changes compared to any older version(s) you might be using. Version 0.11 removed the dependency on ConduitJS and significantly improved publishing performance.
 
 ## What is it?
 Postal.js is an in-memory message bus - very loosely inspired by [AMQP](http://www.amqp.org/) - written in JavaScript. Postal.js runs in the browser, or on the server using node.js. It takes the familiar "eventing-style" paradigm (of which most JavaScript developers are familiar) and extends it by providing "broker" and subscriber implementations which are more sophisticated than what you typically find in simple event delegation.
@@ -18,7 +18,7 @@ If you want to subscribe to a message, you tell postal what channel and topic to
 			// data is the data published by the publisher
 			// envelope is a wrapper around the data & contains
 			// metadata about the message like the channel, topic,
-			// timestamp and any other data which might have been 
+			// timestamp and any other data which might have been
 			// added by the sender.
 		}
 	});
@@ -48,7 +48,7 @@ While the above code snippets work just fine, it's possible to get a more terse 
 	var subscription = channel.subscribe("item.add", function(data, envelope) {
 		/*do stuff with data */
 	});
-	
+
 	channel.publish("item.add", {
         sku: "AZDTF4346",
         qty: 21
@@ -82,7 +82,7 @@ These four concepts are central to postal:
 * messages should include envelope metadata
 * subscriber callbacks should get a consistent method signature
 
-Most eventing libraries focus on providing Observer Pattern utilities to an instance (i.e. - creating an event emitter), OR they take the idea of an event emitter and turn it into an event aggregator (so a single channel, stand alone emitter that acts as a go-between for publishers and subscribers). I'm a big fan of the Observer Pattern, but its downside is that it requires a direct reference to the subject in order to listen to events. This can become a big source of tight coupling in your app, and once you go down that road, your abstractions tend to leak, if not hemorrhage. 
+Most eventing libraries focus on providing Observer Pattern utilities to an instance (i.e. - creating an event emitter), OR they take the idea of an event emitter and turn it into an event aggregator (so a single channel, stand alone emitter that acts as a go-between for publishers and subscribers). I'm a big fan of the Observer Pattern, but its downside is that it requires a direct reference to the subject in order to listen to events. This can become a big source of tight coupling in your app, and once you go down that road, your abstractions tend to leak, if not hemorrhage.
 
 postal is *not* intended to replace Observer pattern scenarios. Inside a module, where it makes sense for an observer to have a direct reference to the subject, by all means, use the Observer pattern. However - when it comes to inter-module communication (view-to-view, for example), inter-library communication, cross frame communication, or even hierarchical state change notifications with libraries like ReactJS, postal is the glue to help your components communicate without glueing them with tight coupling.
 
@@ -91,7 +91,7 @@ In my experience, seeing publish and subscribe calls all over application logic 
 
 ## More on How to Use It
 
-Here are four examples of using Postal. All of these examples - AND MORE! - can run live [here](http://jsfiddle.net/ifandelse/FA2NY/). Be sure to check out the [wiki](https://github.com/postaljs/postal.js/wiki) for API documentation and conceptual walk-throughs.
+Here are four examples of using Postal. All of these examples - AND MORE! - can run live [here](http://jsfiddle.net/ifandelse/8dLpkpcf/). Be sure to check out the [wiki](https://github.com/postaljs/postal.js/wiki) for API documentation and conceptual walk-throughs.
 
 ```javascript
 // This gets you a handle to the default postal channel...
@@ -116,7 +116,7 @@ var anotherSub = postal.subscribe({
 	channel  : "MyChannel",
 	topic    : "name.change",
 	callback : function(data, envelope) {
-		$( "#example1" ).html( "Name: " + data.name );    
+		$( "#example1" ).html( "Name: " + data.name );
 	}
 });
 
@@ -179,7 +179,7 @@ dupSubscription.unsubscribe();
 ```
 
 ## More References
-Please visit the [postal.js wiki](https://github.com/postaljs/postal.js/wiki) for API documentation, discussion of concepts and links to blogs/articles on postal.js. 
+Please visit the [postal.js wiki](https://github.com/postaljs/postal.js/wiki) for API documentation, discussion of concepts and links to blogs/articles on postal.js.
 
 ## How can I extend it?
 There are four main ways you can extend Postal:
@@ -187,31 +187,24 @@ There are four main ways you can extend Postal:
 * Write a plugin. Need more complex behavior that the built-in SubscriptionDefinition doesn't offer? Write a plugin that you can attach to the global postal object. See [postal.when](https://github.com/postaljs/postal.when) for an example of how to do this. You can also write plugins that extend the `ChannelDefinition` and `SubscriptionDefinition` prototypes - see [postal.request-response](https://github.com/postaljs/postal.request-response) for an example of this.
 * Write a custom federation plugin, to federate instances of postal across a transport of your choice.
 * You can also change how the `bindingResolver` matches subscriptions to message topics being published. You may not care for the AMQP-style bindings functionality. No problem! Write your own resolver object that implements a `compare` and `reset` method and swap the core version out with your implementation by calling: `postal.configuration.resolver = myWayBetterResolver`.
-* Utilize `before` or `after` pipeline steps when publishing a message, or handling a message in your subscriber callbacks. In other words, if you need behavior to fire before any message is processed, you'd create a `before` step to do so. postal is taking advantage of [ConduitJS](https://github.com/ifandelse/ConduitJS) in order to do this. This hook allows you to extend your infrastructure needs into postal, without bleeding postal infrastructure concerns into your app code. For more information, see [this wiki page](https://github.com/postaljs/postal.js/wiki/Conduit-Integration).
 
 It's also possible to extend the monitoring of messages passing through Postal by adding a "wire tap". A wire tap is a callback that will get invoked for any published message (even if no actual subscriptions would bind to the message's topic). Wire taps should _not_ be used in lieu of an actual subscription - but instead should be used for diagnostics, logging, forwarding (to a websocket publisher or a local storage wrapper, for example) or other concerns that fall along those lines. This repository used to include a console logging wiretap called postal.diagnostics.js - you can now find it [here in it's own repo](https://github.com/postaljs/postal.diagnostics). This diagnostics wiretap can be configured with filters to limit the firehose of message data to specific channels/topics and more.
 
 ## Build, Dependencies, etc.
 
-* postal depends on [lodash.js](http://lodash.com/) and [ConduitJS](https://github.com/ifandelse/ConduitJS)
+* postal depends on [lodash.js](http://lodash.com/)
 * postal uses [gulp.js](http://gulpjs.com/) for building, running tests and examples.
 	* To build
         * run `npm install` (to install all deps)
         * run `bower install` (yep, we're using at least one thing only found on bower in the local project runner)
         * run `npm run build` - then check the lib folder for the output
     * To run tests & examples
-        * To run node-based tests: `npm run test`
-        * To run browser-based tests & examples:
+        * Tests are node-based: `npm test`
+        * To run browser-based examples:
             * run `npm start`
             * navigate in your browser to <http://localhost:3080/>
+            * if you want to see test coverage or plato reports be sure to run `npm run coverage` and `gulp report` (respectively) in order to generate them, as they are not stored with the repo.
 
 
 ## Can I contribute?
 Please - by all means! While I hope the API is relatively stable, I'm open to pull requests.  (Hint - if you want a feature implemented, a pull request gives it a much higher probability of being included than simply asking me.) As I said, pull requests are most certainly welcome - but please include tests for your additions. Otherwise, it will disappear into the ether.
-
-## Roadmap for the Future
-Here's where Postal is headed:
-
-* The `SubscriptionDefinition` object will be given the ability to pause (skip) responding to subscriptions
-* We'll be working on experimental "underscore-free" builds of postal, providing ES5 method shims so that you don't have to pull in underscore/lodash just to run postal.
-* What else would you like to see?
