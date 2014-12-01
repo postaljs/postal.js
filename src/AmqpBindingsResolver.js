@@ -3,13 +3,23 @@ var bindingsResolver = {
 	cache : {},
 	regex : {},
 
-	compare : function ( binding, topic ) {
-		var pattern, rgx, prevSegment, result = ( this.cache[ topic ] && this.cache[ topic ][ binding ] );
-		if ( typeof result !== "undefined" ) {
+	compare : function compare( binding, topic ) {
+		var pattern;
+		var rgx;
+		var prevSegment;
+		var result = ( this.cache[ topic + "-" + binding ] );
+		// result is cached?
+		if ( result === true ) {
 			return result;
 		}
+		// plain string matching?
+		if( binding.indexOf("#") === -1 && binding.indexOf("*") === -1) {
+			result = this.cache[ topic + "-" + binding ] = (topic === binding);
+			return result;
+		}
+		// ah, regex matching, then
 		if ( !( rgx = this.regex[ binding ] )) {
-			pattern = "^" + _.map( binding.split( "." ),function ( segment ) {
+			pattern = "^" + _.map( binding.split( "." ), function mapTopicBinding( segment ) {
 				var res = "";
 				if ( !!prevSegment ) {
 					res = prevSegment !== "#" ? "\\.\\b" : "\\b";
@@ -26,12 +36,11 @@ var bindingsResolver = {
 			} ).join( "" ) + "$";
 			rgx = this.regex[ binding ] = new RegExp( pattern );
 		}
-		this.cache[ topic ] = this.cache[ topic ] || {};
-		this.cache[ topic ][ binding ] = result = rgx.test( topic );
+		result = this.cache[ topic + "-" + binding ] = rgx.test( topic );
 		return result;
 	},
 
-	reset : function () {
+	reset : function reset() {
 		this.cache = {};
 		this.regex = {};
 	}

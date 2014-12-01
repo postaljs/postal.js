@@ -1,35 +1,36 @@
 /*jshint -W098 */
-(function(root, factory) {
-    if (typeof module === "object" && module.exports) {
-        // Node, or CommonJS-Like environments
-        module.exports = factory(require("lodash"), require("conduitjs"), this);
-    } else if (typeof define === "function" && define.amd) {
-        // AMD. Register as an anonymous module.
-        define(["lodash", "conduitjs"], function(_, Conduit) {
-            return factory(_, Conduit, root);
-        });
-    } else {
-        // Browser globals
-        root.postal = factory(root._, root.Conduit, root);
-    }
-}(this, function(_, Conduit, global, undefined) {
+(function( root, factory ) {
+	/* istanbul ignore if  */
+	if ( typeof define === "function" && define.amd ) {
+		// AMD. Register as an anonymous module.
+		define( [ "lodash" ], function( _ ) {
+			return factory( _, root );
+		} );
+	/* istanbul ignore else */
+	} else if ( typeof module === "object" && module.exports ) {
+		// Node, or CommonJS-Like environments
+		module.exports = factory( require( "lodash" ), this );
+	} else {
+		// Browser globals
+		root.postal = factory( root._, root );
+	}
+}( this, function( _, global, undefined ) {
 
-    var _postal;
-    var prevPostal = global.postal;
+	var _postal;
+	var prevPostal = global.postal;
 
-    //import("ChannelDefinition.js");
-    //import("SubscriptionDefinition.js");
-    //import("AmqpBindingsResolver.js");
-    //import("Api.js");
-    //import("linkChannels.js");
+	//import("ChannelDefinition.js");
+	//import("SubscriptionDefinition.js");
+	//import("AmqpBindingsResolver.js");
+	//import("Api.js");
 
-    /*jshint -W106 */
-    if (global && Object.prototype.hasOwnProperty.call(global, "__postalReady__") && _.isArray(global.__postalReady__)) {
-        while (global.__postalReady__.length) {
-            global.__postalReady__.shift().onReady(_postal);
-        }
-    }
-    /*jshint +W106 */
+	/*jshint -W106 */
+	if ( global && Object.prototype.hasOwnProperty.call( global, "__postalReady__" ) && _.isArray( global.__postalReady__ ) ) {
+		while (global.__postalReady__.length) {
+			global.__postalReady__.shift().onReady( _postal );
+		}
+	}
+	/*jshint +W106 */
 
-    return _postal;
-}));
+	return _postal;
+} ));

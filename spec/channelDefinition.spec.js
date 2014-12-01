@@ -1,76 +1,41 @@
-/* global describe, postal, it, after, before, expect */
-(function(){
-    var postal = typeof window === "undefined" ? require("../lib/postal.js") : window.postal;
-    var expect = typeof window === "undefined" ? require("expect.js") : window.expect;
-    var ChannelDefinition = postal.ChannelDefinition;
-    describe( "channel definition", function () {
-        describe( "When using global channel api", function () {
-            var gch;
-            describe( "With no channel name provided", function () {
-                describe( "Using string argument", function () {
-                    before( function () {
-                        gch = postal.channel( "SomeChannel" );
-                    } );
-                    after( function () {
-                        gch = undefined;
-                    } );
-                    it( "channel should be of type ChannelDefinition", function () {
-                        expect( gch instanceof ChannelDefinition ).to.be.ok();
-                    } );
-                    it( "should set channel name to SomeChannel", function () {
-                        expect( gch.channel ).to.be( "SomeChannel" );
-                    } );
-                } );
-            } );
-        } );
-        describe( "When initializing a channel definition", function () {
-            var chDef = new ChannelDefinition( "TestChannel" );
-            it( "should set channel to TestChannel", function () {
-                expect( chDef.channel ).to.be( "TestChannel" );
-            } );
-        } );
-        describe( "When calling subscribe", function () {
-            var ch = new ChannelDefinition( "TestChannel" ),
-                sub = ch.subscribe( "TestTopic", function () {} );
-            it( "subscription should be instance of SubscriptionDefinition", function () {
-                expect( sub instanceof postal.SubscriptionDefinition ).to.be.ok();
-            } );
-        } );
-        describe( "When publishing from a channel definition", function () {
-            var channel, subscription;
-            before( function () {
-                channel = postal.channel( "OhHai" );
-            } );
-            after( function () {
-                postal.reset();
-                channel = undefined;
-                subscription = undefined;
-            } );
-            it( "Should allow a topic only to be used", function ( done ) {
-                subscription = channel.subscribe( "topic.only", function ( d, e ) {
-                    expect( typeof d === "undefined" ).to.be( true );
-                    expect( e.topic ).to.be( "topic.only" );
-                    done();
-                } );
-                channel.publish( "topic.only" );
-            } );
-            it( "Should allow a topic and data argument to be used", function ( done ) {
-                subscription = channel.subscribe( "topic.and.data", function ( d, e ) {
-                    expect( d ).to.be( "hai" );
-                    expect( e.topic ).to.be( "topic.and.data" );
-                    done();
-                } );
-                channel.publish( "topic.and.data", "hai" );
-            } );
-            it( "Should allow an envelope argument to be used", function ( done ) {
-                subscription = channel.subscribe( "envelope", function ( d, e ) {
-                    expect( e.channel ).to.be( "OhHai" );
-                    expect( e.data ).to.be( "hai" );
-                    expect( e.foo ).to.be( "bar" );
-                    done();
-                } );
-                channel.publish( { topic : "envelope", data : "hai", foo : "bar" } );
-            } );
-        } );
-    } );
-}());
+/* global postal */
+describe( "ChannelDefinition", function() {
+	beforeEach( function() {
+		postal.reset();
+	} );
+	describe( "when subscribing from a ChannelDefinition", function() {
+		it( "should return a SubscriptionDefinition", function() {
+			var channel = postal.channel( "Dalek" );
+			var sub = channel.subscribe( "exterminate", function() {} );
+			sub.should.be.an.instanceOf( postal.SubscriptionDefinition );
+		} );
+		it( "should support method overloads", function() {
+			var channel = postal.channel( "Dalek" );
+			var cb = function() {};
+			var sub1 = channel.subscribe( { topic: "exterminate", callback: cb } );
+			var sub2 = channel.subscribe( "exterminate", cb );
+			sub1.topic.should.equal( "exterminate" );
+			sub1.callback.should.equal( cb );
+			sub2.topic.should.equal( "exterminate" );
+			sub2.callback.should.equal( cb );
+		} );
+	} );
+	describe( "when publishing from a ChannelDefinition", function() {
+		it( "should support method overloads", function() {
+			var res = [];
+			var channel = postal.channel( "Dalek" );
+			var sub = channel.subscribe( "exterminate", function( d ) {
+				res.push( d.msg );
+			} );
+			channel.publish( { topic: "exterminate", data: { msg: "Kill the Doctor!" } } );
+			channel.publish( "exterminate", { msg: "Kill the Doctor!" } );
+			res.should.eql( [ "Kill the Doctor!", "Kill the Doctor!" ] );
+		} );
+	} );
+	describe( "when getting a ChannelDefinition instance", function() {
+		it( "should default the channel name if not specified", function() {
+			var ch = postal.channel();
+			ch.channel.should.equal( postal.configuration.DEFAULT_CHANNEL );
+		} );
+	} );
+} );

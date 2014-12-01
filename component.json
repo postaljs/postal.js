@@ -2,7 +2,7 @@
     "name": "postal.js",
     "repo": "postaljs/postal.js",
     "description": "Client-side messaging library",
-    "version": "0.10.3",
+    "version": "0.11.0",
     "keywords": [
         "pub/sub",
         "pub",
@@ -17,8 +17,7 @@
         "envelope"
     ],
     "dependencies": {
-        "lodash/lodash": "*",
-        "ifandelse/ConduitJS": "~0.3.2"
+        "component/lodash": "*"
     },
     "scripts": ["lib/postal.min.js", "lib/postal.js"],
     "license": "MIT"
