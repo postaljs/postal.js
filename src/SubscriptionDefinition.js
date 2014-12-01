@@ -88,7 +88,6 @@ SubscriptionDefinition.prototype = {
 	},
 
 	invokeSubscriber: function invokeSubscriber( data, env ) {
-		/* istanbul ignore else */
 		if ( !this.inactive ) {
 			var self = this;
 			var pipeline = self.pipeline;
@@ -142,7 +141,7 @@ SubscriptionDefinition.prototype = {
 		}
 	},
 
-	constraint: function withConstraint( predicate ) {
+	constraint: function constraint( predicate ) {
 		if ( !_.isFunction( predicate ) ) {
 			throw new Error( "Predicate constraint must be a function" );
 		}
@@ -154,7 +153,7 @@ SubscriptionDefinition.prototype = {
 		return this;
 	},
 
-	constraints: function withConstraints( predicates ) {
+	constraints: function constraints( predicates ) {
 		var self = this;
 		/* istanbul ignore else */
 		if ( _.isArray( predicates ) ) {
@@ -170,7 +169,7 @@ SubscriptionDefinition.prototype = {
 		return this;
 	},
 
-	debounce: function withDebounce( milliseconds, immediate ) {
+	debounce: function debounce( milliseconds, immediate ) {
 		if ( !_.isNumber( milliseconds ) ) {
 			throw new Error( "Milliseconds must be a number" );
 		}
@@ -188,7 +187,7 @@ SubscriptionDefinition.prototype = {
 		return this;
 	},
 
-	delay: function withDelay( milliseconds ) {
+	delay: function delay( milliseconds ) {
 		if ( !_.isNumber( milliseconds ) ) {
 			throw new Error( "Milliseconds must be a number" );
 		}
@@ -201,7 +200,7 @@ SubscriptionDefinition.prototype = {
 		return this;
 	},
 
-	throttle: function withThrottle( milliseconds ) {
+	throttle: function throttle( milliseconds ) {
 		if ( !_.isNumber( milliseconds ) ) {
 			throw new Error( "Milliseconds must be a number" );
 		}
