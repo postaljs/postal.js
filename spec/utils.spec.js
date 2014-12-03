@@ -179,7 +179,7 @@ describe( "postal.utils", function() {
 					channel: "B",
 					topic: "even.more.topics",
 					callback: cb
-				} ).withContext( obj ) );
+				} ).context( obj ) );
 				postal.unsubscribeFor( {
 					context: obj
 				} );

@@ -61,7 +61,7 @@ SubscriptionDefinition.prototype = {
 	},
 
 	defer: function defer() {
-		return this.withDelay( 0 );
+		return this.delay( 0 );
 	},
 
 	disposeAfter: function disposeAfter( maxCalls ) {
@@ -80,11 +80,11 @@ SubscriptionDefinition.prototype = {
 	},
 
 	distinct: function distinct() {
-		return this.withConstraint( new DistinctPredicate() );
+		return this.constraint( new DistinctPredicate() );
 	},
 
 	distinctUntilChanged: function distinctUntilChanged() {
-		return this.withConstraint( new ConsecutiveDistinctPredicate() );
+		return this.constraint( new ConsecutiveDistinctPredicate() );
 	},
 
 	invokeSubscriber: function invokeSubscriber( data, env ) {
@@ -158,7 +158,7 @@ SubscriptionDefinition.prototype = {
 		/* istanbul ignore else */
 		if ( _.isArray( predicates ) ) {
 			_.each( predicates, function( predicate ) {
-				self.withConstraint( predicate );
+				self.constraint( predicate );
 			} );
 		}
 		return self;
