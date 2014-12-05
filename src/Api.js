@@ -45,8 +45,8 @@ function getSystemMessage( kind, subDef ) {
 	};
 }
 
-var sysCreatedMessage = getSystemMessage.bind( this, "created" );
-var sysRemovedMessage = getSystemMessage.bind( this, "removed" );
+var sysCreatedMessage = _.bind( getSystemMessage, this, "created" );
+var sysRemovedMessage = _.bind( getSystemMessage, this, "removed" );
 
 function getPredicate( options, resolver ) {
 	if ( typeof options === "function" ) {
