@@ -1,6 +1,6 @@
 # Postal.js
 
-## Version 0.11.1 ([MIT](http://www.opensource.org/licenses/mit-license))
+## Version 0.11.2 ([MIT](http://www.opensource.org/licenses/mit-license))
 
 > See the [changelog](https://github.com/postaljs/postal.js/blob/master/changelog.md) for information on if the current version of postal has breaking changes compared to any older version(s) you might be using. Version 0.11 removed the dependency on ConduitJS and significantly improved publishing performance.
 
