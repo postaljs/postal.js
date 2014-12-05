@@ -1,3 +1,9 @@
+##v0.11.2
+* Two ES5 `.bind` calls snuck in - we're not officially on ES5 syntax yet (but will be soon). Converting those to use lodash's `_.bind` call for now.
+
+##v0.11.1
+* Fixing an npm publishing goof, which requires a version bump. :-(
+
 ##v0.11.0
 * ConduitJS is no longer a dependency.
 * `invokeSubscriber` has been added to the `SubscriptionDefinition` prototype. This method is called during publish cycles. The `postal.publish` method no longer does the heavy lifting of determining if a subscriber callback should be invoked, the subscriber now handles that via this new method.
