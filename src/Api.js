@@ -1,12 +1,13 @@
-/* global bindingsResolver, ChannelDefinition, SubscriptionDefinition, _postal, prevPostal, global, Conduit */
+/* global ChannelDefinition, SubscriptionDefinition, postal, prevPostal, global, _defaultConfig */
 /*jshint -W020 */
 
 var pubInProgress = 0;
 var unSubQueue = [];
+var autoCompactIndex = 0;
 
 function clearUnSubQueue() {
 	while (unSubQueue.length) {
-		_postal.unsubscribe( unSubQueue.shift() );
+		postal.unsubscribe( unSubQueue.shift() );
 	}
 }
 
@@ -21,9 +22,9 @@ function getCachePurger( subDef, key, cache ) {
 	};
 }
 
-function getCacher( configuration, topic, cache, cacheKey, done ) {
+function getCacher( topic, cache, cacheKey, done ) {
 	return function( subDef ) {
-		if ( configuration.resolver.compare( subDef.topic, topic ) ) {
+		if ( _config.resolver.compare( subDef.topic, topic ) ) {
 			cache.push( subDef );
 			subDef.cacheKeys.push( cacheKey );
 			if ( done ) {
@@ -35,7 +36,7 @@ function getCacher( configuration, topic, cache, cacheKey, done ) {
 
 function getSystemMessage( kind, subDef ) {
 	return {
-		channel: _postal.configuration.SYSTEM_CHANNEL,
+		channel: _config.SYSTEM_CHANNEL,
 		topic: "subscription." + kind,
 		data: {
 			event: "subscription." + kind,
@@ -63,7 +64,7 @@ function getPredicate( options, resolver ) {
 				compared += 1;
 				if (
 				// We use the bindings resolver to compare the options.topic to subDef.topic
-				( prop === "topic" && resolver.compare( sub.topic, options.topic ) )
+				( prop === "topic" && resolver.compare( sub.topic, options.topic, { preventCache: true } ) )
 						|| ( prop === "context" && options.context === sub._context )
 						// Any other potential prop/value matching outside topic & context...
 						|| ( sub[ prop ] === options[ prop ] ) ) {
@@ -75,15 +76,8 @@ function getPredicate( options, resolver ) {
 	}
 }
 
-_postal = {
+_.extend( postal, {
 	cache: {},
-	configuration: {
-		resolver: bindingsResolver,
-		DEFAULT_CHANNEL: "/",
-		SYSTEM_CHANNEL: "postal",
-		enableSystemMessages: true,
-		cacheKeyDelimiter: "|"
-	},
 	subscriptions: {},
 	wireTaps: [],
 
@@ -119,7 +113,7 @@ _postal = {
 		var self = this;
 		_.each( self.subscriptions, function( channel ) {
 			_.each( channel, function( subList ) {
-				result = result.concat( _.filter( subList, getPredicate( options, self.configuration.resolver ) ) );
+				result = result.concat( _.filter( subList, getPredicate( options, _config.resolver ) ) );
 			} );
 		} );
 		return result;
@@ -127,8 +121,7 @@ _postal = {
 
 	publish: function publish( envelope ) {
 		++pubInProgress;
-		var configuration = this.configuration;
-		var channel = envelope.channel = envelope.channel || configuration.DEFAULT_CHANNEL;
+		var channel = envelope.channel = envelope.channel || _config.DEFAULT_CHANNEL;
 		var topic = envelope.topic;
 		envelope.timeStamp = new Date();
 		if ( this.wireTaps.length ) {
@@ -136,12 +129,11 @@ _postal = {
 				tap( envelope.data, envelope, pubInProgress );
 			} );
 		}
-		var cacheKey = channel + configuration.cacheKeyDelimiter + topic;
+		var cacheKey = channel + _config.cacheKeyDelimiter + topic;
 		var cache = this.cache[ cacheKey ];
 		if ( !cache ) {
 			cache = this.cache[ cacheKey ] = [];
 			var cacherFn = getCacher(
-				configuration,
 				topic,
 				cache,
 				cacheKey, function( candidate ) {
@@ -163,16 +155,15 @@ _postal = {
 
 	reset: function reset() {
 		this.unsubscribeFor();
-		this.configuration.resolver.reset();
+		_config.resolver.reset();
 		this.subscriptions = {};
 	},
 
 	subscribe: function subscribe( options ) {
 		var subscriptions = this.subscriptions;
-		var subDef = new SubscriptionDefinition( options.channel || this.configuration.DEFAULT_CHANNEL, options.topic, options.callback );
+		var subDef = new SubscriptionDefinition( options.channel || _config.DEFAULT_CHANNEL, options.topic, options.callback );
 		var channel = subscriptions[ subDef.channel ];
 		var channelLen = subDef.channel.length;
-		var configuration = this.configuration;
 		var subs;
 		if ( !channel ) {
 			channel = subscriptions[ subDef.channel ] = {};
@@ -187,14 +178,13 @@ _postal = {
 		_.each( this.cache, function( list, cacheKey ) {
 			if ( cacheKey.substr( 0, channelLen ) === subDef.channel ) {
 				getCacher(
-					configuration,
-					cacheKey.split( configuration.cacheKeyDelimiter )[ 1 ],
+					cacheKey.split( _config.cacheKeyDelimiter )[ 1 ],
 					list,
 					cacheKey )( subDef );
 			}
 		} );
 		/* istanbul ignore else */
-		if ( this.configuration.enableSystemMessages ) {
+		if ( _config.enableSystemMessages ) {
 			this.publish( sysCreatedMessage( subDef ) );
 		}
 		return subDef;
@@ -229,21 +219,31 @@ _postal = {
 					}
 					idx += 1;
 				}
-				// remove SubscriptionDefinition from cache
-				if ( subDef.cacheKeys && subDef.cacheKeys.length ) {
-					var key;
-					while (key = subDef.cacheKeys.pop()) {
-						_.each( this.cache[ key ], getCachePurger( subDef, key, this.cache ) );
-					}
-				}
 				if ( topicSubs.length === 0 ) {
 					delete channelSubs[ subDef.topic ];
 					if ( _.isEmpty( channelSubs ) ) {
 						delete this.subscriptions[ subDef.channel ];
 					}
 				}
+				// remove SubscriptionDefinition from postal cache
+				if ( subDef.cacheKeys && subDef.cacheKeys.length ) {
+					var key;
+					while (key = subDef.cacheKeys.pop()) {
+						_.each( this.cache[ key ], getCachePurger( subDef, key, this.cache ) );
+					}
+				}
+				// check to see if relevant resolver cache entries can be purged
+				var autoCompact = _config.autoCompactResolver === true ?
+					0 : typeof _config.autoCompactResolver === "number" ?
+						( _config.autoCompactResolver - 1 ) : false;
+				if ( autoCompact >= 0 && autoCompactIndex === autoCompact ) {
+					_config.resolver.purge( { compact: true } );
+					autoCompactIndex = 0;
+				} else if ( autoCompact >= 0 && autoCompactIndex < autoCompact ) {
+					autoCompactIndex += 1;
+				}
 			}
-			if ( this.configuration.enableSystemMessages ) {
+			if ( _config.enableSystemMessages ) {
 				this.publish( sysRemovedMessage( subDef ) );
 			}
 		}
@@ -257,6 +257,4 @@ _postal = {
 			this.unsubscribe.apply( this, toDispose );
 		}
 	}
-};
-
-_postal.subscriptions[ _postal.configuration.SYSTEM_CHANNEL ] = {};
+} );

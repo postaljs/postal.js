@@ -192,57 +192,147 @@ describe( "postal.js - subscriptions", function() {
 		} );
 	} );
 	describe( "When subscribing with `distinct`", function() {
-		it( "should only invoke the subscription callback as new/distinct data arrives", function() {
-			var res = [];
-			var expected = [ "Rose", "Martha", "Donna", "Amy", "Rory" ];
-			var ctxObj = { name: "The Doctor" };
-			var name;
-			var sub = subFactory.next( function( d, e ) {
-				res.push( d.companion );
-				name = this.name;
-			} ).distinct().context( ctxObj );
+		describe( "and publishing an object", function() {
+			it( "should only invoke the subscription callback as new/distinct data arrives", function() {
+				var res = [];
+				var expected = [ "Rose", "Martha", "Donna", "Amy", "Rory" ];
+				var ctxObj = { name: "The Doctor" };
+				var name;
+				var sub = subFactory.next( function( d, e ) {
+					res.push( d.companion );
+					name = this.name;
+				} ).distinct().context( ctxObj );
 
-			var channel = postal.channel( sub.channel );
+				var channel = postal.channel( sub.channel );
 
-			channel.publish( sub.topic, { companion: "Rose" } );
-			channel.publish( sub.topic, { companion: "Martha" } );
-			channel.publish( sub.topic, { companion: "Donna" } );
-			channel.publish( sub.topic, { companion: "Amy" } );
-			channel.publish( sub.topic, { companion: "Rory" } );
-			channel.publish( sub.topic, { companion: "Rose" } );
-			channel.publish( sub.topic, { companion: "Martha" } );
-			channel.publish( sub.topic, { companion: "Amy" } );
+				channel.publish( sub.topic, { companion: "Rose" } );
+				channel.publish( sub.topic, { companion: "Martha" } );
+				channel.publish( sub.topic, { companion: "Donna" } );
+				channel.publish( sub.topic, { companion: "Amy" } );
+				channel.publish( sub.topic, { companion: "Rory" } );
+				channel.publish( sub.topic, { companion: "Rose" } );
+				channel.publish( sub.topic, { companion: "Martha" } );
+				channel.publish( sub.topic, { companion: "Amy" } );
 
-			res.should.eql( expected );
-			name.should.equal( "The Doctor" );
+				res.should.eql( expected );
+				name.should.equal( "The Doctor" );
+			} );
+		} );
+		describe( "and publishing an array", function() {
+			it( "should only invoke the subscription callback as new/distinct data arrives", function() {
+				var res = [];
+				var expected = [
+					[ "Rose", "Jackie" ],
+					[ "Martha" ],
+					[ "Donna" ],
+					[ "Amy", "Rory" ],
+					[ "Rory" ]
+				];
+				var ctxObj = { name: "The Doctor" };
+				var name;
+				var sub = subFactory.next( function( d, e ) {
+					res.push( d );
+					name = this.name;
+				} ).distinct().context( ctxObj );
+
+				var channel = postal.channel( sub.channel );
+
+				channel.publish( sub.topic, [ "Rose", "Jackie" ] );
+				channel.publish( sub.topic, [ "Martha" ] );
+				channel.publish( sub.topic, [ "Donna" ] );
+				channel.publish( sub.topic, [ "Amy", "Rory" ] );
+				channel.publish( sub.topic, [ "Rory" ] );
+				channel.publish( sub.topic, [ "Rose", "Jackie" ] );
+				channel.publish( sub.topic, [ "Martha" ] );
+				channel.publish( sub.topic, [ "Amy", "Rory" ] );
+
+				res.should.eql( expected );
+				name.should.equal( "The Doctor" );
+			} );
+		} );
+		describe( "and publishing a string", function() {
+			it( "should only invoke the subscription callback as new/distinct data arrives", function() {
+				var res = [];
+				var expected = [ "Rose", "Martha", "Donna", "Amy", "Rory" ];
+				var ctxObj = { name: "The Doctor" };
+				var name;
+				var sub = subFactory.next( function( d, e ) {
+					res.push( d );
+					name = this.name;
+				} ).distinct().context( ctxObj );
+
+				var channel = postal.channel( sub.channel );
+
+				channel.publish( sub.topic, "Rose" );
+				channel.publish( sub.topic, "Martha" );
+				channel.publish( sub.topic, "Donna" );
+				channel.publish( sub.topic, "Amy" );
+				channel.publish( sub.topic, "Rory" );
+				channel.publish( sub.topic, "Rose" );
+				channel.publish( sub.topic, "Martha" );
+				channel.publish( sub.topic, "Amy" );
+
+				res.should.eql( expected );
+				name.should.equal( "The Doctor" );
+			} );
 		} );
 	} );
 	describe( "When subscribing with `distinctUntilChanged`", function() {
-		it( "should only invoke the subscription callback as new data not matching last published data arrives", function() {
-			var res = [];
-			var expected = [ "Rose", "Martha", "Donna", "Amy", "Rory", "Rose", "Martha" ];
-			var ctxObj = { name: "The Doctor" };
-			var name;
-			var sub = subFactory.next( function( d, e ) {
-				res.push( d.companion );
-				name = this.name;
-			} ).distinctUntilChanged().context( ctxObj );
+		describe( "and publishing an object", function() {
+			it( "should only invoke the subscription callback as new data not matching last published data arrives", function() {
+				var res = [];
+				var expected = [ "Rose", "Martha", "Donna", "Amy", "Rory", "Rose", "Martha" ];
+				var ctxObj = { name: "The Doctor" };
+				var name;
+				var sub = subFactory.next( function( d, e ) {
+					res.push( d.companion );
+					name = this.name;
+				} ).distinctUntilChanged().context( ctxObj );
 
-			var channel = postal.channel( sub.channel );
+				var channel = postal.channel( sub.channel );
 
-			channel.publish( sub.topic, { companion: "Rose" } );
-			channel.publish( sub.topic, { companion: "Rose" } );
-			channel.publish( sub.topic, { companion: "Martha" } );
-			channel.publish( sub.topic, { companion: "Donna" } );
-			channel.publish( sub.topic, { companion: "Donna" } );
-			channel.publish( sub.topic, { companion: "Amy" } );
-			channel.publish( sub.topic, { companion: "Rory" } );
-			channel.publish( sub.topic, { companion: "Rose" } );
-			channel.publish( sub.topic, { companion: "Martha" } );
-			channel.publish( sub.topic, { companion: "Martha" } );
+				channel.publish( sub.topic, { companion: "Rose" } );
+				channel.publish( sub.topic, { companion: "Rose" } );
+				channel.publish( sub.topic, { companion: "Martha" } );
+				channel.publish( sub.topic, { companion: "Donna" } );
+				channel.publish( sub.topic, { companion: "Donna" } );
+				channel.publish( sub.topic, { companion: "Amy" } );
+				channel.publish( sub.topic, { companion: "Rory" } );
+				channel.publish( sub.topic, { companion: "Rose" } );
+				channel.publish( sub.topic, { companion: "Martha" } );
+				channel.publish( sub.topic, { companion: "Martha" } );
 
-			res.should.eql( expected );
-			name.should.equal( "The Doctor" );
+				res.should.eql( expected );
+				name.should.equal( "The Doctor" );
+			} );
+		} );
+		describe( "and publishing a string", function() {
+			it( "should only invoke the subscription callback as new data not matching last published data arrives", function() {
+				var res = [];
+				var expected = [ "Rose", "Martha", "Donna", "Amy", "Rory", "Rose", "Martha" ];
+				var ctxObj = { name: "The Doctor" };
+				var name;
+				var sub = subFactory.next( function( d, e ) {
+					res.push( d );
+					name = this.name;
+				} ).distinctUntilChanged().context( ctxObj );
+
+				var channel = postal.channel( sub.channel );
+
+				channel.publish( sub.topic, "Rose" );
+				channel.publish( sub.topic, "Rose" );
+				channel.publish( sub.topic, "Martha" );
+				channel.publish( sub.topic, "Donna" );
+				channel.publish( sub.topic, "Donna" );
+				channel.publish( sub.topic, "Amy" );
+				channel.publish( sub.topic, "Rory" );
+				channel.publish( sub.topic, "Rose" );
+				channel.publish( sub.topic, "Martha" );
+				channel.publish( sub.topic, "Martha" );
+
+				res.should.eql( expected );
+				name.should.equal( "The Doctor" );
+			} );
 		} );
 	} );
 	describe( "when subscribing with `logError`", function() {
