@@ -1,8 +1,8 @@
-/* global _postal, SubscriptionDefinition */
+/* global _postal, SubscriptionDefinition, _config */
 
 var ChannelDefinition = function( channelName, bus ) {
 	this.bus = bus;
-	this.channel = channelName || _postal.configuration.DEFAULT_CHANNEL;
+	this.channel = channelName || _config.DEFAULT_CHANNEL;
 };
 
 ChannelDefinition.prototype.subscribe = function() {

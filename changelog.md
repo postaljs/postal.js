@@ -1,3 +1,9 @@
+##v0.12.0
+* Added the `purge` method to the default bindings resolver
+* Added the `autoCompactResolver` option to `postal.configuration` - it can be set to `true` (which auto-compacts the resolver cache on *every* unsubscribe, `false` (the default) which never automatically compacts the resolver cache or set to an integer > 0, which will auto-compact the resolver cache ever *n* number of unsubscribes (so setting it to 5 will auto-compact every 5th unsubscribe). "Auto compacting" basically purges any resolver comparison results that do not have subscribers active on those topics (i.e. - nothing it listening to those topics, don't keep the cached comparison results any more).
+* Added the `cacheKeyDelimiter` option to `postal.configuration`, which defaults to the pipe (`|`) symbol. This is primarily to give anyone implementing their own resolver a different way to delimit topics and bindings when they're using to compose a resolver cache key.
+* Added a third argument to the `resolver.compare` method, which allows you to pass an options object to take into consideration while performing the comparison between topic and binding. Currently, the only supported option is `preventCache` - which tells the resolver to not cache the result of the comparison.
+
 ##v0.11.2
 * Two ES5 `.bind` calls snuck in - we're not officially on ES5 syntax yet (but will be soon). Converting those to use lodash's `_.bind` call for now.
 

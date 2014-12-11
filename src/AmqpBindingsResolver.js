@@ -1,47 +1,83 @@
 /*jshint -W098 */
-var bindingsResolver = {
-	cache : {},
-	regex : {},
+/* global postal, _config */
+var keyDelimiter = _config.cacheKeyDelimiter;
 
-	compare : function compare( binding, topic ) {
+var bindingsResolver = _config.resolver = {
+	cache: {},
+	regex: {},
+
+	compare: function compare( binding, topic, options ) {
 		var pattern;
 		var rgx;
 		var prevSegment;
-		var result = ( this.cache[ topic + "-" + binding ] );
+		var cacheKey = topic + keyDelimiter + binding;
+		var result = ( this.cache[ cacheKey ] );
+		var opt = options || {};
 		// result is cached?
 		if ( result === true ) {
 			return result;
 		}
 		// plain string matching?
-		if( binding.indexOf("#") === -1 && binding.indexOf("*") === -1) {
-			result = this.cache[ topic + "-" + binding ] = (topic === binding);
+		if ( binding.indexOf( "#" ) === -1 && binding.indexOf( "*" ) === -1 ) {
+			if ( !opt.preventCache ) {
+				result = this.cache[ cacheKey ] = ( topic === binding );
+			}
 			return result;
 		}
 		// ah, regex matching, then
-		if ( !( rgx = this.regex[ binding ] )) {
+		if ( !( rgx = this.regex[ binding ] ) ) {
 			pattern = "^" + _.map( binding.split( "." ), function mapTopicBinding( segment ) {
-				var res = "";
-				if ( !!prevSegment ) {
-					res = prevSegment !== "#" ? "\\.\\b" : "\\b";
-				}
-				if ( segment === "#" ) {
-					res += "[\\s\\S]*";
-				} else if ( segment === "*" ) {
-					res += "[^.]+";
-				} else {
-					res += segment;
-				}
-				prevSegment = segment;
-				return res;
-			} ).join( "" ) + "$";
+					var res = "";
+					if ( !!prevSegment ) {
+						res = prevSegment !== "#" ? "\\.\\b" : "\\b";
+					}
+					if ( segment === "#" ) {
+						res += "[\\s\\S]*";
+					} else if ( segment === "*" ) {
+						res += "[^.]+";
+					} else {
+						res += segment;
+					}
+					prevSegment = segment;
+					return res;
+				} ).join( "" ) + "$";
 			rgx = this.regex[ binding ] = new RegExp( pattern );
 		}
-		result = this.cache[ topic + "-" + binding ] = rgx.test( topic );
+		if ( !opt.preventCache ) {
+			result = this.cache[ cacheKey ] = rgx.test( topic );
+		}
 		return result;
 	},
 
-	reset : function reset() {
+	reset: function reset() {
 		this.cache = {};
 		this.regex = {};
+	},
+
+	purge: function( options ) {
+		var self = this;
+		var matchPredicate = function( val, key ) {
+			var split = key.split( keyDelimiter );
+			var topic = split[ 0 ];
+			var binding = split[ 1 ];
+			if ( ( typeof options.topic === "undefined" || options.topic === topic ) &&
+					( typeof options.binding === "undefined" || options.binding === binding ) ) {
+				delete self.cache[ key ];
+			}
+		};
+
+		var compactPredicate = function( val, key ) {
+			var split = key.split( keyDelimiter );
+			if ( postal.getSubscribersFor( { topic: split[ 0 ] } ).length === 0 ) {
+				delete self.cache[ key ];
+			}
+		};
+
+		if ( typeof options === "undefined" ) {
+			this.reset();
+		} else {
+			var handler = options.compact === true ? compactPredicate : matchPredicate;
+			_.each( this.cache, handler );
+		}
 	}
 };

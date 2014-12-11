@@ -1,4 +1,4 @@
-/* global _postal */
+/* global postal */
 var SubscriptionDefinition = function( channel, topic, callback ) {
 	if ( arguments.length !== 3 ) {
 		throw new Error( "You must provide a channel, topic and callback when creating a SubscriptionDefinition instance." );
@@ -35,8 +35,9 @@ var DistinctPredicate = function DistinctPredicateFactory() {
 		var isDistinct = !_.any( previous, function( p ) {
 			if ( _.isObject( data ) || _.isArray( data ) ) {
 				return _.isEqual( data, p );
+			} else {
+				return data === p;
 			}
-			return data === p;
 		} );
 		if ( isDistinct ) {
 			previous.push( data );
@@ -137,7 +138,7 @@ SubscriptionDefinition.prototype = {
 	unsubscribe: function unsubscribe() {
 		/* istanbul ignore else */
 		if ( !this.inactive ) {
-			_postal.unsubscribe( this );
+			postal.unsubscribe( this );
 		}
 	},
 
@@ -173,9 +174,6 @@ SubscriptionDefinition.prototype = {
 		if ( !_.isNumber( milliseconds ) ) {
 			throw new Error( "Milliseconds must be a number" );
 		}
-		var fn = function( data, env, next ) {
-			next( data, env );
-		};
 		this.pipeline.push(
 			_.debounce( function( data, env, next ) {
 				next( data, env );

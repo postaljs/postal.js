@@ -44,7 +44,7 @@
 	"es5"          : true,  //your code uses ECMAScript 5 specific features such as getters and setters
 	"esnext"       : true,  //your code uses ES.next specific features such as const
 	"evil"         : false,  //suppresses warnings about the use of eval
-	"expr"         : false,  //suppresses warnings about the use of expressions where normally you would expect to see assignments or function calls
+	"expr"         : true,  //suppresses warnings about the use of expressions where normally you would expect to see assignments or function calls
 	"funcscope"    : false,  //suppresses warnings about declaring variables inside of control structures while accessing them later from the outside
 	"globalstrict" : false,  //suppresses warnings about the use of global strict mode
 	"iterator"     : false,  //suppresses warnings about the `__iterator__` property
