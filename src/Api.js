@@ -1,4 +1,4 @@
-/* global ChannelDefinition, SubscriptionDefinition, postal, prevPostal, global, _defaultConfig */
+/* global ChannelDefinition, SubscriptionDefinition, postal, prevPostal, global, _config */
 /*jshint -W020 */
 
 var pubInProgress = 0;
@@ -232,15 +232,17 @@ _.extend( postal, {
 						_.each( this.cache[ key ], getCachePurger( subDef, key, this.cache ) );
 					}
 				}
-				// check to see if relevant resolver cache entries can be purged
-				var autoCompact = _config.autoCompactResolver === true ?
-					0 : typeof _config.autoCompactResolver === "number" ?
-						( _config.autoCompactResolver - 1 ) : false;
-				if ( autoCompact >= 0 && autoCompactIndex === autoCompact ) {
-					_config.resolver.purge( { compact: true } );
-					autoCompactIndex = 0;
-				} else if ( autoCompact >= 0 && autoCompactIndex < autoCompact ) {
-					autoCompactIndex += 1;
+				if ( typeof _config.resolver.purge === "function" ) {
+					// check to see if relevant resolver cache entries can be purged
+					var autoCompact = _config.autoCompactResolver === true ?
+						0 : typeof _config.autoCompactResolver === "number" ?
+							( _config.autoCompactResolver - 1 ) : false;
+					if ( autoCompact >= 0 && autoCompactIndex === autoCompact ) {
+						_config.resolver.purge( { compact: true } );
+						autoCompactIndex = 0;
+					} else if ( autoCompact >= 0 && autoCompactIndex < autoCompact ) {
+						autoCompactIndex += 1;
+					}
 				}
 			}
 			if ( _config.enableSystemMessages ) {

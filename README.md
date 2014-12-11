@@ -1,11 +1,11 @@
 # Postal.js
 
-## Version 0.11.2 ([MIT](http://www.opensource.org/licenses/mit-license))
+## Version 0.12.0 ([MIT](http://www.opensource.org/licenses/mit-license))
 
-> See the [changelog](https://github.com/postaljs/postal.js/blob/master/changelog.md) for information on if the current version of postal has breaking changes compared to any older version(s) you might be using. Version 0.11 removed the dependency on ConduitJS and significantly improved publishing performance.
+> See the [changelog](https://github.com/postaljs/postal.js/blob/master/changelog.md) for information on if the current version of postal has breaking changes compared to any older version(s) you might be using. Version 0.11+ removed the dependency on ConduitJS and significantly improved publishing performance.
 
 ## What is it?
-Postal.js is an in-memory message bus - very loosely inspired by [AMQP](http://www.amqp.org/) - written in JavaScript. Postal.js runs in the browser, or on the server using node.js. It takes the familiar "eventing-style" paradigm (of which most JavaScript developers are familiar) and extends it by providing "broker" and subscriber implementations which are more sophisticated than what you typically find in simple event delegation.
+Postal.js is an in-memory message bus - very loosely inspired by [AMQP](http://www.amqp.org/) - written in JavaScript. Postal.js runs in the browser, or on the server using node.js. It takes the familiar "eventing-style" paradigm (of which most JavaScript developers are familiar) and extends it by providing "broker" and subscriber implementations which are more sophisticated than what you typically find in simple event emitting/aggregation.
 
 ## Usage - at a glance
 If you want to subscribe to a message, you tell postal what channel and topic to listen on (channel is optional, as postal provides a default one if you don't), and a callback to be invoked when a message arrives:
@@ -15,8 +15,8 @@ If you want to subscribe to a message, you tell postal what channel and topic to
 		channel: "orders",
 		topic: "item.add",
 		callback: function(data, envelope) {
-			// data is the data published by the publisher
-			// envelope is a wrapper around the data & contains
+			// `data` is the data published by the publisher.
+			// `envelope` is a wrapper around the data & contains
 			// metadata about the message like the channel, topic,
 			// timestamp and any other data which might have been
 			// added by the sender.
@@ -197,7 +197,7 @@ It's also possible to extend the monitoring of messages passing through Postal b
 	* To build
         * run `npm install` (to install all deps)
         * run `bower install` (yep, we're using at least one thing only found on bower in the local project runner)
-        * run `npm run build` - then check the lib folder for the output
+        * run `npm run build` (this is just an alias for `gulp` at the moment, which you can also use) - then check the lib folder for the output
     * To run tests & examples
         * Tests are node-based: `npm test`
         * To run browser-based examples:
