@@ -1,3 +1,6 @@
+##v0.12.1
+* Added support for an envelope header value called `resolverNoCache`. If present in `enveloper.headers` and set to true, it will prevent the resolver from caching topic/binding matches for that message instance.
+
 ##v0.12.0
 * Added the `purge` method to the default bindings resolver
 * Added the `autoCompactResolver` option to `postal.configuration` - it can be set to `true` (which auto-compacts the resolver cache on *every* unsubscribe, `false` (the default) which never automatically compacts the resolver cache or set to an integer > 0, which will auto-compact the resolver cache ever *n* number of unsubscribes (so setting it to 5 will auto-compact every 5th unsubscribe). "Auto compacting" basically purges any resolver comparison results that do not have subscribers active on those topics (i.e. - nothing it listening to those topics, don't keep the cached comparison results any more).

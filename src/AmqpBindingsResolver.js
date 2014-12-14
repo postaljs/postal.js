@@ -6,20 +6,20 @@ var bindingsResolver = _config.resolver = {
 	cache: {},
 	regex: {},
 
-	compare: function compare( binding, topic, options ) {
+	compare: function compare( binding, topic, headerOptions ) {
 		var pattern;
 		var rgx;
 		var prevSegment;
 		var cacheKey = topic + keyDelimiter + binding;
 		var result = ( this.cache[ cacheKey ] );
-		var opt = options || {};
+		var opt = headerOptions || {};
 		// result is cached?
 		if ( result === true ) {
 			return result;
 		}
 		// plain string matching?
 		if ( binding.indexOf( "#" ) === -1 && binding.indexOf( "*" ) === -1 ) {
-			if ( !opt.preventCache ) {
+			if ( !opt.resolverNoCache ) {
 				result = this.cache[ cacheKey ] = ( topic === binding );
 			}
 			return result;
@@ -43,7 +43,7 @@ var bindingsResolver = _config.resolver = {
 				} ).join( "" ) + "$";
 			rgx = this.regex[ binding ] = new RegExp( pattern );
 		}
-		if ( !opt.preventCache ) {
+		if ( !opt.resolverNoCache ) {
 			result = this.cache[ cacheKey ] = rgx.test( topic );
 		}
 		return result;

@@ -109,4 +109,36 @@ describe( "postal.js - publishing", function() {
 			postal.configuration.resolver.cache.should.be.empty;
 		} );
 	} );
+	describe( "when using envelope header `resolverNoCache`", function() {
+		it( "should not add a cache entry if set to true", function() {
+			var subA = postal.subscribe( { channel: "clara", topic: "run.you.clever.*", callback: function() {} } );
+			var subB = postal.subscribe( { channel: "rose", topic: "bad.wolf", callback: function() {} } );
+			postal.publish( {
+				channel: "clara",
+				topic: "run.you.clever.boy",
+				data: "RYCB",
+				headers: {
+					resolverNoCache: true
+				}
+			} );
+			postal.configuration.resolver.cache.should.not.have.ownProperty( "bad.wolf|bad.wolf" );
+			subB.unsubscribe();
+			postal.configuration.resolver.cache.should.not.have.ownProperty( "run.you.clever.boy|run.you.clever.*" );
+		} );
+		it( "should add a cache entry explicitly set to false)", function() {
+			var subA = postal.subscribe( { channel: "clara", topic: "run.you.clever.*", callback: function() {} } );
+			var subB = postal.subscribe( { channel: "rose", topic: "bad.wolf", callback: function() {} } );
+			postal.publish( {
+				channel: "clara",
+				topic: "run.you.clever.boy",
+				data: "RYCB",
+				headers: {
+					resolverNoCache: true
+				}
+			} );
+			postal.configuration.resolver.cache.should.not.have.ownProperty( "bad.wolf|bad.wolf" );
+			subB.unsubscribe();
+			postal.configuration.resolver.cache.should.have.ownProperty( "run.you.clever.boy|run.you.clever.*" );
+		} );
+	} );
 } );

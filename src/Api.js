@@ -22,9 +22,10 @@ function getCachePurger( subDef, key, cache ) {
 	};
 }
 
-function getCacher( topic, cache, cacheKey, done ) {
+function getCacher( topic, cache, cacheKey, done, envelope ) {
+	var headers = envelope && envelope.headers || {};
 	return function( subDef ) {
-		if ( _config.resolver.compare( subDef.topic, topic ) ) {
+		if ( _config.resolver.compare( subDef.topic, topic, headers ) ) {
 			cache.push( subDef );
 			subDef.cacheKeys.push( cacheKey );
 			if ( done ) {
@@ -64,7 +65,7 @@ function getPredicate( options, resolver ) {
 				compared += 1;
 				if (
 				// We use the bindings resolver to compare the options.topic to subDef.topic
-				( prop === "topic" && resolver.compare( sub.topic, options.topic, { preventCache: true } ) )
+				( prop === "topic" && resolver.compare( sub.topic, options.topic, { resolverNoCache: true } ) )
 						|| ( prop === "context" && options.context === sub._context )
 						// Any other potential prop/value matching outside topic & context...
 						|| ( sub[ prop ] === options[ prop ] ) ) {
@@ -138,7 +139,8 @@ _.extend( postal, {
 				cache,
 				cacheKey, function( candidate ) {
 					candidate.invokeSubscriber( envelope.data, envelope );
-				}
+				},
+				envelope
 			);
 			_.each( this.subscriptions[ channel ], function( candidates ) {
 				_.each( candidates, cacherFn );
