@@ -49,6 +49,10 @@ describe( "amqpBindingsResolver", function() {
 				bindingsResolver.cache.should.not.have.ownProperty( "test|test" );
 				bindingsResolver.cache.should.not.have.ownProperty( "nope|test" );
 			} );
+			it( "should return a valid result even if not caching", function() {
+				bindingsResolver.compare( "test", "test", { resolverNoCache: true } ).should.equal( true );
+				bindingsResolver.compare( "test", "nope", { resolverNoCache: true } ).should.equal( false );
+			} );
 		} );
 		describe( "With '*' wildcards", function() {
 			// Passing matches

@@ -1,3 +1,6 @@
+##v0.12.2
+* Fixed bug with `resolverNoCache` option where matches would fail if caching was disabled.
+
 ##v0.12.1
 * Added support for an envelope header value called `resolverNoCache`. If present in `enveloper.headers` and set to true, it will prevent the resolver from caching topic/binding matches for that message instance.
 

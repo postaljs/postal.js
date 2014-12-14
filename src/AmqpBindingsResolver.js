@@ -19,8 +19,9 @@ var bindingsResolver = _config.resolver = {
 		}
 		// plain string matching?
 		if ( binding.indexOf( "#" ) === -1 && binding.indexOf( "*" ) === -1 ) {
+			result = ( topic === binding );
 			if ( !opt.resolverNoCache ) {
-				result = this.cache[ cacheKey ] = ( topic === binding );
+				this.cache[ cacheKey ] = result;
 			}
 			return result;
 		}
@@ -43,8 +44,9 @@ var bindingsResolver = _config.resolver = {
 				} ).join( "" ) + "$";
 			rgx = this.regex[ binding ] = new RegExp( pattern );
 		}
+		result = rgx.test( topic );
 		if ( !opt.resolverNoCache ) {
-			result = this.cache[ cacheKey ] = rgx.test( topic );
+			this.cache[ cacheKey ] = result;
 		}
 		return result;
 	},
