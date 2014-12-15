@@ -71,9 +71,12 @@ SubscriptionDefinition.prototype = {
 			throw new Error( "The value provided to disposeAfter (maxCalls) must be a number greater than zero." );
 		}
 		var self = this;
-		var dispose = _.after( maxCalls, function() {
-			self.unsubscribe();
-		} );
+		var n = maxCalls;
+		var dispose = function() {
+			if (--n < 1) {
+				return self.unsubscribe();
+	        }
+		};
 		self.pipeline.push( function( data, env, next ) {
 			next( data, env );
 			dispose();

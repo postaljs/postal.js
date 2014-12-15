@@ -9,7 +9,6 @@
 	/* istanbul ignore else */
 	} else if ( typeof module === "object" && module.exports ) {
 		var _ = {};
-		_.after = require( "lodash.after" );
 		_.any = require( "lodash.some" );
 		_.clone = require( "lodash.clone" );
 		_.debounce = require( "lodash.debounce" );
