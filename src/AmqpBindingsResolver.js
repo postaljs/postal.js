@@ -19,7 +19,7 @@ var bindingsResolver = {
 		}
 		// ah, regex matching, then
 		if ( !( rgx = this.regex[ binding ] )) {
-			pattern = "^" + _.map( binding.split( "." ), function mapTopicBinding( segment ) {
+			pattern = "^" + binding.split( "." ).map(function mapTopicBinding( segment ) {
 				var res = "";
 				if ( !!prevSegment ) {
 					res = prevSegment !== "#" ? "\\.\\b" : "\\b";

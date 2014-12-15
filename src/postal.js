@@ -9,7 +9,6 @@
 	/* istanbul ignore else */
 	} else if ( typeof module === "object" && module.exports ) {
 		var _ = {
-			map: require( "lodash.map" ),
 			after: require( "lodash.after" ),
 			any: require( "lodash.some" ),
 			bind: require( "lodash.bind" ),
