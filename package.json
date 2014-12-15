@@ -86,11 +86,8 @@
   },
   "dependencies": {
     "lodash.after": "^2.4.1",
-    "lodash.bind": "^2.4.1",
     "lodash.clone": "^2.4.1",
     "lodash.debounce": "^2.4.1",
-    "lodash.filter": "^2.4.1",
-    "lodash.foreach": "^2.4.1",
     "lodash.isarray": "^2.4.1",
     "lodash.isempty": "^2.4.1",
     "lodash.isequal": "^2.4.1",
@@ -98,7 +95,6 @@
     "lodash.isnumber": "^2.4.1",
     "lodash.isobject": "^2.4.1",
     "lodash.isstring": "^2.4.1",
-    "lodash.map": "^2.4.1",
     "lodash.some": "^2.4.1",
     "lodash.throttle": "^2.4.1"
   },
