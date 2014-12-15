@@ -3,10 +3,10 @@
 // Definitions By: Bart Breen (https://github.com/barticus)
 
 interface PostalEnvelope {
-    channel: string;
+    channel?: string;
     topic: string;
-    timeStamp: any;
-    data: any;
+    timeStamp?: any;
+    data?: any;
 }
 
 interface PostalSubscriptionQuery {
@@ -18,8 +18,8 @@ interface PostalSubscriptionQuery {
 interface PostalSubscriptionDefinition {
     channel: string;
     topic: string;
-    callback: (data: any, env: PostalEnvelope) => {}
-    unsubscribe();
+    callback: (data: any, env: PostalEnvelope) => any
+    unsubscribe?();
 }
 
 interface PostalChannel {
