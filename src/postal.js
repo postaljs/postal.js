@@ -3,18 +3,18 @@
 	/* istanbul ignore if  */
 	if ( typeof define === "function" && define.amd ) {
 		// AMD. Register as an anonymous module.
-		define( [ "lodash" ], function( _ ) {
-			return factory( _, root );
+		define(function() {
+			return factory( root );
 		} );
 	/* istanbul ignore else */
 	} else if ( typeof module === "object" && module.exports ) {
 		// Node, or CommonJS-Like environments
-		module.exports = factory( {}, this );
+		module.exports = factory( this );
 	} else {
 		// Browser globals
-		root.postal = factory( root._, root );
+		root.postal = factory( root );
 	}
-}( this, function( _, global, undefined ) {
+}( this, function( global, undefined ) {
 
 	var _postal;
 	var prevPostal = global.postal;
