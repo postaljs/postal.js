@@ -33,7 +33,7 @@ var DistinctPredicate = function DistinctPredicateFactory() {
 	var previous = [];
 	return function DistinctPredicate( data ) {
 		var isDistinct = !_.any( previous, function( p ) {
-			if ( _.isObject( data ) || _.isArray( data ) ) {
+			if ( _.isObject( data ) || Array.isArray( data ) ) {
 				return _.isEqual( data, p );
 			}
 			return data === p;
@@ -156,7 +156,7 @@ SubscriptionDefinition.prototype = {
 	constraints: function constraints( predicates ) {
 		var self = this;
 		/* istanbul ignore else */
-		if ( _.isArray( predicates ) ) {
+		if ( Array.isArray( predicates ) ) {
 			predicates.forEach( function( predicate ) {
 				self.constraint( predicate );
 			} );

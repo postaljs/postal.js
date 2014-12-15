@@ -13,7 +13,6 @@
 			any: require( "lodash.some" ),
 			clone: require( "lodash.clone" ),
 			debounce: require( "lodash.debounce" ),
-			isArray: require( "lodash.isarray" ),
 			isEmpty: require( "lodash.isempty" ),
 			isEqual: require( "lodash.isequal" ),
 			isFunction: require( "lodash.isfunction" ),
@@ -39,7 +38,7 @@
 	//import("Api.js");
 
 	/*jshint -W106 */
-	if ( global && Object.prototype.hasOwnProperty.call( global, "__postalReady__" ) && _.isArray( global.__postalReady__ ) ) {
+	if ( global && Object.prototype.hasOwnProperty.call( global, "__postalReady__" ) && Array.isArray( global.__postalReady__ ) ) {
 		while (global.__postalReady__.length) {
 			global.__postalReady__.shift().onReady( _postal );
 		}
