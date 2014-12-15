@@ -11,7 +11,6 @@
 		var _ = {
 			after: require( "lodash.after" ),
 			any: require( "lodash.some" ),
-			bind: require( "lodash.bind" ),
 			clone: require( "lodash.clone" ),
 			debounce: require( "lodash.debounce" ),
 			each: require( "lodash.forEach" ),
