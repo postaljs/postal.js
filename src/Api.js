@@ -124,7 +124,7 @@ _postal = {
 			channel = self.subscriptions[key];
 			for ( subkey in channel ) {
 				subList = channel[subkey];
-				result = result.concat( _.filter( subList, getPredicate( options, self.configuration.resolver ) ) );
+				result = result.concat( subList.filter( getPredicate( options, self.configuration.resolver ) ) );
 			}
 		}
 		return result;
