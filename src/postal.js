@@ -8,8 +8,26 @@
 		} );
 	/* istanbul ignore else */
 	} else if ( typeof module === "object" && module.exports ) {
+		var _ = {
+			map: require( "lodash.map" ),
+			after: require( "lodash.after" ),
+			any: require( "lodash.some" ),
+			bind: require( "lodash.bind" ),
+			clone: require( "lodash.clone" ),
+			debounce: require( "lodash.debounce" ),
+			each: require( "lodash.forEach" ),
+			filter: require( "lodash.filter" ),
+			isArray: require( "lodash.isarray" ),
+			isEmpty: require( "lodash.isempty" ),
+			isEqual: require( "lodash.isequal" ),
+			isFunction: require( "lodash.isfunction" ),
+			isNumber: require( "lodash.isnumber" ),
+			isObject: require( "lodash.isobject" ),
+			isString: require( "lodash.isstring" ),
+			throttle: require( "lodash.throttle" ),
+		};
 		// Node, or CommonJS-Like environments
-		module.exports = factory( require( "lodash" ), this );
+		module.exports = factory( _, this );
 	} else {
 		// Browser globals
 		root.postal = factory( root._, root );

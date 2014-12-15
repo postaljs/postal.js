@@ -1,4 +1,5 @@
-/* global postal, _ */
+/* global postal */
+var _isEmpty = require( "lodash.isempty" );
 var NO_OP = function() {};
 describe( "postal.utils", function() {
 	beforeEach( function() {
@@ -46,10 +47,10 @@ describe( "postal.utils", function() {
 			( typeof sub._context === "undefined" ).should.be.ok;
 		} );
 		it( "subscriptions map should now be empty", function() {
-			_.isEmpty( postal.subscriptions ).should.be.ok;
+			_isEmpty( postal.subscriptions ).should.be.ok;
 		} );
 		it( "resolver cache should now be empty", function() {
-			_.isEmpty( postal.configuration.resolver.cache ).should.be.ok;
+			_isEmpty( postal.configuration.resolver.cache ).should.be.ok;
 		} );
 	} );
 	describe( "When calling postal.unsubscribeFor", function() {
