@@ -9,7 +9,6 @@
 	/* istanbul ignore else */
 	} else if ( typeof module === "object" && module.exports ) {
 		var _ = {};
-		_.any = require( "lodash.some" );
 		_.clone = require( "lodash.clone" );
 		_.debounce = require( "lodash.debounce" );
 		_.throttle = require( "lodash.throttle" );

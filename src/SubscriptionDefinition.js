@@ -32,13 +32,22 @@ var ConsecutiveDistinctPredicate = function() {
 var DistinctPredicate = function DistinctPredicateFactory() {
 	var previous = [];
 	return function DistinctPredicate( data ) {
-		var isDistinct = !_.any( previous, function( p ) {
+		var isDistinct = true;
+		previous.every( function( p ) {
 			var type = typeof data;
 			var isObject = type === "function" || (data && type === "object") || false;
 			if ( isObject || Array.isArray( data ) ) {
-				return _.isEqual( data, p );
+				if( _.isEqual( data, p ) ) {
+					isDistinct = false;
+					return false;
+				}
 			}
-			return data === p;
+			if( data === p ) {
+				isDistinct = false;
+				return false;
+			}
+
+			return true;
 		} );
 		if ( isDistinct ) {
 			previous.push( data );
