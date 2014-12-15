@@ -58,8 +58,10 @@ function getPredicate( options, resolver ) {
 	} else {
 		return function( sub ) {
 			var compared = 0,
-				matched = 0;
-			_.each( options, function( val, prop ) {
+				matched = 0,
+				prop, val;
+			for ( prop in options ) {//, function( val, prop ) {
+				val = options[prop];
 				compared += 1;
 				if (
 				// We use the bindings resolver to compare the options.topic to subDef.topic
@@ -69,7 +71,7 @@ function getPredicate( options, resolver ) {
 						|| ( sub[ prop ] === options[ prop ] ) ) {
 					matched += 1;
 				}
-			} );
+			}
 			return compared === matched;
 		};
 	}
@@ -117,11 +119,14 @@ _postal = {
 	getSubscribersFor: function getSubscribersFor( options ) {
 		var result = [];
 		var self = this;
-		_.each( self.subscriptions, function( channel ) {
-			_.each( channel, function( subList ) {
+		var key, channel, subkey, subList;
+		for ( key in self.subscriptions ) {
+			channel = self.subscriptions[key];
+			for ( subkey in channel ) {
+				subList = channel[subkey];
 				result = result.concat( _.filter( subList, getPredicate( options, self.configuration.resolver ) ) );
-			} );
-		} );
+			}
+		}
 		return result;
 	},
 
@@ -132,12 +137,13 @@ _postal = {
 		var topic = envelope.topic;
 		envelope.timeStamp = new Date();
 		if ( this.wireTaps.length ) {
-			_.each( this.wireTaps, function( tap ) {
+			this.wireTaps.forEach( function( tap ) {
 				tap( envelope.data, envelope, pubInProgress );
 			} );
 		}
 		var cacheKey = channel + configuration.cacheKeyDelimiter + topic;
 		var cache = this.cache[ cacheKey ];
+		var key;
 		if ( !cache ) {
 			cache = this.cache[ cacheKey ] = [];
 			var cacherFn = getCacher(
@@ -148,13 +154,17 @@ _postal = {
 					candidate.invokeSubscriber( envelope.data, envelope );
 				}
 			);
-			_.each( this.subscriptions[ channel ], function( candidates ) {
-				_.each( candidates, cacherFn );
-			} );
+			var candidates;
+			for( key in this.subscriptions[ channel ] ) {
+				candidates = this.subscriptions[ channel ][ key ];
+				candidates.forEach( cacherFn );
+			}
 		} else {
-			_.each( cache, function( subDef ) {
+			var subDef;
+			for( key in cache ) {
+				subDef = cache[key];
 				subDef.invokeSubscriber( envelope.data, envelope );
-			} );
+			}
 		}
 		if ( --pubInProgress === 0 ) {
 			clearUnSubQueue();
@@ -184,7 +194,9 @@ _postal = {
 		// First, add the SubscriptionDefinition to the channel list
 		subs.push( subDef );
 		// Next, add the SubscriptionDefinition to any relevant existing cache(s)
-		_.each( this.cache, function( list, cacheKey ) {
+		var list, cacheKey;
+		for( cacheKey in this.cache ) {
+			list = this.cache[ cacheKey ];
 			if ( cacheKey.substr( 0, channelLen ) === subDef.channel ) {
 				getCacher(
 					configuration,
@@ -192,7 +204,7 @@ _postal = {
 					list,
 					cacheKey )( subDef );
 			}
-		} );
+		}
 		/* istanbul ignore else */
 		if ( this.configuration.enableSystemMessages ) {
 			this.publish( sysCreatedMessage( subDef ) );
@@ -233,7 +245,7 @@ _postal = {
 				if ( subDef.cacheKeys && subDef.cacheKeys.length ) {
 					var key;
 					while (key = subDef.cacheKeys.pop()) {
-						_.each( this.cache[ key ], getCachePurger( subDef, key, this.cache ) );
+						this.cache[ key ].forEach( getCachePurger( subDef, key, this.cache ) );
 					}
 				}
 				if ( topicSubs.length === 0 ) {

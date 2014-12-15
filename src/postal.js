@@ -13,7 +13,6 @@
 			any: require( "lodash.some" ),
 			clone: require( "lodash.clone" ),
 			debounce: require( "lodash.debounce" ),
-			each: require( "lodash.forEach" ),
 			filter: require( "lodash.filter" ),
 			isArray: require( "lodash.isarray" ),
 			isEmpty: require( "lodash.isempty" ),

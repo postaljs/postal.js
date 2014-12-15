@@ -157,7 +157,7 @@ SubscriptionDefinition.prototype = {
 		var self = this;
 		/* istanbul ignore else */
 		if ( _.isArray( predicates ) ) {
-			_.each( predicates, function( predicate ) {
+			predicates.forEach( function( predicate ) {
 				self.constraint( predicate );
 			} );
 		}
