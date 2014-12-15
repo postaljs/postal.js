@@ -250,7 +250,7 @@ _postal = {
 				}
 				if ( topicSubs.length === 0 ) {
 					delete channelSubs[ subDef.topic ];
-					if ( _.isEmpty( channelSubs ) ) {
+					if ( !Object.keys( channelSubs ).length ) {
 						delete this.subscriptions[ subDef.channel ];
 					}
 				}

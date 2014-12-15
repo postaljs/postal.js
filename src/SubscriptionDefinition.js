@@ -18,7 +18,7 @@ var ConsecutiveDistinctPredicate = function() {
 	var previous;
 	return function( data ) {
 		var eq = false;
-		if ( _.isString( data ) ) {
+		if ( typeof data === "string" ) {
 			eq = data === previous;
 			previous = data;
 		} else {
@@ -33,7 +33,9 @@ var DistinctPredicate = function DistinctPredicateFactory() {
 	var previous = [];
 	return function DistinctPredicate( data ) {
 		var isDistinct = !_.any( previous, function( p ) {
-			if ( _.isObject( data ) || Array.isArray( data ) ) {
+			var type = typeof data;
+			var isObject = type === "function" || (data && type === "object") || false;
+			if ( isObject || Array.isArray( data ) ) {
 				return _.isEqual( data, p );
 			}
 			return data === p;
@@ -65,7 +67,7 @@ SubscriptionDefinition.prototype = {
 	},
 
 	disposeAfter: function disposeAfter( maxCalls ) {
-		if ( !_.isNumber( maxCalls ) || maxCalls <= 0 ) {
+		if ( typeof maxCalls !== "number" || maxCalls <= 0 ) {
 			throw new Error( "The value provided to disposeAfter (maxCalls) must be a number greater than zero." );
 		}
 		var self = this;
@@ -142,7 +144,7 @@ SubscriptionDefinition.prototype = {
 	},
 
 	constraint: function constraint( predicate ) {
-		if ( !_.isFunction( predicate ) ) {
+		if ( typeof predicate !== "function" ) {
 			throw new Error( "Predicate constraint must be a function" );
 		}
 		this.pipeline.push( function( data, env, next ) {
@@ -170,7 +172,7 @@ SubscriptionDefinition.prototype = {
 	},
 
 	debounce: function debounce( milliseconds, immediate ) {
-		if ( !_.isNumber( milliseconds ) ) {
+		if ( typeof milliseconds !== "number" ) {
 			throw new Error( "Milliseconds must be a number" );
 		}
 		var fn = function( data, env, next ) {
@@ -188,7 +190,7 @@ SubscriptionDefinition.prototype = {
 	},
 
 	delay: function delay( milliseconds ) {
-		if ( !_.isNumber( milliseconds ) ) {
+		if ( typeof milliseconds !== "number" ) {
 			throw new Error( "Milliseconds must be a number" );
 		}
 		var self = this;
@@ -201,7 +203,7 @@ SubscriptionDefinition.prototype = {
 	},
 
 	throttle: function throttle( milliseconds ) {
-		if ( !_.isNumber( milliseconds ) ) {
+		if ( typeof milliseconds !== "number" ) {
 			throw new Error( "Milliseconds must be a number" );
 		}
 		var fn = function( data, env, next ) {

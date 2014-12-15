@@ -8,19 +8,13 @@
 		} );
 	/* istanbul ignore else */
 	} else if ( typeof module === "object" && module.exports ) {
-		var _ = {
-			after: require( "lodash.after" ),
-			any: require( "lodash.some" ),
-			clone: require( "lodash.clone" ),
-			debounce: require( "lodash.debounce" ),
-			isEmpty: require( "lodash.isempty" ),
-			isEqual: require( "lodash.isequal" ),
-			isFunction: require( "lodash.isfunction" ),
-			isNumber: require( "lodash.isnumber" ),
-			isObject: require( "lodash.isobject" ),
-			isString: require( "lodash.isstring" ),
-			throttle: require( "lodash.throttle" ),
-		};
+		var _ = {};
+		_.after = require( "lodash.after" );
+		_.any = require( "lodash.some" );
+		_.clone = require( "lodash.clone" );
+		_.debounce = require( "lodash.debounce" );
+		_.throttle = require( "lodash.throttle" );
+		_.isEqual = require( "lodash.isequal" );
 		// Node, or CommonJS-Like environments
 		module.exports = factory( _, this );
 	} else {
