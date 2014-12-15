@@ -14,6 +14,72 @@ var SubscriptionDefinition = function( channel, topic, callback ) {
 	this._context = undefined;
 };
 
+var clone = function(data) {
+	var newObj = {};
+	for (var i in data) {
+		if (data[i] && typeof data[i] === "object") {
+			newObj[i] = clone(data[i]);
+		} else {
+			newObj[i] = data[i];
+		}
+	}
+	return newObj;
+};
+
+var equals = function(x, y) {
+	// if both x and y are null or undefined and exactly the same
+	if ( x === y ) {
+		return true;
+	}
+
+	// if they are not strictly equal, they both need to be Objects
+	if ( ! ( x instanceof Object ) || ! ( y instanceof Object ) ) {
+		return false;
+	}
+
+	// they must have the exact same prototype chain, the closest we can do is
+	// test there constructor.
+	if ( x.constructor !== y.constructor ) {
+		return false;
+	}
+
+	for ( var p in x ) {
+		// other properties were tested using x.constructor === y.constructor
+		if ( ! x.hasOwnProperty( p ) ) {
+			continue;
+		}
+
+		// allows to compare x[ p ] and y[ p ] when set to undefined
+		if ( ! y.hasOwnProperty( p ) ) {
+			return false;
+		}
+
+		// if they have the same strict value or identity then they are equal
+		if ( x[ p ] === y[ p ] ) {
+			continue;
+		}
+
+		// Numbers, Strings, Functions, Booleans must be strictly equal
+		if ( typeof( x[ p ] ) !== "object" ) {
+			return false;
+		}
+
+		// Objects and Arrays must be tested recursively
+		if ( ! equals( x[ p ],  y[ p ] ) ) {
+			return false;
+		}
+	}
+
+	for ( p in y ) {
+		// allows x[ p ] to be set to undefined
+		if ( y.hasOwnProperty( p ) && ! x.hasOwnProperty( p ) ) {
+			return false;
+		}
+	}
+
+	return true;
+};
+
 var ConsecutiveDistinctPredicate = function() {
 	var previous;
 	return function( data ) {
@@ -22,8 +88,8 @@ var ConsecutiveDistinctPredicate = function() {
 			eq = data === previous;
 			previous = data;
 		} else {
-			eq = _.isEqual( data, previous );
-			previous = _.clone( data );
+			eq = equals( data, previous );
+			previous = clone( data );
 		}
 		return !eq;
 	};
@@ -37,7 +103,7 @@ var DistinctPredicate = function DistinctPredicateFactory() {
 			var type = typeof data;
 			var isObject = type === "function" || (data && type === "object") || false;
 			if ( isObject || Array.isArray( data ) ) {
-				if( _.isEqual( data, p ) ) {
+				if( equals( data, p ) ) {
 					isDistinct = false;
 					return false;
 				}
@@ -53,6 +119,47 @@ var DistinctPredicate = function DistinctPredicateFactory() {
 			previous.push( data );
 		}
 		return isDistinct;
+	};
+};
+
+var debounceFn = function(func, wait, immediate) {
+	var timeout;
+	return function() {
+		var context = this, args = arguments;
+		var later = function() {
+			timeout = null;
+			if (!immediate) {
+				func.apply(context, args);
+			}
+		};
+		var callNow = immediate && !timeout;
+		clearTimeout(timeout);
+		timeout = setTimeout(later, wait);
+		if (callNow) {
+			func.apply(context, args);
+		}
+	};
+};
+
+var throttleFn = function(fn, threshhold, scope) {
+	threshhold = threshhold || 250;
+	var last, deferTimer;
+	return function () {
+		var context = scope || this;
+
+		var now = +new Date(),
+			args = arguments;
+		if (last && now < last + threshhold) {
+			// hold on to it
+			clearTimeout(deferTimer);
+			deferTimer = setTimeout(function () {
+				last = now;
+				fn.apply(context, args);
+			}, threshhold);
+		} else {
+			last = now;
+			fn.apply(context, args);
+		}
 	};
 };
 
@@ -191,7 +298,7 @@ SubscriptionDefinition.prototype = {
 			next( data, env );
 		};
 		this.pipeline.push(
-			_.debounce( function( data, env, next ) {
+			debounceFn( function( data, env, next ) {
 				next( data, env );
 			},
 				milliseconds,
@@ -221,7 +328,7 @@ SubscriptionDefinition.prototype = {
 		var fn = function( data, env, next ) {
 			next( data, env );
 		};
-		this.pipeline.push( _.throttle( fn, milliseconds ) );
+		this.pipeline.push( throttleFn( fn, milliseconds ) );
 		return this;
 	}
 };

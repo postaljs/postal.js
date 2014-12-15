@@ -8,13 +8,8 @@
 		} );
 	/* istanbul ignore else */
 	} else if ( typeof module === "object" && module.exports ) {
-		var _ = {};
-		_.clone = require( "lodash.clone" );
-		_.debounce = require( "lodash.debounce" );
-		_.throttle = require( "lodash.throttle" );
-		_.isEqual = require( "lodash.isequal" );
 		// Node, or CommonJS-Like environments
-		module.exports = factory( _, this );
+		module.exports = factory( {}, this );
 	} else {
 		// Browser globals
 		root.postal = factory( root._, root );

@@ -84,20 +84,7 @@
   "engines": {
     "node": ">=0.4.0"
   },
-  "dependencies": {
-    "lodash.after": "^2.4.1",
-    "lodash.clone": "^2.4.1",
-    "lodash.debounce": "^2.4.1",
-    "lodash.isarray": "^2.4.1",
-    "lodash.isempty": "^2.4.1",
-    "lodash.isequal": "^2.4.1",
-    "lodash.isfunction": "^2.4.1",
-    "lodash.isnumber": "^2.4.1",
-    "lodash.isobject": "^2.4.1",
-    "lodash.isstring": "^2.4.1",
-    "lodash.some": "^2.4.1",
-    "lodash.throttle": "^2.4.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "bower": "~1.2.8",
     "expect.js": "~0.2.0",
@@ -114,6 +101,7 @@
     "gulp-util": "~2.2.9",
     "istanbul": "^0.3.2",
     "karma": "^0.12.24",
+    "lodash.isempty": "^2.4.1",
     "mocha": "^2.0.1",
     "open": "~0.0.4",
     "should": "^4.0.4",
