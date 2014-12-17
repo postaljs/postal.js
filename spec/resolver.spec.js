@@ -56,13 +56,21 @@ describe( "amqpBindingsResolver", function() {
 				bindingsResolver.cache.should.not.have.ownProperty( "test|nope" );
 				bindingsResolver.cache.should.not.have.ownProperty( "nope|test" );
 			} );
-			it( "should return a valid result when disabling caching using the resolver configuration", function() {
-				bindingsResolver.resolverNoCache = true;
-				bindingsResolver.compare( "test", "test" ).should.equal( true );
-				bindingsResolver.compare( "test", "nope" ).should.equal( false );
-				bindingsResolver.cache.should.not.have.ownProperty( "test|test" );
-				bindingsResolver.cache.should.not.have.ownProperty( "test|nope" );
-				bindingsResolver.cache.should.not.have.ownProperty( "nope|test" );
+		} );
+		describe( "and not caching comparisons", function() {
+			before( function() {
+				postal.configuration.resolver.enableCache = false;
+			} );
+			after( function() {
+				postal.configuration.resolver.enableCache = true;
+			} );
+			it( "should NOT cache a passing comparison", function() {
+				bindingsResolver.compare( "test", "test" );
+				bindingsResolver.cache.should.be.empty;
+			} );
+			it( "should NOT cache a failing comparison", function() {
+				bindingsResolver.compare( "nope", "test" );
+				bindingsResolver.cache.should.be.empty;
 			} );
 		} );
 		describe( "With '*' wildcards", function() {

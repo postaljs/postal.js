@@ -1,3 +1,6 @@
+##v0.12.3
+* Merged in @efurmantt's PR to support toggling resolver cache on and off.
+
 ##v0.12.2
 * Fixed bug with `resolverNoCache` option where matches would fail if caching was disabled.
 

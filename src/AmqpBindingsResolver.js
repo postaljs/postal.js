@@ -1,19 +1,19 @@
 /*jshint -W098 */
 /* global postal, _config */
-var keyDelimiter = _config.cacheKeyDelimiter;
 
 var bindingsResolver = _config.resolver = {
 	cache: {},
 	regex: {},
+	enableCache: true,
 
 	compare: function compare( binding, topic, headerOptions ) {
 		var pattern;
 		var rgx;
 		var prevSegment;
-		var cacheKey = topic + keyDelimiter + binding;
+		var cacheKey = topic + _config.cacheKeyDelimiter + binding;
 		var result = ( this.cache[ cacheKey ] );
 		var opt = headerOptions || {};
-		var saveToCache = !opt.resolverNoCache && !this.resolverNoCache;
+		var saveToCache = this.enableCache && !opt.resolverNoCache;
 		// result is cached?
 		if ( result === true ) {
 			return result;
@@ -59,6 +59,7 @@ var bindingsResolver = _config.resolver = {
 
 	purge: function( options ) {
 		var self = this;
+		var keyDelimiter = _config.cacheKeyDelimiter;
 		var matchPredicate = function( val, key ) {
 			var split = key.split( keyDelimiter );
 			var topic = split[ 0 ];
