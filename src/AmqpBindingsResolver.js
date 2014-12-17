@@ -13,6 +13,7 @@ var bindingsResolver = _config.resolver = {
 		var cacheKey = topic + keyDelimiter + binding;
 		var result = ( this.cache[ cacheKey ] );
 		var opt = headerOptions || {};
+		var saveToCache = !opt.resolverNoCache && !this.resolverNoCache;
 		// result is cached?
 		if ( result === true ) {
 			return result;
@@ -20,7 +21,7 @@ var bindingsResolver = _config.resolver = {
 		// plain string matching?
 		if ( binding.indexOf( "#" ) === -1 && binding.indexOf( "*" ) === -1 ) {
 			result = ( topic === binding );
-			if ( !opt.resolverNoCache ) {
+			if ( saveToCache ) {
 				this.cache[ cacheKey ] = result;
 			}
 			return result;
@@ -45,7 +46,7 @@ var bindingsResolver = _config.resolver = {
 			rgx = this.regex[ binding ] = new RegExp( pattern );
 		}
 		result = rgx.test( topic );
-		if ( !opt.resolverNoCache ) {
+		if ( saveToCache ) {
 			this.cache[ cacheKey ] = result;
 		}
 		return result;
