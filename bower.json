@@ -22,7 +22,6 @@
         "url": "git://github.com/postaljs/postal.js.git"
     },
     "main": [
-        "lib/postal.min.js",
         "lib/postal.js"
     ],
     "dependencies": {
