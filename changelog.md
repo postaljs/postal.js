@@ -1,3 +1,7 @@
+##v0.12.4
+* Added support for publish metadata callback (thanks @arobson).
+* Removing minified output from bower.json's `main` array (thanks @iam-merlin).
+
 ##v0.12.3
 * Merged in @efurmantt's PR to support toggling resolver cache on and off.
 
