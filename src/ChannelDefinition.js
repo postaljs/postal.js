@@ -23,5 +23,5 @@ ChannelDefinition.prototype.publish = function() {
 			data: arguments[ 1 ]
 		};
 	envelope.channel = this.channel;
-	this.bus.publish( envelope );
+	return this.bus.publish( envelope );
 };
