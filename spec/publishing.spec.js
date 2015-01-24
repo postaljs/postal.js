@@ -22,9 +22,9 @@ describe( "postal.js - publishing", function() {
 		it( "should not compact the resolver cache", function() {
 			var subA = postal.subscribe( { channel: "clara", topic: "run.you.clever.*", callback: function() {} } );
 			var subB = postal.subscribe( { channel: "rose", topic: "bad.wolf", callback: function() {} } );
-			postal.publish( { channel: "clara", topic: "run.you.clever.boy", data: "RYCB" } );
-			postal.publish( { channel: "clara", topic: "run.you.clever.doctor", data: "RYCB" } );
-			postal.publish( { channel: "rose", topic: "bad.wolf", data: "bad wolf" } );
+			postal.publish( { channel: "clara", topic: "run.you.clever.boy", data: "RYCB" } ).should.equal( 1 );
+			postal.publish( { channel: "clara", topic: "run.you.clever.doctor", data: "RYCB" } ).should.equal( 1 );
+			postal.publish( { channel: "rose", topic: "bad.wolf", data: "bad wolf" } ).should.equal( 1 );
 			postal.configuration.resolver.cache.should.have.ownProperty( "run.you.clever.boy|run.you.clever.*" );
 			postal.configuration.resolver.cache.should.have.ownProperty( "run.you.clever.doctor|run.you.clever.*" );
 			postal.configuration.resolver.cache.should.have.ownProperty( "bad.wolf|bad.wolf" );
@@ -46,14 +46,14 @@ describe( "postal.js - publishing", function() {
 		it( "should compact the resolver cache on every unsubscribe", function() {
 			var subA = postal.subscribe( { channel: "clara", topic: "run.you.clever.*", callback: function() {} } );
 			var subB = postal.subscribe( { channel: "rose", topic: "bad.wolf", callback: function() {} } );
-			postal.publish( { channel: "clara", topic: "run.you.clever.boy", data: "RYCB" } );
-			postal.publish( { channel: "clara", topic: "run.you.clever.doctor", data: "RYCB" } );
+			postal.publish( { channel: "clara", topic: "run.you.clever.boy", data: "RYCB" } ).should.equal( 1 );
+			postal.publish( { channel: "clara", topic: "run.you.clever.doctor", data: "RYCB" } ).should.equal( 1 );
 			postal.configuration.resolver.cache.should.have.ownProperty( "run.you.clever.boy|run.you.clever.*" );
 			postal.configuration.resolver.cache.should.have.ownProperty( "run.you.clever.doctor|run.you.clever.*" );
 			subA.unsubscribe();
 			postal.configuration.resolver.cache.should.not.have.ownProperty( "run.you.clever.boy|run.you.clever.*" );
 			postal.configuration.resolver.cache.should.not.have.ownProperty( "run.you.clever.doctor|run.you.clever.*" );
-			postal.publish( { channel: "rose", topic: "bad.wolf", data: "bad wolf" } );
+			postal.publish( { channel: "rose", topic: "bad.wolf", data: "bad wolf" } ).should.equal( 1 );
 			postal.configuration.resolver.cache.should.have.ownProperty( "bad.wolf|bad.wolf" );
 			subB.unsubscribe();
 			postal.configuration.resolver.cache.should.not.have.ownProperty( "bad.wolf|bad.wolf" );
@@ -72,12 +72,12 @@ describe( "postal.js - publishing", function() {
 			var subB = postal.subscribe( { channel: "rose", topic: "bad.wolf", callback: function() {} } );
 			var subC = postal.subscribe( { channel: "amy", topic: "raggedy.*", callback: function() {} } );
 			var subD = postal.subscribe( { channel: "rory", topic: "roman.centurion", callback: function() {} } );
-			postal.publish( { channel: "clara", topic: "run.you.clever.boy", data: "RYCB" } );
-			postal.publish( { channel: "clara", topic: "run.you.clever.doctor", data: "RYCB" } );
-			postal.publish( { channel: "rose", topic: "bad.wolf", data: "bad wolf" } );
-			postal.publish( { channel: "amy", topic: "raggedy.man", data: "girl who waited" } );
-			postal.publish( { channel: "amy", topic: "raggedy.doctor", data: "girl who waited" } );
-			postal.publish( { channel: "rory", topic: "roman.centurion", data: "" } );
+			postal.publish( { channel: "clara", topic: "run.you.clever.boy", data: "RYCB" } ).should.equal( 1 );
+			postal.publish( { channel: "clara", topic: "run.you.clever.doctor", data: "RYCB" } ).should.equal( 1 );
+			postal.publish( { channel: "rose", topic: "bad.wolf", data: "bad wolf" } ).should.equal( 1 );
+			postal.publish( { channel: "amy", topic: "raggedy.man", data: "girl who waited" } ).should.equal( 1 );
+			postal.publish( { channel: "amy", topic: "raggedy.doctor", data: "girl who waited" } ).should.equal( 1 );
+			postal.publish( { channel: "rory", topic: "roman.centurion", data: "" } ).should.equal( 1 );
 			postal.configuration.resolver.cache.should.have.ownProperty( "run.you.clever.boy|run.you.clever.*" );
 			postal.configuration.resolver.cache.should.have.ownProperty( "run.you.clever.doctor|run.you.clever.*" );
 			postal.configuration.resolver.cache.should.have.ownProperty( "bad.wolf|bad.wolf" );
@@ -120,7 +120,7 @@ describe( "postal.js - publishing", function() {
 				headers: {
 					resolverNoCache: true
 				}
-			} );
+			} ).should.equal( 1 );
 			postal.configuration.resolver.cache.should.not.have.ownProperty( "bad.wolf|bad.wolf" );
 			subB.unsubscribe();
 			postal.configuration.resolver.cache.should.not.have.ownProperty( "run.you.clever.boy|run.you.clever.*" );
@@ -135,7 +135,7 @@ describe( "postal.js - publishing", function() {
 				headers: {
 					resolverNoCache: true
 				}
-			} );
+			} ).should.equal( 2 );
 			postal.configuration.resolver.cache.should.not.have.ownProperty( "bad.wolf|bad.wolf" );
 			subB.unsubscribe();
 			postal.configuration.resolver.cache.should.have.ownProperty( "run.you.clever.boy|run.you.clever.*" );

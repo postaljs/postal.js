@@ -132,12 +132,14 @@ _.extend( postal, {
 		}
 		var cacheKey = channel + _config.cacheKeyDelimiter + topic;
 		var cache = this.cache[ cacheKey ];
+		var recipients = 0;
 		if ( !cache ) {
 			cache = this.cache[ cacheKey ] = [];
 			var cacherFn = getCacher(
 				topic,
 				cache,
 				cacheKey, function( candidate ) {
+					recipients++;
 					candidate.invokeSubscriber( envelope.data, envelope );
 				},
 				envelope
@@ -147,12 +149,14 @@ _.extend( postal, {
 			} );
 		} else {
 			_.each( cache, function( subDef ) {
+				recipients++;
 				subDef.invokeSubscriber( envelope.data, envelope );
 			} );
 		}
 		if ( --pubInProgress === 0 ) {
 			clearUnSubQueue();
 		}
+		return recipients;
 	},
 
 	reset: function reset() {
