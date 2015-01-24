@@ -38,4 +38,26 @@ describe( "ChannelDefinition", function() {
 			ch.channel.should.equal( postal.configuration.DEFAULT_CHANNEL );
 		} );
 	} );
+	describe( "when publishing and subscribing directly on the channel with a callback", function() {
+		it( "should provide correct counts for both activated and skipped subscriptions", function() {
+			var channel = postal.channel( "Dalek" );
+			var cb = function() {};
+
+			var sub1 = channel.subscribe( { topic: "exterminate", callback: cb } ).constraint( function( x ) {
+				return x.target !== "Dalek";
+			} );
+
+			channel.publish( "derpxterminate", { target: "The Doctor" }, function( result ) {
+				result.should.eql( { activated: 0, skipped: 0 } );
+			} );
+
+			channel.publish( { topic: "exterminate", data: { target: "The Doctor" } }, function( result ) {
+				result.should.eql( { activated: 1, skipped: 0 } );
+			} );
+
+			channel.publish( { topic: "exterminate", data: { target: "Dalek" } }, function( result ) {
+				result.should.eql( { activated: 0, skipped: 1 } );
+			} );
+		} );
+	} );
 } );

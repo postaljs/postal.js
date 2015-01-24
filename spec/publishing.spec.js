@@ -141,4 +141,58 @@ describe( "postal.js - publishing", function() {
 			postal.configuration.resolver.cache.should.have.ownProperty( "run.you.clever.boy|run.you.clever.*" );
 		} );
 	} );
+
+	describe( "when publishing with a callback", function() {
+		it( "should provide correct counts for both activated and skipped subscriptions", function() {
+			var subACount = 0;
+			var subBCount = 0;
+			var subCCount = 0;
+			var subDCount = 0;
+			var subA = postal.subscribe( { channel: "rose", topic: "bad.wolf", callback: function() {
+					subACount++;
+			} } );
+			var subB = postal.subscribe( { channel: "rose", topic: "*.wolf", callback: function() {
+					subBCount++;
+			} } );
+			var subC = postal.subscribe( { channel: "rose", topic: "bad.*", callback: function() {
+					subCCount++;
+			} } );
+			var subD = postal.subscribe( { channel: "rose", topic: "#", callback: function() {
+					subDCount++;
+				}
+			} ).constraint( function( x ) {
+				return x.series === 1 || x.series === 2 || x.series === 4;
+			} );
+
+			var episodes = [
+				{ channel: "rose", topic: "bad.wolf", data: { ep: 1, series: 1 } },
+				{ channel: "rose", topic: "sonic.wolf", data: { ep: 2, series: 2 } },
+				{ channel: "rose", topic: "bad.sushi", data: { ep: 3, series: 3 } },
+				{ channel: "rose", topic: "good.doctor", data: { ep: 4, series: 4 } }
+			];
+
+			var metadata = {};
+
+			episodes.forEach( function( episode ) {
+				postal.publish( episode, function( result ) {
+					metadata[ episode.data.ep ] = result;
+				} );
+			} );
+
+			// verify the expected subscription calls
+			subACount.should.equal( 1 );
+			subBCount.should.equal( 2 );
+			subCCount.should.equal( 2 );
+			subDCount.should.equal( 3 );
+
+			// verify that each message activated the expected subscriptions
+			// and that the constraint incremented the skipped counter
+			metadata.should.eql( {
+				1: { activated: 4, skipped: 0 },
+				2: { activated: 2, skipped: 0 },
+				3: { activated: 1, skipped: 1 },
+				4: { activated: 1, skipped: 0 }
+			} );
+		} );
+	} );
 } );

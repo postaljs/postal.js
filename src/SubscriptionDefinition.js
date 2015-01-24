@@ -95,8 +95,10 @@ SubscriptionDefinition.prototype = {
 			var len = pipeline.length;
 			var context = self._context;
 			var idx = -1;
+			var invoked = false;
 			if ( !len ) {
 				self.callback.call( context, data, env );
+				invoked = true;
 			} else {
 				pipeline = pipeline.concat( [ self.callback ] );
 				var step = function step( d, e ) {
@@ -105,10 +107,12 @@ SubscriptionDefinition.prototype = {
 						pipeline[ idx ].call( context, d, e, step );
 					} else {
 						self.callback.call( context, d, e );
+						invoked = true;
 					}
 				};
 				step( data, env, 0 );
 			}
+			return invoked;
 		}
 	},
 

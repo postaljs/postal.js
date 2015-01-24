@@ -14,14 +14,14 @@ ChannelDefinition.prototype.subscribe = function() {
 };
 
 ChannelDefinition.prototype.publish = function() {
-	var envelope = arguments.length === 1 ?
-		( Object.prototype.toString.call( arguments[ 0 ] ) === "[object String]" ? {
-			topic: arguments[ 0 ]
-		} :
-		arguments[ 0 ] ) : {
-			topic: arguments[ 0 ],
-			data: arguments[ 1 ]
-		};
+	var envelope, callback;
+	if ( arguments.length === 1 ) {
+		envelope = Object.prototype.toString.call( arguments[ 0 ] ) === "[object String]" ? { topic: arguments[ 0 ] } : arguments[ 0 ];
+		callback = arguments[ 1 ];
+	} else {
+		envelope = { topic: arguments[ 0 ], data: arguments[ 1 ] };
+		callback = arguments[ 2 ];
+	}
 	envelope.channel = this.channel;
-	this.bus.publish( envelope );
+	this.bus.publish( envelope, callback );
 };

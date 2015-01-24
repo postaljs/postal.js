@@ -120,7 +120,7 @@ _.extend( postal, {
 		return result;
 	},
 
-	publish: function publish( envelope ) {
+	publish: function publish( envelope, cb ) {
 		++pubInProgress;
 		var channel = envelope.channel = envelope.channel || _config.DEFAULT_CHANNEL;
 		var topic = envelope.topic;
@@ -132,13 +132,19 @@ _.extend( postal, {
 		}
 		var cacheKey = channel + _config.cacheKeyDelimiter + topic;
 		var cache = this.cache[ cacheKey ];
+		var skipped = 0;
+		var activated = 0;
 		if ( !cache ) {
 			cache = this.cache[ cacheKey ] = [];
 			var cacherFn = getCacher(
 				topic,
 				cache,
 				cacheKey, function( candidate ) {
-					candidate.invokeSubscriber( envelope.data, envelope );
+					if ( candidate.invokeSubscriber( envelope.data, envelope ) ) {
+						activated++;
+					} else {
+						skipped++;
+					}
 				},
 				envelope
 			);
@@ -147,11 +153,21 @@ _.extend( postal, {
 			} );
 		} else {
 			_.each( cache, function( subDef ) {
-				subDef.invokeSubscriber( envelope.data, envelope );
+				if ( subDef.invokeSubscriber( envelope.data, envelope ) ) {
+					activated++;
+				} else {
+					skipped++;
+				}
 			} );
 		}
 		if ( --pubInProgress === 0 ) {
 			clearUnSubQueue();
+		}
+		if ( cb ) {
+			cb( {
+				activated: activated,
+				skipped: skipped
+			} );
 		}
 	},
 
