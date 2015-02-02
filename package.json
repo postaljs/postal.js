@@ -84,9 +84,7 @@
   "engines": {
     "node": ">=0.4.0"
   },
-  "dependencies": {
-    "lodash": "~2.4.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "bower": "~1.2.8",
     "expect.js": "~0.2.0",
@@ -103,6 +101,7 @@
     "gulp-util": "~2.2.9",
     "istanbul": "^0.3.2",
     "karma": "^0.12.24",
+    "lodash": "^3.0.1",
     "mocha": "^2.0.1",
     "open": "~0.0.4",
     "should": "^4.0.4",
