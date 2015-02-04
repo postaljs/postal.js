@@ -22,6 +22,7 @@
 
 	var prevPostal = global.postal;
 	var _defaultConfig = {
+		minDash: _,
 		DEFAULT_CHANNEL: "/",
 		SYSTEM_CHANNEL: "postal",
 		enableSystemMessages: true,

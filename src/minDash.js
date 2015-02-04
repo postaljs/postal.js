@@ -106,7 +106,7 @@ var minDash = {
                 return false;
             }
 
-            if ( ! Object.equals( x[ p ],  y[ p ] ) ) {
+            if ( ! minDash.isEqual( x[ p ],  y[ p ] ) ) {
                 return false;
             }
         }
