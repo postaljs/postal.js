@@ -239,7 +239,7 @@ _.extend( postal, {
 				}
 				if ( topicSubs.length === 0 ) {
 					delete channelSubs[ subDef.topic ];
-					if ( _.isEmpty( channelSubs ) ) {
+					if ( !_.keys( channelSubs ).length ) {
 						delete this.subscriptions[ subDef.channel ];
 					}
 				}

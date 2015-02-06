@@ -1,18 +1,20 @@
 /*jshint -W098 */
 (function( root, factory ) {
+	//import("mindash.js");
+
 	/* istanbul ignore if  */
 	if ( typeof define === "function" && define.amd ) {
 		// AMD. Register as an anonymous module.
-		define( [ "lodash" ], function( _ ) {
+		define(function() {
 			return factory( _, root );
 		} );
 	/* istanbul ignore else */
 	} else if ( typeof module === "object" && module.exports ) {
 		// Node, or CommonJS-Like environments
-		module.exports = factory( require( "lodash" ), this );
+		module.exports = factory( _, this );
 	} else {
 		// Browser globals
-		root.postal = factory( root._, root );
+		root.postal = factory( _, root );
 	}
 }( this, function( _, global, undefined ) {
 

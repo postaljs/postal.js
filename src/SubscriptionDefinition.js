@@ -18,12 +18,12 @@ var ConsecutiveDistinctPredicate = function() {
 	var previous;
 	return function( data ) {
 		var eq = false;
-		if ( _.isString( data ) ) {
+		if ( typeof data == 'string' ) {
 			eq = data === previous;
 			previous = data;
 		} else {
 			eq = _.isEqual( data, previous );
-			previous = _.clone( data );
+			previous = _.extend( {}, data );
 		}
 		return !eq;
 	};
@@ -33,11 +33,7 @@ var DistinctPredicate = function DistinctPredicateFactory() {
 	var previous = [];
 	return function DistinctPredicate( data ) {
 		var isDistinct = !_.any( previous, function( p ) {
-			if ( _.isObject( data ) || _.isArray( data ) ) {
-				return _.isEqual( data, p );
-			} else {
-				return data === p;
-			}
+			return _.isEqual( data, p );
 		} );
 		if ( isDistinct ) {
 			previous.push( data );
@@ -66,7 +62,7 @@ SubscriptionDefinition.prototype = {
 	},
 
 	disposeAfter: function disposeAfter( maxCalls ) {
-		if ( !_.isNumber( maxCalls ) || maxCalls <= 0 ) {
+		if ( typeof maxCalls != 'number' || maxCalls <= 0 ) {
 			throw new Error( "The value provided to disposeAfter (maxCalls) must be a number greater than zero." );
 		}
 		var self = this;
@@ -147,7 +143,7 @@ SubscriptionDefinition.prototype = {
 	},
 
 	constraint: function constraint( predicate ) {
-		if ( !_.isFunction( predicate ) ) {
+		if ( typeof predicate != 'function' ) {
 			throw new Error( "Predicate constraint must be a function" );
 		}
 		this.pipeline.push( function( data, env, next ) {
@@ -161,11 +157,9 @@ SubscriptionDefinition.prototype = {
 	constraints: function constraints( predicates ) {
 		var self = this;
 		/* istanbul ignore else */
-		if ( _.isArray( predicates ) ) {
-			_.each( predicates, function( predicate ) {
-				self.constraint( predicate );
-			} );
-		}
+		_.each( predicates, function( predicate ) {
+			self.constraint( predicate );
+		} );
 		return self;
 	},
 
@@ -175,7 +169,7 @@ SubscriptionDefinition.prototype = {
 	},
 
 	debounce: function debounce( milliseconds, immediate ) {
-		if ( !_.isNumber( milliseconds ) ) {
+		if ( typeof milliseconds != 'number' ) {
 			throw new Error( "Milliseconds must be a number" );
 		}
 		this.pipeline.push(
@@ -190,7 +184,7 @@ SubscriptionDefinition.prototype = {
 	},
 
 	delay: function delay( milliseconds ) {
-		if ( !_.isNumber( milliseconds ) ) {
+		if ( typeof milliseconds != 'number' ) {
 			throw new Error( "Milliseconds must be a number" );
 		}
 		var self = this;
@@ -203,7 +197,7 @@ SubscriptionDefinition.prototype = {
 	},
 
 	throttle: function throttle( milliseconds ) {
-		if ( !_.isNumber( milliseconds ) ) {
+		if ( typeof milliseconds != 'number' ) {
 			throw new Error( "Milliseconds must be a number" );
 		}
 		var fn = function( data, env, next ) {
