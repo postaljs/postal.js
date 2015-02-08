@@ -49,13 +49,49 @@ gulp.task( "combine.postal", function() {
 		.pipe( gulp.dest( "./lib/" ) );
 } );
 
-gulp.task( "default", [ "combine" ] );
+gulp.task( "combine.postal-lodash", function() {
+	return gulp.src( [ "./src/postal.lodash.js" ] )
+		.pipe( header( banner, {
+			pkg: pkg
+		} ) )
+		.pipe( fileImports() )
+		.pipe( hintNot() )
+		.pipe( beautify( {
+			indentSize: 4,
+			preserveNewlines: false
+		} ) )
+		.pipe( gulp.dest( "./lib/" ) )
+		.pipe( uglify( {
+			compress: {
+				negate_iife: false //jshint ignore:line
+			}
+		} ) )
+		.pipe( header( banner, {
+			pkg: pkg
+		} ) )
+		.pipe( rename( "postal.lodash.min.js" ) )
+		.pipe( gulp.dest( "./lib/" ) );
+} );
+
+gulp.task( "default", [ "combine", "combine.postal-lodash" ] );
 
 var mocha = require( "gulp-spawn-mocha" );
 gulp.task( "mocha", function() {
 	return gulp.src( [ "spec/**/*.spec.js" ], { read: false } )
 		.pipe( mocha( {
 			require: [ "spec/helpers/node-setup.js" ],
+			reporter: "spec",
+			colors: true,
+			inlineDiffs: true,
+			debug: false
+		} ) )
+		.on( "error", console.warn.bind( console ) );
+} );
+
+gulp.task( "mocha-lodash", function() {
+	return gulp.src( [ "spec/**/*.spec.js" ], { read: false } )
+		.pipe( mocha( {
+			require: [ "spec/helpers/node-lodash-build-setup.js" ],
 			reporter: "spec",
 			colors: true,
 			inlineDiffs: true,

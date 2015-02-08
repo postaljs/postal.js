@@ -1,8 +1,8 @@
 # Postal.js
 
-## Version 0.12.4 ([MIT](http://www.opensource.org/licenses/mit-license))
+## Version 1.0.0 ([MIT](http://www.opensource.org/licenses/mit-license))
 
-> See the [changelog](https://github.com/postaljs/postal.js/blob/master/changelog.md) for information on if the current version of postal has breaking changes compared to any older version(s) you might be using. Version 0.11+ removed the dependency on ConduitJS and significantly improved publishing performance.
+> See the [changelog](https://github.com/postaljs/postal.js/blob/master/changelog.md) for information on if the current version of postal has breaking changes compared to any older version(s) you might be using. Version 0.11+ removed the dependency on ConduitJS and significantly improved publishing performance. Version 1.0+ added an optional embedded-and-customized-lodash build.
 
 ## What is it?
 Postal.js is an in-memory message bus - very loosely inspired by [AMQP](http://www.amqp.org/) - written in JavaScript. Postal.js runs in the browser, or on the server using node.js. It takes the familiar "eventing-style" paradigm (of which most JavaScript developers are familiar) and extends it by providing "broker" and subscriber implementations which are more sophisticated than what you typically find in simple event emitting/aggregation.
@@ -193,13 +193,17 @@ It's also possible to extend the monitoring of messages passing through Postal b
 ## Build, Dependencies, etc.
 
 * postal depends on [lodash.js](http://lodash.com/)
+    * The standard postal build output (`lib/postal.js`) is what you would normally use if you're already using lodash in your app.
+    * The `lib/postal.lodash.js` build output might be of interest to you if these things are true:
+        * You're using webpack, browserify or another bundler/loader capable of loading CommonJS modules.
+        * You only need the specific bits of lodash used by postal and don't need the full lib.
 * postal uses [gulp.js](http://gulpjs.com/) for building, running tests and examples.
 	* To build
         * run `npm install` (to install all deps)
         * run `bower install` (yep, we're using at least one thing only found on bower in the local project runner)
         * run `npm run build` (this is just an alias for `gulp` at the moment, which you can also use) - then check the lib folder for the output
     * To run tests & examples
-        * Tests are node-based: `npm test`
+        * Tests are node-based: `npm test` (or `npm run test-lodash` to test the custom lodash build output)
         * To run browser-based examples:
             * run `npm start`
             * navigate in your browser to <http://localhost:3080/>

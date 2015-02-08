@@ -1,7 +1,7 @@
 {
   "name": "postal",
   "description": "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
-  "version": "0.12.4",
+  "version": "1.0.0",
   "homepage": "http://github.com/postaljs/postal.js",
   "repository": {
     "type": "git",
@@ -11,37 +11,30 @@
   "contributors": [
     {
       "name": "Jim Cowart",
-      "email": "WhyNotJustComment@OnMyBlog.com",
       "url": "http://ifandelse.com"
     },
     {
       "name": "Alex Robson",
-      "email": "WhyNotJustComment@OnMyBlog.com",
       "url": "http://nerdventure.io"
     },
     {
       "name": "Nicholas Cloud",
-      "email": "WhyNotJustComment@OnMyBlog.com",
       "url": "http://nicholascloud.com"
     },
     {
       "name": "Doug Neiner",
-      "email": "WhyNotJustComment@OnMyBlog.com",
       "url": "http://dougneiner.com"
     },
     {
       "name": "Jonathan Creamer",
-      "email": "WhyNotJustComment@OnMyBlog.com",
       "url": "http://freshbrewedcode.com/jonathancreamer"
     },
     {
       "name": "Elijah Manor",
-      "email": "WhyNotJustComment@OnMyBlog.com",
       "url": "http://www.elijahmanor.com"
     },
     {
       "name": "Ger Hobbelt",
-      "email": "ger@hobbelt.com",
       "url": "http://hebbut.net/"
     },
     {
@@ -59,6 +52,10 @@
     {
       "name": "Anthony van der Hoorn",
       "url": "http://blog.anthonyvanderhoorn.com/"
+    },
+    {
+      "name": "John-David Dalton",
+      "url": "http://www.allyoucanleet.com"
     }
   ],
   "keywords": [
@@ -117,6 +114,7 @@
   "scripts": {
     "build": "gulp",
     "test": "./node_modules/mocha/bin/mocha -r spec/helpers/node-setup.js spec",
+    "test-lodash": "./node_modules/mocha/bin/mocha -r spec/helpers/node-lodash-build-setup.js spec",
     "coverage": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -x 'spec/**/*'  -- -r spec/helpers/node-setup.js spec spec/*.spec.js",
     "show-coverage": "open ./coverage/lcov-report/index.html",
     "start": "gulp server"
