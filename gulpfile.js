@@ -12,6 +12,9 @@ var path = require( "path" );
 var pkg = require( "./package.json" );
 var open = require( "open" ); //jshint ignore:line
 var port = 3080;
+var browserify = require('browserify');
+var source = require('vinyl-source-stream');
+var buffer = require('vinyl-buffer');
 
 var banner = [ "/**",
 	" * <%= pkg.name %> - <%= pkg.description %>",
@@ -130,4 +133,27 @@ gulp.task( "server", [ "combine" ], function() {
 gulp.task( "watch", [ "default", "mocha" ], function() {
 	gulp.watch( "src/**/*", [ "default" ] );
 	gulp.watch( "{lib,spec}/**/*", [ "mocha" ] );
+} );
+
+gulp.task( "browserify.postal-lodash", [ "combine.postal-lodash" ], function() {
+	var bundler = browserify( {
+		entries: [ './lib/postal.lodash.js' ],
+		debug: false
+	} );
+
+	bundler.plugin( "bundle-collapser/plugin" );
+
+	return bundler
+		.bundle()
+		.pipe( source( 'postal.lodash.bundle.js' ) )
+		.pipe( buffer() )
+		.pipe( gulp.dest( './lib/' ) )
+		.pipe( uglify( {
+			compress: {
+				negate_iife: false //jshint ignore:line
+			}
+		} ) )
+		.pipe( rename( 'postal.lodash.bundle.min.js' ) )
+		.pipe( gulp.dest( './lib/' ) );
+
 } );
