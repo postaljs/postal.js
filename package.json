@@ -86,6 +86,7 @@
   },
   "devDependencies": {
     "bower": "~1.2.8",
+    "browserify": "^9.0.3",
     "expect.js": "~0.2.0",
     "express": "~3.4.7",
     "gulp": "^3.8.8",
@@ -103,7 +104,9 @@
     "mocha": "^2.0.1",
     "open": "~0.0.4",
     "should": "^4.0.4",
-    "sinon": "~1.11.1"
+    "sinon": "~1.11.1",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.0.0"
   },
   "licenses": [
     {
