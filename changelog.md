@@ -1,3 +1,7 @@
+## v1.0.2
+
+* Updated lodash dependency to 3.x.
+
 ## v1.0.0
 * 3.5 years in the making, 1.0 finally arrives! :-)
 * Updated lodash dependency to ~3.1.0

@@ -1,11 +1,14 @@
 {
   "name": "postal",
   "description": "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "homepage": "http://github.com/postaljs/postal.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/postaljs/postal.js.git"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
   },
   "author": "Jim Cowart (http://ifandelse.com)",
   "contributors": [
@@ -82,7 +85,7 @@
     "node": ">=0.4.0"
   },
   "dependencies": {
-    "lodash": "~3.3.1"
+    "lodash": "3.x"
   },
   "devDependencies": {
     "bower": "~1.2.8",

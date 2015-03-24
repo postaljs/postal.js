@@ -1,6 +1,6 @@
 {
     "name": "postal.js",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
     "homepage": "https://github.com/postaljs/postal.js",
     "keywords": [
@@ -25,7 +25,7 @@
         "lib/postal.js"
     ],
     "dependencies": {
-        "lodash": "~3.3.1"
+        "lodash": "3.x"
     },
     "devDependencies": {
         "jquery": "~1.10.2",
