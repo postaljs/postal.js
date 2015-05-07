@@ -1,7 +1,6 @@
 // From https://github.com/newtriks/react-automation-example/blob/master/test/helpers/phantomjs-shims.js
 
-(function() {
-
+( function() {
 	var Ap = Array.prototype;
 	var slice = Ap.slice;
 	var Fp = Function.prototype;
@@ -33,4 +32,4 @@
 			return bound;
 		};
 	}
-})();
+} )();

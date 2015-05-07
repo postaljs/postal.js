@@ -1,7 +1,7 @@
 {
   "name": "postal",
   "description": "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "homepage": "http://github.com/postaljs/postal.js",
   "repository": {
     "type": "git",
@@ -88,25 +88,28 @@
     "lodash": "3.x"
   },
   "devDependencies": {
-    "bower": "~1.2.8",
-    "expect.js": "~0.2.0",
-    "express": "~3.4.7",
+    "bower": "^1.4.1",
+    "express": "^4.12.3",
     "gulp": "^3.8.8",
-    "gulp-beautify": "~1.0.3",
-    "gulp-header": "~1.0.2",
+    "gulp-beautify": "^1.1.2",
+    "gulp-changed": "^1.2.1",
+    "gulp-header": "^1.2.2",
     "gulp-hint-not": "~0.0.3",
     "gulp-imports": "~0.0.1",
-    "gulp-plato": "^0.2.1",
-    "gulp-rename": "^1.2.0",
-    "gulp-spawn-mocha": "^0.5.1",
-    "gulp-uglify": "^0.3.0",
+    "gulp-jscs": "^1.6.0",
+    "gulp-jshint": "^1.10.0",
+    "gulp-plato": "^1.0.2",
+    "gulp-rename": "^1.2.2",
+    "gulp-spawn-mocha": "^2.0.1",
+    "gulp-uglify": "^1.2.0",
     "gulp-util": "~2.2.9",
-    "istanbul": "^0.3.2",
-    "karma": "^0.12.24",
-    "mocha": "^2.0.1",
+    "istanbul": "^0.3.13",
+    "jshint-stylish": "^1.0.2",
+    "karma": "^0.12.31",
+    "mocha": "^2.2.4",
     "open": "~0.0.4",
-    "should": "^4.0.4",
-    "sinon": "~1.11.1"
+    "should": "^6.0.1",
+    "sinon": "~1.14.1"
   },
   "licenses": [
     {

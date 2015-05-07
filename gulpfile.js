@@ -12,6 +12,9 @@ var path = require( "path" );
 var pkg = require( "./package.json" );
 var open = require( "open" ); //jshint ignore:line
 var port = 3080;
+var jshint = require( "gulp-jshint" );
+var jscs = require( "gulp-jscs" );
+var gulpChanged = require( "gulp-changed" );
 
 var banner = [ "/**",
 	" * <%= pkg.name %> - <%= pkg.description %>",
@@ -25,7 +28,7 @@ var banner = [ "/**",
 
 gulp.task( "combine", [ "combine.postal" ] );
 
-gulp.task( "combine.postal", function() {
+gulp.task( "combine.postal", [ "format" ], function() {
 	return gulp.src( [ "./src/postal.js" ] )
 		.pipe( header( banner, {
 			pkg: pkg
@@ -49,7 +52,7 @@ gulp.task( "combine.postal", function() {
 		.pipe( gulp.dest( "./lib/" ) );
 } );
 
-gulp.task( "combine.postal-lodash", function() {
+gulp.task( "combine.postal-lodash", [ "format" ], function() {
 	return gulp.src( [ "./src/postal.lodash.js" ] )
 		.pipe( header( banner, {
 			pkg: pkg
@@ -130,4 +133,21 @@ gulp.task( "server", [ "combine" ], function() {
 gulp.task( "watch", [ "default", "mocha" ], function() {
 	gulp.watch( "src/**/*", [ "default" ] );
 	gulp.watch( "{lib,spec}/**/*", [ "mocha" ] );
+} );
+
+gulp.task( "jshint", function() {
+	return gulp.src( [ "src/**/*.js", "spec/**/*.js" ] )
+		.pipe( jshint() )
+		.pipe( jshint.reporter( "jshint-stylish" ) )
+		.pipe( jshint.reporter( "fail" ) );
+} );
+
+gulp.task( "format", [ "jshint" ], function() {
+	return gulp.src( [ "./src/**/*.js", "!node_modules/**" ] )
+		.pipe( jscs( {
+			configPath: ".jscsrc",
+			fix: true
+		} ) )
+		.pipe( gulpChanged( "./src", { hasChanged: gulpChanged.compareSha1Digest } ) )
+		.pipe( gulp.dest( "./src" ) );
 } );

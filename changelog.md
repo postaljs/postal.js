@@ -1,3 +1,7 @@
+## v1.0.3
+
+* Fixed memory leak issue referred to [here](https://github.com/postaljs/postal.js/issues/95#issuecomment-99336472). Postal will not place subscriptions in the lookup cache if the `resolverNoCache` header is present on the published envelope.
+
 ## v1.0.2
 
 * Updated lodash dependency to 3.x.

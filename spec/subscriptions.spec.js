@@ -2,7 +2,7 @@
 
 var sinon = require( "sinon" );
 
-var subFactory = (function() {
+var subFactory = ( function() {
 	var idx = 0;
 	return {
 		next: function( callback ) {
@@ -14,7 +14,7 @@ var subFactory = (function() {
 			} );
 		}
 	};
-}());
+}() );
 
 var NO_OP = function() {};
 var systemMessages = [];
@@ -116,7 +116,6 @@ describe( "postal.js - subscriptions", function() {
 				topic: sub.topic,
 				data: { msg: "Bad Wolf" }
 			} );
-
 		} );
 	} );
 	describe( "When subscribing and specifying the context", function() {
@@ -162,7 +161,7 @@ describe( "postal.js - subscriptions", function() {
 				res.push( d.msg );
 				name = this.name;
 			} ).disposeAfter( 4 ).context( ctxObj );
-			while (i < 4) {
+			while ( i < 4 ) {
 				postal.publish( {
 					channel: sub.channel,
 					topic: sub.topic,
@@ -177,18 +176,16 @@ describe( "postal.js - subscriptions", function() {
 		it( "should throw an exception if the provided argument is not a number", function() {
 			try {
 				var sub = subFactory.next( function( d, e ) {} ).disposeAfter( "fantastic" );
-			} catch (ex) {
+			} catch ( ex ) {
 				ex.should.be.instanceOf( Error );
 			}
-
 		} );
 		it( "should throw an exception if the provided argument is not a number", function() {
 			try {
 				var sub = subFactory.next( function( d, e ) {} ).disposeAfter( "fantastic" );
-			} catch (ex) {
+			} catch ( ex ) {
 				ex.should.be.instanceOf( Error );
 			}
-
 		} );
 	} );
 	describe( "When subscribing with `distinct`", function() {
@@ -389,7 +386,7 @@ describe( "postal.js - subscriptions", function() {
 				res.push( d.msg );
 				name = this.actor;
 			} ).once().context( ctxObj );
-			while (i < 5) {
+			while ( i < 5 ) {
 				postal.publish( {
 					channel: sub.channel,
 					topic: sub.topic,
@@ -413,7 +410,7 @@ describe( "postal.js - subscriptions", function() {
 				name = this.actor;
 				return ( d.season >= 2 && d.season <= 4 );
 			} ).context( ctxObj );
-			while (i < 8) {
+			while ( i < 8 ) {
 				postal.publish( {
 					channel: sub.channel,
 					topic: sub.topic,
@@ -435,7 +432,7 @@ describe( "postal.js - subscriptions", function() {
 				name = this.actor;
 				return ( d.season >= 5 && d.season <= 8 );
 			} ).context( ctxObj );
-			while (i < 5) {
+			while ( i < 5 ) {
 				postal.publish( {
 					channel: sub.channel,
 					topic: sub.topic,
@@ -449,7 +446,7 @@ describe( "postal.js - subscriptions", function() {
 		it( "should throw an exception if the value provided is not a function", function() {
 			try {
 				var sub = subFactory.next( function( d, e ) {} ).constraint( 123 );
-			} catch (ex) {
+			} catch ( ex ) {
 				ex.should.be.instanceOf( Error );
 			}
 		} );
@@ -537,7 +534,7 @@ describe( "postal.js - subscriptions", function() {
 		it( "should throw an exception if the value provided is not a number", function() {
 			try {
 				var sub = subFactory.next( function( d, e ) {} ).debounce( "gently" );
-			} catch (ex) {
+			} catch ( ex ) {
 				ex.should.be.instanceOf( Error );
 			}
 		} );
@@ -565,7 +562,7 @@ describe( "postal.js - subscriptions", function() {
 		it( "should throw an exception if the value provided is not a number", function() {
 			try {
 				var sub = subFactory.next( function( d, e ) {} ).delay( "gently" );
-			} catch (ex) {
+			} catch ( ex ) {
 				ex.should.be.instanceOf( Error );
 			}
 		} );
@@ -585,7 +582,7 @@ describe( "postal.js - subscriptions", function() {
 			setTimeout( function() {
 				channel.publish( sub.topic, 800 );
 			}, 800 ); // should invoke callback
-			for (var i = 0; i < 20; i++) {
+			for ( var i = 0; i < 20; i++ ) {
 				throttlePub( i );
 			}
 			setTimeout( function() {
@@ -598,7 +595,7 @@ describe( "postal.js - subscriptions", function() {
 		it( "should throw an exception if the value provided is not a number", function() {
 			try {
 				var sub = subFactory.next( function( d, e ) {} ).throttle( "gently" );
-			} catch (ex) {
+			} catch ( ex ) {
 				ex.should.be.instanceOf( Error );
 			}
 		} );
@@ -623,7 +620,7 @@ describe( "postal.js - subscriptions", function() {
 					name = this.actor;
 					return ( d.season >= 2 && d.season <= 4 );
 				} ).context( ctxObj ).defer();
-				while (i < 8) {
+				while ( i < 8 ) {
 					postal.publish( {
 						channel: sub.channel,
 						topic: sub.topic,

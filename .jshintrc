@@ -84,7 +84,6 @@
 	"yui"         : false,  //defines globals exposed by the YUI JavaScript framework
 
 	"predef" : [  // Custom globals.
-		"_",
 		"define"
 	],
 

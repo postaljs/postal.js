@@ -1,5 +1,6 @@
 /*jshint -W098 */
-(function( root, factory ) {
+/* global _ */
+( function( root, factory ) {
 	//import("mindash.js");
 
 	/* istanbul ignore if  */
@@ -17,7 +18,6 @@
 		root.postal = factory( _, root );
 	}
 }( this, function( _, global, undefined ) {
-
 	var prevPostal = global.postal;
 	var _defaultConfig = {
 		DEFAULT_CHANNEL: "/",
@@ -38,11 +38,11 @@
 
 	/*jshint -W106 */
 	if ( global && Object.prototype.hasOwnProperty.call( global, "__postalReady__" ) && _.isArray( global.__postalReady__ ) ) {
-		while (global.__postalReady__.length) {
+		while ( global.__postalReady__.length ) {
 			global.__postalReady__.shift().onReady( postal );
 		}
 	}
 	/*jshint +W106 */
 
 	return postal;
-} ));
+} ) );

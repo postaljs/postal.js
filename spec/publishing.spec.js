@@ -3,6 +3,7 @@ describe( "postal.js - publishing", function() {
 	describe( "when publishing to a new topic", function() {
 		it( "should create cache entry", function() {
 			postal.cache.should.not.have.property( "Doctor|Dont.Blink" ); //jshint ignore:line
+			var subA = postal.subscribe( { channel: "Doctor", topic: "Dont.Blink", callback: function() {} } );
 			postal.publish( {
 				channel: "Doctor",
 				topic: "Dont.Blink",
@@ -110,7 +111,14 @@ describe( "postal.js - publishing", function() {
 		} );
 	} );
 	describe( "when using envelope header `resolverNoCache`", function() {
-		it( "should not add a cache entry if set to true", function() {
+		beforeEach( function() {
+			postal.reset();
+			postal.configuration.autoCompactResolver = true;
+		} );
+		afterEach( function() {
+			postal.configuration.autoCompactResolver = false;
+		} );
+		it( "should not add a resolver cache entry if set to true", function() {
 			var subA = postal.subscribe( { channel: "clara", topic: "run.you.clever.*", callback: function() {} } );
 			var subB = postal.subscribe( { channel: "rose", topic: "bad.wolf", callback: function() {} } );
 			postal.publish( {
@@ -125,9 +133,22 @@ describe( "postal.js - publishing", function() {
 			subB.unsubscribe();
 			postal.configuration.resolver.cache.should.not.have.ownProperty( "run.you.clever.boy|run.you.clever.*" );
 		} );
-		it( "should add a cache entry explicitly set to false)", function() {
+		it( "should add a resolver cache entry if explicitly set to false", function() {
 			var subA = postal.subscribe( { channel: "clara", topic: "run.you.clever.*", callback: function() {} } );
 			var subB = postal.subscribe( { channel: "rose", topic: "bad.wolf", callback: function() {} } );
+			postal.publish( {
+				channel: "clara",
+				topic: "run.you.clever.boy",
+				data: "RYCB",
+				headers: {
+					resolverNoCache: false
+				}
+			} );
+			postal.configuration.resolver.cache.should.not.have.ownProperty( "bad.wolf|bad.wolf" );
+			subB.unsubscribe();
+			postal.configuration.resolver.cache.should.have.ownProperty( "run.you.clever.boy|run.you.clever.*" );
+		} );
+		it( "should not add a subscription cache entry if set to true", function() {
 			postal.publish( {
 				channel: "clara",
 				topic: "run.you.clever.boy",
@@ -136,9 +157,19 @@ describe( "postal.js - publishing", function() {
 					resolverNoCache: true
 				}
 			} );
-			postal.configuration.resolver.cache.should.not.have.ownProperty( "bad.wolf|bad.wolf" );
-			subB.unsubscribe();
-			postal.configuration.resolver.cache.should.have.ownProperty( "run.you.clever.boy|run.you.clever.*" );
+			postal.cache.should.not.have.ownProperty( "clara" + postal.configuration.cacheKeyDelimiter + "run.you.clever.boy" );
+		} );
+		it( "should add a subscription cache entry if explicitly set to false", function() {
+			var subA = postal.subscribe( { channel: "clara", topic: "run.you.clever.*", callback: function() {} } );
+			postal.publish( {
+				channel: "clara",
+				topic: "run.you.clever.boy",
+				data: "RYCB!!",
+				headers: {
+					resolverNoCache: false
+				}
+			} );
+			postal.cache.should.have.ownProperty( "clara" + postal.configuration.cacheKeyDelimiter + "run.you.clever.boy" );
 		} );
 	} );
 
@@ -149,13 +180,13 @@ describe( "postal.js - publishing", function() {
 			var subCCount = 0;
 			var subDCount = 0;
 			var subA = postal.subscribe( { channel: "rose", topic: "bad.wolf", callback: function() {
-					subACount++;
+				subACount++;
 			} } );
 			var subB = postal.subscribe( { channel: "rose", topic: "*.wolf", callback: function() {
-					subBCount++;
+				subBCount++;
 			} } );
 			var subC = postal.subscribe( { channel: "rose", topic: "bad.*", callback: function() {
-					subCCount++;
+				subCCount++;
 			} } );
 			var subD = postal.subscribe( { channel: "rose", topic: "#", callback: function() {
 					subDCount++;
