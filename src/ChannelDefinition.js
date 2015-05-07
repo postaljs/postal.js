@@ -1,4 +1,4 @@
-/* global _postal, SubscriptionDefinition, _config */
+/* global _postal, SubscriptionDefinition, _config, _ */
 
 var ChannelDefinition = function( channelName, bus ) {
 	this.bus = bus;

@@ -1,4 +1,4 @@
-/* global ChannelDefinition, SubscriptionDefinition, postal, prevPostal, global, _config */
+/* global ChannelDefinition, SubscriptionDefinition, postal, prevPostal, global, _config, _ */
 /*jshint -W020 */
 
 var pubInProgress = 0;
@@ -6,7 +6,7 @@ var unSubQueue = [];
 var autoCompactIndex = 0;
 
 function clearUnSubQueue() {
-	while (unSubQueue.length) {
+	while ( unSubQueue.length ) {
 		postal.unsubscribe( unSubQueue.shift() );
 	}
 }
@@ -22,11 +22,15 @@ function getCachePurger( subDef, key, cache ) {
 	};
 }
 
-function getCacher( topic, cache, cacheKey, done, envelope ) {
+function getCacher( topic, pubCache, cacheKey, done, envelope ) {
 	var headers = envelope && envelope.headers || {};
 	return function( subDef ) {
+		var cache;
 		if ( _config.resolver.compare( subDef.topic, topic, headers ) ) {
-			cache.push( subDef );
+			if ( !headers.resolverNoCache ) {
+				cache = pubCache[ cacheKey ] = ( pubCache[ cacheKey ] || [] );
+				cache.push( subDef );
+			}
 			subDef.cacheKeys.push( cacheKey );
 			if ( done ) {
 				done( subDef );
@@ -59,16 +63,16 @@ function getPredicate( options, resolver ) {
 		};
 	} else {
 		return function( sub ) {
-			var compared = 0,
-				matched = 0;
+			var compared = 0;
+			var matched = 0;
 			_.each( options, function( val, prop ) {
 				compared += 1;
 				if (
 				// We use the bindings resolver to compare the options.topic to subDef.topic
-				( prop === "topic" && resolver.compare( sub.topic, options.topic, { resolverNoCache: true } ) )
-						|| ( prop === "context" && options.context === sub._context )
+				( prop === "topic" && resolver.compare( sub.topic, options.topic, { resolverNoCache: true } ) ) ||
+						( prop === "context" && options.context === sub._context ) ||
 						// Any other potential prop/value matching outside topic & context...
-						|| ( sub[ prop ] === options[ prop ] ) ) {
+						( sub[ prop ] === options[ prop ] ) ) {
 					matched += 1;
 				}
 			} );
@@ -135,11 +139,11 @@ _.extend( postal, {
 		var skipped = 0;
 		var activated = 0;
 		if ( !cache ) {
-			cache = this.cache[ cacheKey ] = [];
 			var cacherFn = getCacher(
 				topic,
-				cache,
-				cacheKey, function( candidate ) {
+				this.cache,
+				cacheKey,
+				function( candidate ) {
 					if ( candidate.invokeSubscriber( envelope.data, envelope ) ) {
 						activated++;
 					} else {
@@ -175,6 +179,7 @@ _.extend( postal, {
 		this.unsubscribeFor();
 		_config.resolver.reset();
 		this.subscriptions = {};
+		this.cache = {};
 	},
 
 	subscribe: function subscribe( options ) {
@@ -215,7 +220,7 @@ _.extend( postal, {
 		var channelSubs;
 		var topicSubs;
 		var idx;
-		for (; unSubIdx < unSubLen; unSubIdx++) {
+		for ( ; unSubIdx < unSubLen; unSubIdx++ ) {
 			subDef = arguments[ unSubIdx ];
 			subDef.inactive = true;
 			if ( pubInProgress ) {
@@ -229,7 +234,7 @@ _.extend( postal, {
 				var len = topicSubs.length;
 				idx = 0;
 				// remove SubscriptionDefinition from channel list
-				while (idx < len) {
+				while ( idx < len ) {
 					/* istanbul ignore else */
 					if ( topicSubs[ idx ] === subDef ) {
 						topicSubs.splice( idx, 1 );
@@ -246,7 +251,7 @@ _.extend( postal, {
 				// remove SubscriptionDefinition from postal cache
 				if ( subDef.cacheKeys && subDef.cacheKeys.length ) {
 					var key;
-					while (key = subDef.cacheKeys.pop()) {
+					while ( key = subDef.cacheKeys.pop() ) {
 						_.each( this.cache[ key ], getCachePurger( subDef, key, this.cache ) );
 					}
 				}

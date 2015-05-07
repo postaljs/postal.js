@@ -1,3 +1,4 @@
+/* global global */
 // Setup for running Mocha via Node
 require( "should/should" );
 

@@ -1,6 +1,5 @@
 /* global $ */
 define( [ "postal", "postaldiags" ], function( postal, diags ) {
-
 	// This gets you a handle to the default postal channel...
 	// For grins, you can get a named channel instead like this:
 	// var channel = postal.channel( 'DoctorWho' );

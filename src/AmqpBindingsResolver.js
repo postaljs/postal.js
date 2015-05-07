@@ -1,5 +1,5 @@
 /*jshint -W098 */
-/* global postal, _config */
+/* global postal, _config, _ */
 
 var bindingsResolver = _config.resolver = {
 	cache: {},

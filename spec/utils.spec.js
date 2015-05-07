@@ -10,7 +10,7 @@ describe( "postal.utils", function() {
 				i = 10;
 			var ch1 = postal.channel( "MyChannel" ),
 				ch2 = postal.channel( "MyChannel2" );
-			while (i) {
+			while ( i ) {
 				subs.push( ch1.subscribe( "MyTopic", NO_OP ) );
 				if ( i % 2 === 0 ) {
 					subs.push( ch2.subscribe( "MyTopic2", NO_OP ) );
@@ -362,7 +362,7 @@ describe( "postal.utils", function() {
 				var err = false;
 				try {
 					postal.noConflict();
-				} catch (e) {
+				} catch ( e ) {
 					err = true;
 				}
 				err.should.be.ok; //jshint ignore:line

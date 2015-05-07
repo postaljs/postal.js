@@ -1,4 +1,4 @@
-/* global postal */
+/* global postal, _ */
 var SubscriptionDefinition = function( channel, topic, callback ) {
 	if ( arguments.length !== 3 ) {
 		throw new Error( "You must provide a channel, topic and callback when creating a SubscriptionDefinition instance." );
@@ -18,7 +18,7 @@ var ConsecutiveDistinctPredicate = function() {
 	var previous;
 	return function( data ) {
 		var eq = false;
-		if ( typeof data == 'string' ) {
+		if ( typeof data === "string" ) {
 			eq = data === previous;
 			previous = data;
 		} else {
@@ -49,7 +49,7 @@ SubscriptionDefinition.prototype = {
 		var safeCallback = function() {
 			try {
 				original.apply( this, arguments );
-			} catch (err) {
+			} catch ( err ) {
 				errorHandler( err, arguments[ 0 ] );
 			}
 		};
@@ -62,7 +62,7 @@ SubscriptionDefinition.prototype = {
 	},
 
 	disposeAfter: function disposeAfter( maxCalls ) {
-		if ( typeof maxCalls != 'number' || maxCalls <= 0 ) {
+		if ( typeof maxCalls !== "number" || maxCalls <= 0 ) {
 			throw new Error( "The value provided to disposeAfter (maxCalls) must be a number greater than zero." );
 		}
 		var self = this;
@@ -121,7 +121,7 @@ SubscriptionDefinition.prototype = {
 			} else {
 				report = console.log;
 			}
-			this[ "catch" ]( report );
+			this.catch( report );
 		}
 		return this;
 	},
@@ -143,7 +143,7 @@ SubscriptionDefinition.prototype = {
 	},
 
 	constraint: function constraint( predicate ) {
-		if ( typeof predicate != 'function' ) {
+		if ( typeof predicate !== "function" ) {
 			throw new Error( "Predicate constraint must be a function" );
 		}
 		this.pipeline.push( function( data, env, next ) {
@@ -169,7 +169,7 @@ SubscriptionDefinition.prototype = {
 	},
 
 	debounce: function debounce( milliseconds, immediate ) {
-		if ( typeof milliseconds != 'number' ) {
+		if ( typeof milliseconds !== "number" ) {
 			throw new Error( "Milliseconds must be a number" );
 		}
 		this.pipeline.push(
@@ -184,7 +184,7 @@ SubscriptionDefinition.prototype = {
 	},
 
 	delay: function delay( milliseconds ) {
-		if ( typeof milliseconds != 'number' ) {
+		if ( typeof milliseconds !== "number" ) {
 			throw new Error( "Milliseconds must be a number" );
 		}
 		var self = this;
@@ -197,7 +197,7 @@ SubscriptionDefinition.prototype = {
 	},
 
 	throttle: function throttle( milliseconds ) {
-		if ( typeof milliseconds != 'number' ) {
+		if ( typeof milliseconds !== "number" ) {
 			throw new Error( "Milliseconds must be a number" );
 		}
 		var fn = function( data, env, next ) {
@@ -225,7 +225,7 @@ function warnOnDeprecation( oldMethod, newMethod ) {
 }
 var oldMethods = [ "withConstraint", "withConstraints", "withContext", "withDebounce", "withDelay", "withThrottle" ];
 var newMethods = [ "constraint", "constraints", "context", "debounce", "delay", "throttle" ];
-for (var i = 0; i < 6; i++) {
+for ( var i = 0; i < 6; i++ ) {
 	var oldMethod = oldMethods[ i ];
 	SubscriptionDefinition.prototype[ oldMethod ] = warnOnDeprecation( oldMethod, newMethods[ i ] );
 }
