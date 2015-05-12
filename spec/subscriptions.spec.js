@@ -59,6 +59,23 @@ describe( "postal.js - subscriptions", function() {
 			var sub = subFactory.next( NO_OP );
 			postal.subscriptions[ sub.channel ][ sub.topic ].should.be.an.Array.and.have.lengthOf( 1 );
 		} );
+		it( "should update lookup cache when new subscribers are added", function() {
+			var channel = "lookup-update";
+			var topic = "something.important";
+			var cacheKey = channel + "|" + topic;
+			var stubA = sinon.stub();
+			var subA = postal.subscribe({ channel: channel, topic: topic, callback: stubA });
+			var stubB = sinon.stub();
+			var subB;
+			postal.publish({ channel: channel, topic: topic, data: "hai" });
+			postal.cache[ cacheKey ].should.be.an.Array.and.have.lengthOf( 1 );
+			sinon.assert.calledOnce(stubA);
+			subB = postal.subscribe({ channel: channel, topic: topic, callback: stubB });
+			postal.cache[ cacheKey ].should.be.an.Array.and.have.lengthOf( 2 );
+			postal.publish({ channel: channel, topic: topic, data: "hai" });
+			sinon.assert.calledTwice(stubA);
+			sinon.assert.calledOnce(stubB);
+		});
 		it( "should publish a subscription created message", function() {
 			var sub = subFactory.next( NO_OP );
 			systemMessages[ 0 ].topic.should.equal( "subscription.created" );
