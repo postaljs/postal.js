@@ -1,3 +1,7 @@
+## v1.0.4
+
+* Fixed issue where a subscriber lookup cache (postal's internal cache) was failing to update when new subscribers were added after a publish matching the cache had occurred.
+
 ## v1.0.3
 
 * Fixed memory leak issue referred to [here](https://github.com/postaljs/postal.js/issues/95#issuecomment-99336472). Postal will not place subscriptions in the lookup cache if the `resolverNoCache` header is present on the published envelope.
