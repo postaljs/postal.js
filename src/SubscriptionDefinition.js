@@ -210,6 +210,7 @@ SubscriptionDefinition.prototype = {
 
 // Backwards Compatibility
 // WARNING: these will be removed by version 0.13
+/* istanbul ignore next */
 function warnOnDeprecation( oldMethod, newMethod ) {
 	return function() {
 		if ( console.warn || console.log ) {

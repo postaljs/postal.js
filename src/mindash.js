@@ -7,7 +7,10 @@ var _ = {
 		return createPartialWrapper( func, 33, thisArg, [ arg ] );
 	},
 	debounce: require( "lodash/function/debounce" ),
-	each: require( "lodash/internal/baseEach" ),
+	each: require( "lodash/internal/createForEach" )(
+		require( "lodash/internal/arrayEach" ),
+		require( "lodash/internal/baseEach" )
+	),
 	extend: require( "lodash/internal/baseAssign" ),
 	filter: require( "lodash/internal/arrayFilter" ),
 	isEqual: require( "lodash/lang/isEqual" ),
