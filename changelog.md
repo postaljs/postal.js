@@ -1,3 +1,8 @@
+## v1.0.5
+
+* Fixed issue (referred to in #124) related to the custom lodash build not pulling in necessary behavior for _.each.
+* Added deprecation warnings to istanbul ignore.
+
 ## v1.0.4
 
 * Fixed issue where a subscriber lookup cache (postal's internal cache) was failing to update when new subscribers were added after a publish matching the cache had occurred.
