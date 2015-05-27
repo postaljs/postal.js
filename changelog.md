@@ -1,3 +1,8 @@
+## v1.0.6
+
+* Fixed issue where JSCS's formatting fix put a line break before `catch` on the `SubscriptionDefinition` prototype.
+* Added additional comment directive removal (covering jshint, jscs & istanbul).
+
 ## v1.0.5
 
 * Fixed issue (referred to in #124) related to the custom lodash build not pulling in necessary behavior for _.each.

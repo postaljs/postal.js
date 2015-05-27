@@ -2,7 +2,6 @@ var gulp = require( "gulp" );
 var fileImports = require( "gulp-imports" );
 var header = require( "gulp-header" );
 var beautify = require( "gulp-beautify" );
-var hintNot = require( "gulp-hint-not" );
 var uglify = require( "gulp-uglify" );
 var rename = require( "gulp-rename" );
 var plato = require( "gulp-plato" );
@@ -68,7 +67,7 @@ gulp.task( "combine.postal-lodash", [ "format" ], function() {
 			pkg: pkg
 		} ) )
 		.pipe( fileImports() )
-		.pipe( hintNot() )
+		.pipe(replace(new RegExp(replaceTargets.join("|"),"gi"), " "))
 		.pipe( beautify( {
 			indentSize: 4,
 			preserveNewlines: false
