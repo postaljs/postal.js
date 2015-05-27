@@ -15,6 +15,16 @@ var port = 3080;
 var jshint = require( "gulp-jshint" );
 var jscs = require( "gulp-jscs" );
 var gulpChanged = require( "gulp-changed" );
+var replace = require("gulp-replace");
+var replaceTargets = [
+	"([\\/][\\*][\\s]*jshint\\s.+[\\*\\/])",
+	"([\\/][\\*][\\s]*global\\s.+[\\*\\/])",
+	"([\\/][\\*][\\s]*jscs\\s.+[\\*\\/])",
+	"([\\/][\\*][\\s]*istanbul\\s.+[\\*\\/])",
+	"(\\/\\/[\\s]*jshint.*)",
+	"(\\/\\/[\\s]*jscs:.*)",
+	"(\\/\\/[\\s]*istanbul.*)"
+];
 
 var banner = [ "/**",
 	" * <%= pkg.name %> - <%= pkg.description %>",
@@ -34,7 +44,7 @@ gulp.task( "combine.postal", [ "format" ], function() {
 			pkg: pkg
 		} ) )
 		.pipe( fileImports() )
-		.pipe( hintNot() )
+		.pipe(replace(new RegExp(replaceTargets.join("|"),"gi"), " "))
 		.pipe( beautify( {
 			indentSize: 4,
 			preserveNewlines: false
