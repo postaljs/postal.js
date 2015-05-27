@@ -121,7 +121,9 @@ SubscriptionDefinition.prototype = {
 			} else {
 				report = console.log;
 			}
-			this.catch( report );
+			// jscs:disable
+			this["catch"]( report );
+			// jscs:enable
 		}
 		return this;
 	},
