@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Postal.js : JavaScript pub/sub library supporting advanced subscription features, and several helpful add-ons.">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Postal.js</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/postaljs/postal.js">View on GitHub</a>
+
+          <h1 id="project_title">Postal.js</h1>
+          <h2 id="project_tagline">JavaScript pub/sub library supporting advanced subscription features, and several helpful add-ons.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/postaljs/postal.js/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/postaljs/postal.js/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a id="postaljs" class="anchor" href="#postaljs" aria-hidden="true"><span class="octicon octicon-link"></span></a>Postal.js</h1>
+
+<p><img src="https://raw.githubusercontent.com/postaljs/postal.js/master/logo/postaljs.png" alt="" title="Special Thanks to Derick Bailey for the postal logo!"></p>
+
+<h2>
+<a id="version-107-mit" class="anchor" href="#version-107-mit" aria-hidden="true"><span class="octicon octicon-link"></span></a>Version 1.0.7 (<a href="http://www.opensource.org/licenses/mit-license">MIT</a>)</h2>
+
+<blockquote>
+<p>See the <a href="https://github.com/postaljs/postal.js/blob/master/changelog.md">changelog</a> for information on if the current version of postal has breaking changes compared to any older version(s) you might be using. Version 0.11+ removed the dependency on ConduitJS and significantly improved publishing performance. Version 1.0+ added an optional embedded-and-customized-lodash build.</p>
+</blockquote>
+
+<h2>
+<a id="what-is-it" class="anchor" href="#what-is-it" aria-hidden="true"><span class="octicon octicon-link"></span></a>What is it?</h2>
+
+<p>Postal.js is an in-memory message bus - very loosely inspired by <a href="http://www.amqp.org/">AMQP</a> - written in JavaScript. Postal.js runs in the browser, or on the server using node.js. It takes the familiar "eventing-style" paradigm (of which most JavaScript developers are familiar) and extends it by providing "broker" and subscriber implementations which are more sophisticated than what you typically find in simple event emitting/aggregation.</p>
+
+<h2>
+<a id="usage---at-a-glance" class="anchor" href="#usage---at-a-glance" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage - at a glance</h2>
+
+<p>If you want to subscribe to a message, you tell postal what channel and topic to listen on (channel is optional, as postal provides a default one if you don't), and a callback to be invoked when a message arrives:</p>
+
+<div class="highlight highlight-javascript"><pre>    <span class="pl-k">var</span> subscription <span class="pl-k">=</span> postal.<span class="pl-c1">subscribe</span>({
+        channel<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>orders<span class="pl-pds">"</span></span>,
+        topic<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>item.add<span class="pl-pds">"</span></span>,
+        <span class="pl-en">callback</span><span class="pl-k">:</span> <span class="pl-k">function</span>(<span class="pl-smi">data</span>, <span class="pl-smi">envelope</span>) {
+            <span class="pl-c">// `data` is the data published by the publisher.</span>
+            <span class="pl-c">// `envelope` is a wrapper around the data &amp; contains</span>
+            <span class="pl-c">// metadata about the message like the channel, topic,</span>
+            <span class="pl-c">// timestamp and any other data which might have been</span>
+            <span class="pl-c">// added by the sender.</span>
+        }
+    });</pre></div>
+
+<p>The publisher might do something similar to this:</p>
+
+<div class="highlight highlight-javascript"><pre>    postal.<span class="pl-c1">publish</span>({
+        channel<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>orders<span class="pl-pds">"</span></span>,
+        topic<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>item.add<span class="pl-pds">"</span></span>,
+        data<span class="pl-k">:</span> {
+            sku<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>AZDTF4346<span class="pl-pds">"</span></span>,
+            qty<span class="pl-k">:</span> <span class="pl-c1">21</span>
+        }
+    });</pre></div>
+
+<h3>
+<a id="channels-wat" class="anchor" href="#channels-wat" aria-hidden="true"><span class="octicon octicon-link"></span></a>Channels? WAT?</h3>
+
+<p>A channel is a logical partition of topics. Conceptually, it's like a dedicated highway for a specific set of communication. At first glance it might seem like that's overkill for an environment that runs in an event loop, but it actually proves to be quite useful. Every library has architectural opinions that it either imposes or nudges you toward. Channel-oriented messaging nudges you to separate your communication by bounded context, and enables the kind of fine-tuned visibility you need into the interactions between components as your application grows.</p>
+
+<p>While the above code snippets work just fine, it's possible to get a more terse API if you want to hang onto an <code>ChannelDefinition</code> instance - which is really a convenience wrapper around publishing and subscribing on a specific channel (instead of having to specify it each time):</p>
+
+<div class="highlight highlight-javascript"><pre>    <span class="pl-k">var</span> channel <span class="pl-k">=</span> postal.<span class="pl-c1">channel</span>(<span class="pl-s"><span class="pl-pds">"</span>orders<span class="pl-pds">"</span></span>);
+
+    <span class="pl-k">var</span> subscription <span class="pl-k">=</span> channel.<span class="pl-c1">subscribe</span>(<span class="pl-s"><span class="pl-pds">"</span>item.add<span class="pl-pds">"</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">data</span>, <span class="pl-smi">envelope</span>) {
+        <span class="pl-c">/*do stuff with data */</span>
+    });
+
+    channel.<span class="pl-c1">publish</span>(<span class="pl-s"><span class="pl-pds">"</span>item.add<span class="pl-pds">"</span></span>, {
+        sku<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>AZDTF4346<span class="pl-pds">"</span></span>,
+        qty<span class="pl-k">:</span> <span class="pl-c1">21</span>
+    });</pre></div>
+
+<h3>
+<a id="but-wait---hows-this-different-than-insert-x-eventing-library-here" class="anchor" href="#but-wait---hows-this-different-than-insert-x-eventing-library-here" aria-hidden="true"><span class="octicon octicon-link"></span></a>But Wait - How's This Different Than {Insert "X" Eventing Library Here}?</h3>
+
+<ul>
+<li>postal is not an event emitter - it's not meant to be mixed into an instance. Instead, it's a stand alone "broker" – a <em>message bus</em>.</li>
+<li>postal uses an <em>envelope</em> to pass messages. This means you get a consistent method signature in ALL of your subscriber callbacks. Most eventing libs take what I call the "0-n args approach", and what gets passed to the subscriber in those libs is solely at the mercy/whim of the developer that wrote the code emitting the event.</li>
+<li>Most "event aggregator" libs are <em>single channel</em> - which can lead to event name collision, and reduce the performance of matching an event to the correct subscribers. postal is <em>multi-channel</em>.</li>
+<li>postal's design <em>strongly discourages publishing behavior (functions/methods)</em>! This is intentional. In an observer-subject scenario, it's common to pass callbacks on the event data. This is an anti-pattern when it comes to messaging (and I'd argue is often an anti-pattern even in Observer pattern scenarios). A postal envelope should be <em>serializable</em> and then <em>de-serializable with no loss of fidelity</em>.</li>
+<li>postal can work across frame and web worker boundaries (by utilizing the <a href="https://github.com/postaljs/postal.federation">postal.federation</a> and <a href="https://github.com/postaljs/postal.xframe">postal.xframe</a> plugins).</li>
+<li>postal's built-in topic logic supports hierarchical wildcard topic bindings - supporting the same logic as topic bindings in the AMQP spec. And if you don't like that approach, you can easily provide your own bindings resolver.</li>
+</ul>
+
+<h2>
+<a id="why-would-i-use-it" class="anchor" href="#why-would-i-use-it" aria-hidden="true"><span class="octicon octicon-link"></span></a>Why would I use it?</h2>
+
+<p>Using a local message bus can enable to you de-couple your web application's components in a way not possible with other 'eventing' approaches. In addition, strategically adopting messaging at the 'seams' of your application (e.g. - between modules, at entry/exit points for browser data and storage) can not only help enforce better overall architectural design, but also insulate you from the risks of tightly coupling your application to 3rd party libraries.  For example:</p>
+
+<ul>
+<li>If you're using a client-side binding framework, and either don't have - or don't like - the request/communication abstractions provided, then grab a library like <a href="http://amplifyjs.com">amplify.js</a> or <a href="https://github.com/ded/reqwest">reqwest</a>. Then, instead of tightly coupling them to your application, have the request success/error callbacks publish messages with the appropriate data and any subscribers you've wired up can handle applying the data to the specific objects/elements they're concerned with.</li>
+<li>Do you need two view models to communicate, but you don't want them to need to know about each other? Have them subscribe to the topics about which they are interested in receiving messages. From there, whenever a view model needs to alert any listeners of specific data/events, just publish a message to the bus. If the other view model is present, it will receive the notification.</li>
+<li>Want to wire up your own binding framework? Want to control the number of times subscription callbacks get invoked within a given time frame? Want to keep subscriptions from being fired until after data stops arriving? Want to keep events from being acted upon until the UI event loop is done processing other events? Postal.js gives you the control you need in these kinds of scenarios via the options available on the <code>SubscriptionDefinition</code> object.</li>
+<li>postal.js is extensible. Plugins like <a href="https://github.com/postaljs/postal.when">postal.when</a> can be included to provide even more targeted functionality to subscribers. <a href="https://github.com/postaljs/postal.federation">Postal.federation</a> provides the core bits needed to federate postal instances running in different environments (currently the only federation plugin available is <a href="https://github.com/postaljs/postal.xframe">postal.xframe</a> for federating between windows in the browser, but more plugins are in the works). These - and more - are all things Postal can do for you.</li>
+</ul>
+
+<h2>
+<a id="philosophy" class="anchor" href="#philosophy" aria-hidden="true"><span class="octicon octicon-link"></span></a>Philosophy</h2>
+
+<p>Dang - you've read this far! AMAZING! If I had postal t-shirts, I'd send you one!</p>
+
+<p>These four concepts are central to postal:</p>
+
+<ul>
+<li>channels should be provided to allow for logical partitioning of "topics"</li>
+<li>topics should be hierarchical and allow plain string or wildcard bindings</li>
+<li>messages should include envelope metadata</li>
+<li>subscriber callbacks should get a consistent method signature</li>
+</ul>
+
+<p>Most eventing libraries focus on providing Observer Pattern utilities to an instance (i.e. - creating an event emitter), OR they take the idea of an event emitter and turn it into an event aggregator (so a single channel, stand alone emitter that acts as a go-between for publishers and subscribers). I'm a big fan of the Observer Pattern, but its downside is that it requires a direct reference to the subject in order to listen to events. This can become a big source of tight coupling in your app, and once you go down that road, your abstractions tend to leak, if not hemorrhage.</p>
+
+<p>postal is <em>not</em> intended to replace Observer pattern scenarios. Inside a module, where it makes sense for an observer to have a direct reference to the subject, by all means, use the Observer pattern. However - when it comes to inter-module communication (view-to-view, for example), inter-library communication, cross frame communication, or even hierarchical state change notifications with libraries like ReactJS, postal is the glue to help your components communicate without glueing them with tight coupling.</p>
+
+<h3>
+<a id="hierarchical-topics" class="anchor" href="#hierarchical-topics" aria-hidden="true"><span class="octicon octicon-link"></span></a>Hierarchical Topics</h3>
+
+<p>In my experience, seeing publish and subscribe calls all over application logic is usually a strong code smell. Ideally, the majority of message-bus integration should be concealed within application infrastructure. Having a hierarchical-wildcard-bindable topic system makes it very easy to keep things concise (especially subscribe calls!). For example, if you have a module that needs to listen to every message published on the ShoppingCart channel, you'd simply subscribe to "#", and never have to worry about additional subscribes on that channel again - even if you add new messages in the future. If you need to capture all messages with ".validation" at the end of the topic, you'd simply subscribe to "#.validation". If you needed to target all messages with topics that started with "Customer.", ended with ".validation" and had only one period-delimited segment in between, you'd subscribe to "Customer.*.validation" (thus your subscription would capture Customer.address.validation and Customer.email.validation").</p>
+
+<h2>
+<a id="more-on-how-to-use-it" class="anchor" href="#more-on-how-to-use-it" aria-hidden="true"><span class="octicon octicon-link"></span></a>More on How to Use It</h2>
+
+<p>Here are four examples of using Postal. All of these examples - AND MORE! - can run live <a href="http://jsfiddle.net/ifandelse/8dLpkpcf/">here</a>. Be sure to check out the <a href="https://github.com/postaljs/postal.js/wiki">wiki</a> for API documentation and conceptual walk-throughs.</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// This gets you a handle to the default postal channel...</span>
+<span class="pl-c">// For grins, you can get a named channel instead like this:</span>
+<span class="pl-c">// var channel = postal.channel( "DoctorWho" );</span>
+<span class="pl-k">var</span> channel <span class="pl-k">=</span> postal.<span class="pl-c1">channel</span>();
+
+<span class="pl-c">// subscribe to 'name.change' topics</span>
+<span class="pl-k">var</span> subscription <span class="pl-k">=</span> channel.<span class="pl-c1">subscribe</span>( <span class="pl-s"><span class="pl-pds">"</span>name.change<span class="pl-pds">"</span></span>, <span class="pl-k">function</span> ( <span class="pl-smi">data</span> ) {
+    $( <span class="pl-s"><span class="pl-pds">"</span>#example1<span class="pl-pds">"</span></span> ).<span class="pl-c1">html</span>( <span class="pl-s"><span class="pl-pds">"</span>Name: <span class="pl-pds">"</span></span> <span class="pl-k">+</span> data.<span class="pl-c1">name</span> );
+} );
+
+<span class="pl-c">// And someone publishes a name change:</span>
+channel.<span class="pl-c1">publish</span>( <span class="pl-s"><span class="pl-pds">"</span>name.change<span class="pl-pds">"</span></span>, { name <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>Dr. Who<span class="pl-pds">"</span></span> } );
+
+<span class="pl-c">// To unsubscribe, you:</span>
+subscription.<span class="pl-c1">unsubscribe</span>();
+
+<span class="pl-c">// postal also provides a top-level ability to subscribe/publish</span>
+<span class="pl-c">// used primarily when you don't need to hang onto a channel instance:</span>
+<span class="pl-k">var</span> anotherSub <span class="pl-k">=</span> postal.<span class="pl-c1">subscribe</span>({
+    channel  <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>MyChannel<span class="pl-pds">"</span></span>,
+    topic    <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>name.change<span class="pl-pds">"</span></span>,
+    <span class="pl-en">callback</span> <span class="pl-k">:</span> <span class="pl-k">function</span>(<span class="pl-smi">data</span>, <span class="pl-smi">envelope</span>) {
+        $( <span class="pl-s"><span class="pl-pds">"</span>#example1<span class="pl-pds">"</span></span> ).<span class="pl-c1">html</span>( <span class="pl-s"><span class="pl-pds">"</span>Name: <span class="pl-pds">"</span></span> <span class="pl-k">+</span> data.<span class="pl-c1">name</span> );
+    }
+});
+
+postal.<span class="pl-c1">publish</span>({
+    channel <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>MyChannel<span class="pl-pds">"</span></span>,
+    topic   <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>name.change<span class="pl-pds">"</span></span>,
+    data    <span class="pl-k">:</span> {
+        name <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>Dr. Who<span class="pl-pds">"</span></span>
+    }
+});</pre></div>
+
+<h3>
+<a id="subscribing-to-a-wildcard-topic-using-" class="anchor" href="#subscribing-to-a-wildcard-topic-using-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Subscribing to a wildcard topic using *</h3>
+
+<p>The <code>*</code> symbol represents "one word" in a topic (i.e - the text between two periods of a topic). By subscribing to <code>"*.changed"</code>, the binding will match <code>name.changed</code> &amp; <code>location.changed</code> but <em>not</em> <code>changed.companion</code>.</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-k">var</span> chgSubscription <span class="pl-k">=</span> channel.<span class="pl-c1">subscribe</span>( <span class="pl-s"><span class="pl-pds">"</span>*.changed<span class="pl-pds">"</span></span>, <span class="pl-k">function</span> ( <span class="pl-smi">data</span> ) {
+    $( <span class="pl-s"><span class="pl-pds">"</span>&lt;li&gt;<span class="pl-pds">"</span></span> <span class="pl-k">+</span> data.<span class="pl-c1">type</span> <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">"</span> changed: <span class="pl-pds">"</span></span> <span class="pl-k">+</span> data.<span class="pl-c1">value</span> <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">"</span>&lt;/li&gt;<span class="pl-pds">"</span></span> ).<span class="pl-c1">appendTo</span>( <span class="pl-s"><span class="pl-pds">"</span>#example2<span class="pl-pds">"</span></span> );
+} );
+channel.<span class="pl-c1">publish</span>( <span class="pl-s"><span class="pl-pds">"</span>name.changed<span class="pl-pds">"</span></span>,     { type <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>Name<span class="pl-pds">"</span></span>,     value <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>John Smith<span class="pl-pds">"</span></span> } );
+channel.<span class="pl-c1">publish</span>( <span class="pl-s"><span class="pl-pds">"</span>location.changed<span class="pl-pds">"</span></span>, { type <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>Location<span class="pl-pds">"</span></span>, value <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>Early 20th Century England<span class="pl-pds">"</span></span> } );
+chgSubscription.<span class="pl-c1">unsubscribe</span>();</pre></div>
+
+<h3>
+<a id="subscribing-to-a-wildcard-topic-using--1" class="anchor" href="#subscribing-to-a-wildcard-topic-using--1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Subscribing to a wildcard topic using #</h3>
+
+<p>The <code>#</code> symbol represents 0-n number of characters/words in a topic string. By subscribing to <code>"DrWho.#.Changed"</code>, the binding will match <code>DrWho.NinthDoctor.Companion.Changed</code> &amp; <code>DrWho.Location.Changed</code> but <em>not</em> <code>Changed</code>.</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-k">var</span> starSubscription <span class="pl-k">=</span> channel.<span class="pl-c1">subscribe</span>( <span class="pl-s"><span class="pl-pds">"</span>DrWho.#.Changed<span class="pl-pds">"</span></span>, <span class="pl-k">function</span> ( <span class="pl-smi">data</span> ) {
+    $( <span class="pl-s"><span class="pl-pds">"</span>&lt;li&gt;<span class="pl-pds">"</span></span> <span class="pl-k">+</span> data.<span class="pl-c1">type</span> <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">"</span> Changed: <span class="pl-pds">"</span></span> <span class="pl-k">+</span> data.<span class="pl-c1">value</span> <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">"</span>&lt;/li&gt;<span class="pl-pds">"</span></span> ).<span class="pl-c1">appendTo</span>( <span class="pl-s"><span class="pl-pds">"</span>#example3<span class="pl-pds">"</span></span> );
+} );
+channel.<span class="pl-c1">publish</span>( <span class="pl-s"><span class="pl-pds">"</span>DrWho.NinthDoctor.Companion.Changed<span class="pl-pds">"</span></span>, { type <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>Companion Name<span class="pl-pds">"</span></span>, value <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>Rose<span class="pl-pds">"</span></span>   } );
+channel.<span class="pl-c1">publish</span>( <span class="pl-s"><span class="pl-pds">"</span>DrWho.TenthDoctor.Companion.Changed<span class="pl-pds">"</span></span>, { type <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>Companion Name<span class="pl-pds">"</span></span>, value <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>Martha<span class="pl-pds">"</span></span> } );
+channel.<span class="pl-c1">publish</span>( <span class="pl-s"><span class="pl-pds">"</span>DrWho.Eleventh.Companion.Changed<span class="pl-pds">"</span></span>,    { type <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>Companion Name<span class="pl-pds">"</span></span>, value <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>Amy<span class="pl-pds">"</span></span>    } );
+channel.<span class="pl-c1">publish</span>( <span class="pl-s"><span class="pl-pds">"</span>DrWho.Location.Changed<span class="pl-pds">"</span></span>,              { type <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>Location<span class="pl-pds">"</span></span>,       value <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>The Library<span class="pl-pds">"</span></span> } );
+channel.<span class="pl-c1">publish</span>( <span class="pl-s"><span class="pl-pds">"</span>TheMaster.DrumBeat.Changed<span class="pl-pds">"</span></span>,          { type <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>DrumBeat<span class="pl-pds">"</span></span>,       value <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>This won't trigger any subscriptions<span class="pl-pds">"</span></span> } );
+channel.<span class="pl-c1">publish</span>( <span class="pl-s"><span class="pl-pds">"</span>Changed<span class="pl-pds">"</span></span>,                             { type <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>Useless<span class="pl-pds">"</span></span>,        value <span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>This won't trigger any subscriptions either<span class="pl-pds">"</span></span> } );
+starSubscription.<span class="pl-c1">unsubscribe</span>();</pre></div>
+
+<h3>
+<a id="applying-distinctuntilchanged-to-a-subscription" class="anchor" href="#applying-distinctuntilchanged-to-a-subscription" aria-hidden="true"><span class="octicon octicon-link"></span></a>Applying distinctUntilChanged to a subscription</h3>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-k">var</span> dupChannel <span class="pl-k">=</span> postal.<span class="pl-c1">channel</span>( <span class="pl-s"><span class="pl-pds">"</span>Blink<span class="pl-pds">"</span></span> ),
+    dupSubscription <span class="pl-k">=</span> dupChannel.<span class="pl-c1">subscribe</span>( <span class="pl-s"><span class="pl-pds">"</span>WeepingAngel.#<span class="pl-pds">"</span></span>, <span class="pl-k">function</span>( <span class="pl-smi">data</span> ) {
+                          $( <span class="pl-s"><span class="pl-pds">'</span>&lt;li&gt;<span class="pl-pds">'</span></span> <span class="pl-k">+</span> data.<span class="pl-c1">value</span> <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">'</span>&lt;/li&gt;<span class="pl-pds">'</span></span> ).<span class="pl-c1">appendTo</span>( <span class="pl-s"><span class="pl-pds">"</span>#example4<span class="pl-pds">"</span></span> );
+                      }).<span class="pl-c1">distinctUntilChanged</span>();
+<span class="pl-c">// demonstrating multiple channels per topic being used</span>
+<span class="pl-c">// You can do it this way if you like, but the example above has nicer syntax (and *much* less overhead)</span>
+dupChannel.<span class="pl-c1">publish</span>( <span class="pl-s"><span class="pl-pds">"</span>WeepingAngel.DontBlink<span class="pl-pds">"</span></span>, { value<span class="pl-k">:</span><span class="pl-s"><span class="pl-pds">"</span>Don't Blink<span class="pl-pds">"</span></span> } );
+dupChannel.<span class="pl-c1">publish</span>( <span class="pl-s"><span class="pl-pds">"</span>WeepingAngel.DontBlink<span class="pl-pds">"</span></span>, { value<span class="pl-k">:</span><span class="pl-s"><span class="pl-pds">"</span>Don't Blink<span class="pl-pds">"</span></span> } );
+dupChannel.<span class="pl-c1">publish</span>( <span class="pl-s"><span class="pl-pds">"</span>WeepingAngel.DontEvenBlink<span class="pl-pds">"</span></span>, { value<span class="pl-k">:</span><span class="pl-s"><span class="pl-pds">"</span>Don't Even Blink<span class="pl-pds">"</span></span> } );
+dupChannel.<span class="pl-c1">publish</span>( <span class="pl-s"><span class="pl-pds">"</span>WeepingAngel.DontBlink<span class="pl-pds">"</span></span>, { value<span class="pl-k">:</span><span class="pl-s"><span class="pl-pds">"</span>Don't Close Your Eyes<span class="pl-pds">"</span></span> } );
+dupChannel.<span class="pl-c1">publish</span>( <span class="pl-s"><span class="pl-pds">"</span>WeepingAngel.DontBlink<span class="pl-pds">"</span></span>, { value<span class="pl-k">:</span><span class="pl-s"><span class="pl-pds">"</span>Don't Blink<span class="pl-pds">"</span></span> } );
+dupChannel.<span class="pl-c1">publish</span>( <span class="pl-s"><span class="pl-pds">"</span>WeepingAngel.DontBlink<span class="pl-pds">"</span></span>, { value<span class="pl-k">:</span><span class="pl-s"><span class="pl-pds">"</span>Don't Blink<span class="pl-pds">"</span></span> } );
+dupSubscription.<span class="pl-c1">unsubscribe</span>();</pre></div>
+
+<h2>
+<a id="more-references" class="anchor" href="#more-references" aria-hidden="true"><span class="octicon octicon-link"></span></a>More References</h2>
+
+<p>Please visit the <a href="https://github.com/postaljs/postal.js/wiki">postal.js wiki</a> for API documentation, discussion of concepts and links to blogs/articles on postal.js.</p>
+
+<h2>
+<a id="how-can-i-extend-it" class="anchor" href="#how-can-i-extend-it" aria-hidden="true"><span class="octicon octicon-link"></span></a>How can I extend it?</h2>
+
+<p>There are four main ways you can extend Postal:</p>
+
+<ul>
+<li>Write a plugin. Need more complex behavior that the built-in SubscriptionDefinition doesn't offer? Write a plugin that you can attach to the global postal object. See <a href="https://github.com/postaljs/postal.when">postal.when</a> for an example of how to do this. You can also write plugins that extend the <code>ChannelDefinition</code> and <code>SubscriptionDefinition</code> prototypes - see <a href="https://github.com/postaljs/postal.request-response">postal.request-response</a> for an example of this.</li>
+<li>Write a custom federation plugin, to federate instances of postal across a transport of your choice.</li>
+<li>You can also change how the <code>bindingResolver</code> matches subscriptions to message topics being published. You may not care for the AMQP-style bindings functionality. No problem! Write your own resolver object that implements a <code>compare</code> and <code>reset</code> method and swap the core version out with your implementation by calling: <code>postal.configuration.resolver = myWayBetterResolver</code>.</li>
+</ul>
+
+<p>It's also possible to extend the monitoring of messages passing through Postal by adding a "wire tap". A wire tap is a callback that will get invoked for any published message (even if no actual subscriptions would bind to the message's topic). Wire taps should <em>not</em> be used in lieu of an actual subscription - but instead should be used for diagnostics, logging, forwarding (to a websocket publisher or a local storage wrapper, for example) or other concerns that fall along those lines. This repository used to include a console logging wiretap called postal.diagnostics.js - you can now find it <a href="https://github.com/postaljs/postal.diagnostics">here in it's own repo</a>. This diagnostics wiretap can be configured with filters to limit the firehose of message data to specific channels/topics and more.</p>
+
+<h2>
+<a id="build-dependencies-etc" class="anchor" href="#build-dependencies-etc" aria-hidden="true"><span class="octicon octicon-link"></span></a>Build, Dependencies, etc.</h2>
+
+<ul>
+<li>postal depends on <a href="http://lodash.com/">lodash.js</a>
+
+<ul>
+<li>The standard postal build output (<code>lib/postal.js</code>) is what you would normally use if you're already using lodash in your app.</li>
+<li>The <code>lib/postal.lodash.js</code> build output might be of interest to you if these things are true:
+
+<ul>
+<li>You're using webpack, browserify or another bundler/loader capable of loading CommonJS modules.</li>
+<li>You only need the specific bits of lodash used by postal and don't need the full lib.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>postal uses <a href="http://gulpjs.com/">gulp.js</a> for building, running tests and examples.
+
+<ul>
+<li>To build
+
+<ul>
+<li>run <code>npm install</code> (to install all deps)</li>
+<li>run <code>bower install</code> (yep, we're using at least one thing only found on bower in the local project runner)</li>
+<li>run <code>npm run build</code> (this is just an alias for <code>gulp</code> at the moment, which you can also use) - then check the lib folder for the output</li>
+</ul>
+</li>
+<li>To run tests &amp; examples
+
+<ul>
+<li>Tests are node-based: <code>npm test</code> (or <code>npm run test-lodash</code> to test the custom lodash build output)</li>
+<li>To run browser-based examples:
+
+<ul>
+<li>run <code>npm start</code>
+</li>
+<li>navigate in your browser to <a href="http://localhost:3080/">http://localhost:3080/</a>
+</li>
+<li>if you want to see test coverage or plato reports be sure to run <code>npm run coverage</code> and <code>gulp report</code> (respectively) in order to generate them, as they are not stored with the repo.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+<h2>
+<a id="can-i-contribute" class="anchor" href="#can-i-contribute" aria-hidden="true"><span class="octicon octicon-link"></span></a>Can I contribute?</h2>
+
+<p>Please - by all means! While I hope the API is relatively stable, I'm open to pull requests.  (Hint - if you want a feature implemented, a pull request gives it a much higher probability of being included than simply asking me.) As I said, pull requests are most certainly welcome - but please include tests for your additions. Otherwise, it will disappear into the ether.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Postal.js maintained by <a href="https://github.com/postaljs">postaljs</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
