@@ -1,7 +1,6 @@
 var gulp = require( "gulp" );
 var fileImports = require( "gulp-imports" );
 var header = require( "gulp-header" );
-var beautify = require( "gulp-beautify" );
 var uglify = require( "gulp-uglify" );
 var rename = require( "gulp-rename" );
 var plato = require( "gulp-plato" );
@@ -14,11 +13,11 @@ var port = 3080;
 var jshint = require( "gulp-jshint" );
 var jscs = require( "gulp-jscs" );
 var gulpChanged = require( "gulp-changed" );
-var replace = require("gulp-replace");
+var replace = require( "gulp-replace" );
 var replaceTargets = [
 	"([\\/][\\*][\\s]*jshint\\s.+[\\*\\/])",
 	"([\\/][\\*][\\s]*global\\s.+[\\*\\/])",
-	"([\\/][\\*][\\s]*jscs\\s.+[\\*\\/])",
+	"([\\/][\\*][\\s]*jscs:\\s.+[\\*\\/])",
 	"([\\/][\\*][\\s]*istanbul\\s.+[\\*\\/])",
 	"(\\/\\/[\\s]*jshint.*)",
 	"(\\/\\/[\\s]*jscs:.*)",
@@ -35,19 +34,15 @@ var banner = [ "/**",
 	""
 ].join( "\n" );
 
-gulp.task( "combine", [ "combine.postal" ] );
+gulp.task( "combine", [ "combine.postal", "combine.postal-lodash" ] );
 
-gulp.task( "combine.postal", [ "format" ], function() {
+gulp.task( "combine.postal", [ "format-src" ], function() {
 	return gulp.src( [ "./src/postal.js" ] )
 		.pipe( header( banner, {
 			pkg: pkg
 		} ) )
 		.pipe( fileImports() )
-		.pipe(replace(new RegExp(replaceTargets.join("|"),"gi"), " "))
-		.pipe( beautify( {
-			indentSize: 4,
-			preserveNewlines: false
-		} ) )
+		.pipe( replace( new RegExp( replaceTargets.join( "|" ),"gi" ), "" ) )
 		.pipe( gulp.dest( "./lib/" ) )
 		.pipe( uglify( {
 			compress: {
@@ -61,17 +56,13 @@ gulp.task( "combine.postal", [ "format" ], function() {
 		.pipe( gulp.dest( "./lib/" ) );
 } );
 
-gulp.task( "combine.postal-lodash", [ "format" ], function() {
+gulp.task( "combine.postal-lodash", [ "format-src" ], function() {
 	return gulp.src( [ "./src/postal.lodash.js" ] )
 		.pipe( header( banner, {
 			pkg: pkg
 		} ) )
 		.pipe( fileImports() )
-		.pipe(replace(new RegExp(replaceTargets.join("|"),"gi"), " "))
-		.pipe( beautify( {
-			indentSize: 4,
-			preserveNewlines: false
-		} ) )
+		.pipe( replace( new RegExp( replaceTargets.join( "|" ),"gi" ), "" ) )
 		.pipe( gulp.dest( "./lib/" ) )
 		.pipe( uglify( {
 			compress: {
@@ -85,7 +76,7 @@ gulp.task( "combine.postal-lodash", [ "format" ], function() {
 		.pipe( gulp.dest( "./lib/" ) );
 } );
 
-gulp.task( "default", [ "combine", "combine.postal-lodash" ] );
+gulp.task( "default", [ "format-lib" ] );
 
 var mocha = require( "gulp-spawn-mocha" );
 gulp.task( "mocha", function() {
@@ -151,7 +142,16 @@ gulp.task( "jshint", function() {
 		.pipe( jshint.reporter( "fail" ) );
 } );
 
-gulp.task( "format", [ "jshint" ], function() {
+gulp.task( "format-lib", [ "combine" ], function() {
+	return gulp.src( [ "./lib/postal.js", "./lib/postal.lodash.js" ] )
+		.pipe( jscs( {
+			configPath: ".jscsrc",
+			fix: true
+		} ) )
+		.pipe( gulp.dest( "./lib" ) );
+} );
+
+gulp.task( "format-src", [ "jshint" ], function() {
 	return gulp.src( [ "./src/**/*.js", "!node_modules/**" ] )
 		.pipe( jscs( {
 			configPath: ".jscsrc",
