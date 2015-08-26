@@ -60,4 +60,12 @@ describe( "ChannelDefinition", function() {
 			} );
 		} );
 	} );
+	describe( "when passing invalid arguments to publish", function() {
+		it( "should throw an exception when not passing a string topic or envelope object", function() {
+			var channel = postal.channel( "impossiblegirl" );
+			( function() {
+				channel.publish( 123 );
+			} ).should.throw( /The first argument to ChannelDefinition.publish/ );
+		} );
+	} );
 } );
