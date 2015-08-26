@@ -1,3 +1,9 @@
+## Current
+
+* Included @derickbailey's awesome logo addition!
+* Updated gulp build setup to run formatting on src and lib.
+* Added a `throw` when `ChannelDefinition.prototype.publish` is not passed a valid first argument.
+
 ## v1.0.6
 
 * Fixed issue where JSCS's formatting fix put a line break before `catch` on the `SubscriptionDefinition` prototype.
