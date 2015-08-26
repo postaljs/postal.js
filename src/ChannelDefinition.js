@@ -28,6 +28,9 @@ ChannelDefinition.prototype.publish = function() {
 		envelope = arguments[ 0 ];
 		callback = arguments[ 1 ];
 	}
+	if ( typeof envelope !== "object" ) {
+		throw new Error( "The first argument to ChannelDefinition.publish should be either an envelope object or a string topic." );
+	}
 	envelope.channel = this.channel;
 	this.bus.publish( envelope, callback );
 };

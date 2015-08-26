@@ -1,6 +1,6 @@
 # Postal.js
 
-![](logo/postaljs.jpg)
+![](logo/postaljs.jpg "Special Thanks to Derick Bailey for the postal logo!")
 
 ## Version 1.0.6 ([MIT](http://www.opensource.org/licenses/mit-license))
 
