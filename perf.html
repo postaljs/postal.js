@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>postal.js performance</title>
+    <link rel="stylesheet" href="">
+    <script src="http://broofa.com/Tools/JSLitmus/JSLitmus.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/postal.js/1.0.7/postal.min.js"></script>
+    <script>
+        var chs = {
+            plain: postal.channel( "plain" ),
+            star: postal.channel( "star" ),
+            hash: postal.channel( "hash" )
+        };
+        var subs = {
+            plain: chs.plain.subscribe( "a.topic", _.noop ),
+            star: chs.plain.subscribe( "a.*", _.noop ),
+            hash: chs.plain.subscribe( "#", _.noop )
+        };
+        JSLitmus.test("Plain String Topic Matching", function( count ) {
+            while( count-- ) {
+                chs.plain.publish( "a.topic", { foo: "bar" } );
+            }
+        });
+        JSLitmus.test("Star Wildcard Topic Matching", function( count ) {
+            while( count-- ) {
+                chs.star.publish( "a.topic", { foo: "bar" } );
+            }
+        });
+        JSLitmus.test("Hash Wildcard Topic Matching", function( count ) {
+            while( count-- ) {
+                chs.hash.publish( "a.topic", { foo: "bar" } );
+            }
+        });
+
+    </script>
+</head>
+<body>
+    <div id="test_element" style="overflow:hidden; width: 1px; height:1px;"></div>
+</body>
+</html>
