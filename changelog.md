@@ -1,3 +1,6 @@
+## v1.0.8
+* Fixed #136, where `global` was undefined when setting `prevPostal` for noConflict situations.
+
 ## v1.0.7
 
 * Included @derickbailey's awesome logo addition!
