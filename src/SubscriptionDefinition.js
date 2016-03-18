@@ -172,12 +172,20 @@ SubscriptionDefinition.prototype = {
 		if ( typeof milliseconds !== "number" ) {
 			throw new Error( "Milliseconds must be a number" );
 		}
+		
+		var options = {};
+		
+		if (!!immediate === true) {
+			options.leading = true;
+			options.trailing = false;
+		}
+		
 		this.pipeline.push(
 			_.debounce( function( data, env, next ) {
 				next( data, env );
 			},
 				milliseconds,
-				!!immediate
+				options
 			)
 		);
 		return this;
