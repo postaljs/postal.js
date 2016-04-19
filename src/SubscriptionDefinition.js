@@ -65,15 +65,12 @@ SubscriptionDefinition.prototype = {
 		if ( typeof maxCalls !== "number" || maxCalls <= 0 ) {
 			throw new Error( "The value provided to disposeAfter (maxCalls) must be a number greater than zero." );
 		}
-		var self = this;
-		var dispose = _.after( maxCalls, _.bind( function() {
-			self.unsubscribe();
-		} ) );
-		self.pipeline.push( function( data, env, next ) {
+		var dispose = _.after( maxCalls, this.unsubscribe.bind( this ) );
+		this.pipeline.push( function( data, env, next ) {
 			next( data, env );
 			dispose();
 		} );
-		return self;
+		return this;
 	},
 
 	distinct: function distinct() {
