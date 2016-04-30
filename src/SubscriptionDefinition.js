@@ -32,7 +32,7 @@ var ConsecutiveDistinctPredicate = function() {
 var DistinctPredicate = function DistinctPredicateFactory() {
 	var previous = [];
 	return function DistinctPredicate( data ) {
-		var isDistinct = !_.any( previous, function( p ) {
+		var isDistinct = !_.some( previous, function( p ) {
 			return _.isEqual( data, p );
 		} );
 		if ( isDistinct ) {

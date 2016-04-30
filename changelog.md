@@ -1,3 +1,7 @@
+## v1.0.10
+* Fixed issue where removed lodash alias was still in use
+* Fixed issue `this` context issue in postal.subscribe
+
 ## v1.0.9
 * Merged #148 - Updated to lodash 4.x
 * Merged #128 - Remove unused bower.json version prop

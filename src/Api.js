@@ -198,14 +198,15 @@ _.extend( postal, {
 		// First, add the SubscriptionDefinition to the channel list
 		subs.push( subDef );
 		// Next, add the SubscriptionDefinition to any relevant existing cache(s)
-		_.each( _.keys( this.cache ), function( cacheKey ) {
+		var cache = this.cache;
+		_.each( _.keys( cache ), function( cacheKey ) {
 			if ( cacheKey.substr( 0, channelLen ) === subDef.channel ) {
 				getCacher(
 					cacheKey.split( _config.cacheKeyDelimiter )[1],
-					this.cache,
+					cache,
 					cacheKey )( subDef );
 			}
-		}, this );
+		} );
 		/* istanbul ignore else */
 		if ( _config.enableSystemMessages ) {
 			this.publish( sysCreatedMessage( subDef ) );
