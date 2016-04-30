@@ -32,7 +32,7 @@ var ConsecutiveDistinctPredicate = function() {
 var DistinctPredicate = function DistinctPredicateFactory() {
 	var previous = [];
 	return function DistinctPredicate( data ) {
-		var isDistinct = !_.any( previous, function( p ) {
+		var isDistinct = !_.some( previous, function( p ) {
 			return _.isEqual( data, p );
 		} );
 		if ( isDistinct ) {
@@ -212,26 +212,3 @@ SubscriptionDefinition.prototype = {
 		return this;
 	}
 };
-
-// Backwards Compatibility
-// WARNING: these will be removed by version 0.13
-/* istanbul ignore next */
-function warnOnDeprecation( oldMethod, newMethod ) {
-	return function() {
-		if ( console.warn || console.log ) {
-			var msg = "Warning, the " + oldMethod + " method has been deprecated. Please use " + newMethod + " instead.";
-			if ( console.warn ) {
-				console.warn( msg );
-			} else {
-				console.log( msg );
-			}
-		}
-		return SubscriptionDefinition.prototype[ newMethod ].apply( this, arguments );
-	};
-}
-var oldMethods = [ "withConstraint", "withConstraints", "withContext", "withDebounce", "withDelay", "withThrottle" ];
-var newMethods = [ "constraint", "constraints", "context", "debounce", "delay", "throttle" ];
-for ( var i = 0; i < 6; i++ ) {
-	var oldMethod = oldMethods[ i ];
-	SubscriptionDefinition.prototype[ oldMethod ] = warnOnDeprecation( oldMethod, newMethods[ i ] );
-}

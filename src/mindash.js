@@ -2,7 +2,7 @@ var createPartialWrapper = require( "lodash/internal/createPartialWrapper" );
 
 var _ = {
 	after: require( "lodash/function/after" ),
-	any: require( "lodash/internal/arraySome" ),
+	some: require( "lodash/internal/arraySome" ),
 	bind: function( func, thisArg, arg ) {
 		return createPartialWrapper( func, 33, thisArg, [ arg ] );
 	},
