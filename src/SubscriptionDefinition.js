@@ -65,15 +65,12 @@ SubscriptionDefinition.prototype = {
 		if ( typeof maxCalls !== "number" || maxCalls <= 0 ) {
 			throw new Error( "The value provided to disposeAfter (maxCalls) must be a number greater than zero." );
 		}
-		var self = this;
-		var dispose = _.after( maxCalls, _.bind( function() {
-			self.unsubscribe();
-		} ) );
-		self.pipeline.push( function( data, env, next ) {
+		var dispose = _.after( maxCalls, this.unsubscribe.bind( this ) );
+		this.pipeline.push( function( data, env, next ) {
 			next( data, env );
 			dispose();
 		} );
-		return self;
+		return this;
 	},
 
 	distinct: function distinct() {
@@ -215,26 +212,3 @@ SubscriptionDefinition.prototype = {
 		return this;
 	}
 };
-
-// Backwards Compatibility
-// WARNING: these will be removed by version 0.13
-/* istanbul ignore next */
-function warnOnDeprecation( oldMethod, newMethod ) {
-	return function() {
-		if ( console.warn || console.log ) {
-			var msg = "Warning, the " + oldMethod + " method has been deprecated. Please use " + newMethod + " instead.";
-			if ( console.warn ) {
-				console.warn( msg );
-			} else {
-				console.log( msg );
-			}
-		}
-		return SubscriptionDefinition.prototype[ newMethod ].apply( this, arguments );
-	};
-}
-var oldMethods = [ "withConstraint", "withConstraints", "withContext", "withDebounce", "withDelay", "withThrottle" ];
-var newMethods = [ "constraint", "constraints", "context", "debounce", "delay", "throttle" ];
-for ( var i = 0; i < 6; i++ ) {
-	var oldMethod = oldMethods[ i ];
-	SubscriptionDefinition.prototype[ oldMethod ] = warnOnDeprecation( oldMethod, newMethods[ i ] );
-}

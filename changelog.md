@@ -1,3 +1,13 @@
+# v2.x
+
+## v2.0.0
+* Merged #151 (breaking change, requires [function.prototype.bind](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind) polyfill in older browsers)
+* Removed deprecated SubscriptionDefinition methods (breaking change)
+    * Removed method names: `withConstraint`, `withConstraints`, `withContext`, `withDebounce`, `withDelay`, `withThrottle`
+	* Correct/current method names: `constraint`, `constraints`, `context`, `debounce`, `delay`, `throttle`
+
+# v1.x
+
 ## v1.0.11
 * Fixed even more issues I missed with lodash 4
 * Made note-to-self to be extra careful cutting new tags while sick.
@@ -48,6 +58,8 @@
 * Updated gulpfile to produce standard and custom-lodash builds.
 * Updated package.json scripts to allow for testing both standard and lodash builds
 * Added an `.editorconfig` file to normalize indentation and whitespace concerns.
+
+# v0.x
 
 ## v0.12.4
 * Added support for publish metadata callback (thanks @arobson).
