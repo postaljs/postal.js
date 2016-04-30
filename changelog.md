@@ -1,3 +1,7 @@
+## v1.0.9
+* Merged #148 - Updated to lodash 4.x
+* Merged #128 - Remove unused bower.json version prop
+
 ## v1.0.8
 * Fixed #136, where `global` was undefined when setting `prevPostal` for noConflict situations.
 
