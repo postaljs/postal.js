@@ -1,5 +1,8 @@
 # v2.x
 
+## v2.0.1
+* Added call to lodash's noConflict.
+
 ## v2.0.0
 * Merged #151 (breaking change, requires [function.prototype.bind](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind) polyfill in older browsers)
 * Removed deprecated SubscriptionDefinition methods (breaking change)
