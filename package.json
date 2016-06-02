@@ -1,7 +1,7 @@
 {
   "name": "postal",
   "description": "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "homepage": "http://github.com/postaljs/postal.js",
   "repository": {
     "type": "git",
@@ -30,7 +30,7 @@
     },
     {
       "name": "Jonathan Creamer",
-      "url": "http://freshbrewedcode.com/jonathancreamer"
+      "url": "https://github.com/jcreamer898"
     },
     {
       "name": "Elijah Manor",

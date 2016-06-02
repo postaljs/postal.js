@@ -1,5 +1,10 @@
 # v2.x
 
+## v2.0.2
+* Thanks to @jcreamer898:
+	* Fixed lodash paths, removed unnecesary `_.noConflict()` call.
+	* Added travis.yml.
+
 ## v2.0.1
 * Added call to lodash's noConflict.
 
