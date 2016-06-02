@@ -1,5 +1,8 @@
 # v2.x
 
+## v2.0.3
+* Fixed lodash isEqual file name casing.
+
 ## v2.0.2
 * Thanks to @jcreamer898:
 	* Fixed lodash paths, removed unnecesary `_.noConflict()` call.
