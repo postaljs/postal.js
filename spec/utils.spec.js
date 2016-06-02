@@ -1,5 +1,6 @@
 /* global global, postal, _ */
 var NO_OP = function() {};
+var _ = require( "lodash" );
 describe( "postal.utils", function() {
 	beforeEach( function() {
 		postal.reset();
