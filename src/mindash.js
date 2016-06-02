@@ -6,7 +6,7 @@ var _ = {
 	each: require( "lodash/each" ),
 	extend: require( "lodash/assign" ),
 	filter: require( "lodash/filter" ),
-	isEqual: require( "lodash/isequal" ),
+	isEqual: require( "lodash/isEqual" ),
 	keys: require( "lodash/keys" ),
 	map: require( "lodash/map" ),
 	throttle: require( "lodash/throttle" )
