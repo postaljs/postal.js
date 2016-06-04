@@ -15,8 +15,11 @@
 		root.postal = factory( root._, root );
 	}
 }( this, function( _, global, undefined ) {
-	_ = _.noConflict();
 	var prevPostal = global && global.postal;
+	var prevLodash = global && global._;
+	if ( prevLodash && prevLodash !== _ ) {
+		_ = _.noConflict();
+	}
 	var _defaultConfig = {
 		DEFAULT_CHANNEL: "/",
 		SYSTEM_CHANNEL: "postal",
