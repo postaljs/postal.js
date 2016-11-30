@@ -30,8 +30,8 @@ function getCacher( topic, pubCache, cacheKey, done, envelope ) {
 			if ( !headers.resolverNoCache ) {
 				cache = pubCache[ cacheKey ] = ( pubCache[ cacheKey ] || [] );
 				cache.push( subDef );
+				subDef.cacheKeys.push( cacheKey );
 			}
-			subDef.cacheKeys.push( cacheKey );
 			if ( done ) {
 				done( subDef );
 			}

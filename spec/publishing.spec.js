@@ -171,6 +171,18 @@ describe( "postal.js - publishing", function() {
 			} );
 			postal.cache.should.have.ownProperty( "clara" + postal.configuration.cacheKeyDelimiter + "run.you.clever.boy" );
 		} );
+		it( "should not add a subscription definition cache key if explicitly set to true", function() {
+			var subA = postal.subscribe( { channel: "clara", topic: "run.you.clever.*", callback: function() {} } );
+			postal.publish( {
+				channel: "clara",
+				topic: "run.you.clever.boy",
+				data: "RYCB!!",
+				headers: {
+					resolverNoCache: true
+				}
+			} );
+			subA.cacheKeys.should.be.empty;
+		} );
 	} );
 
 	describe( "when publishing with a callback", function() {
