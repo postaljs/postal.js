@@ -18,7 +18,7 @@
 		root.postal = factory( _, root );
 	}
 }( this, function( _, global, undefined ) {
-	var prevPostal = global.postal;
+	var prevPostal = global && global.postal;
 	var _defaultConfig = {
 		DEFAULT_CHANNEL: "/",
 		SYSTEM_CHANNEL: "postal",
