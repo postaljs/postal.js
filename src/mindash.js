@@ -9,6 +9,5 @@ var _ = {
 	isEqual: require( "lodash/isEqual" ),
 	keys: require( "lodash/keys" ),
 	map: require( "lodash/map" ),
-	pick: require( "lodash/pick" ),
 	throttle: require( "lodash/throttle" )
 };
