@@ -95,7 +95,7 @@ In my experience, seeing publish and subscribe calls all over application logic 
 
 ## More on How to Use It
 
-Here are four examples of using Postal. All of these examples - AND MORE! - can run live [here](http://jsfiddle.net/ifandelse/8dLpkpcf/). Be sure to check out the [wiki](https://github.com/postaljs/postal.js/wiki) for API documentation and conceptual walk-throughs.
+Here are four examples of using Postal. All of these examples - AND MORE! - can run live [here](http://jsfiddle.net/8dLpkpcf/41/). Be sure to check out the [wiki](https://github.com/postaljs/postal.js/wiki) for API documentation and conceptual walk-throughs.
 
 ```javascript
 // This gets you a handle to the default postal channel...
