@@ -1,5 +1,9 @@
 # v2.x
 
+## v2.0.5
+* Fixed caching when resolverNoCache is set to true
+* Allowed resolverNoCache config option to be passed to envelope headers
+
 ## v2.0.4
 * Conditionally calling _.noConflict (only if previous global._ was truthy and not equal to postal's lodash version)
 

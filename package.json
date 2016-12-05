@@ -1,7 +1,7 @@
 {
   "name": "postal",
   "description": "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "homepage": "http://github.com/postaljs/postal.js",
   "repository": {
     "type": "git",
@@ -71,6 +71,14 @@
     {
       "name": "Ryan Niemeyer",
       "url": "https://github.com/rniemeyer"
+    },
+    {
+      "name": "Caleb Rugg",
+      "url": "https://github.com/crugg"
+    },
+    {
+      "name": "Adria Jimenez",
+      "url": "https://github.com/ajimix"
     }
   ],
   "keywords": [
