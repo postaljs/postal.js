@@ -15,30 +15,30 @@ Postal.js is an in-memory message bus - very loosely inspired by [AMQP](http://w
 If you want to subscribe to a message, you tell postal what channel and topic to listen on (channel is optional, as postal provides a default one if you don't), and a callback to be invoked when a message arrives:
 
 ```javascript
-	var subscription = postal.subscribe({
-		channel: "orders",
-		topic: "item.add",
-		callback: function(data, envelope) {
-			// `data` is the data published by the publisher.
-			// `envelope` is a wrapper around the data & contains
-			// metadata about the message like the channel, topic,
-			// timestamp and any other data which might have been
-			// added by the sender.
-		}
-	});
+var subscription = postal.subscribe({
+    channel: "orders",
+    topic: "item.add",
+    callback: function(data, envelope) {
+        // `data` is the data published by the publisher.
+        // `envelope` is a wrapper around the data & contains
+        // metadata about the message like the channel, topic,
+        // timestamp and any other data which might have been
+        // added by the sender.
+    }
+});
 ```
 
 The publisher might do something similar to this:
 
 ```javascript
-	postal.publish({
-	    channel: "orders",
-	    topic: "item.add",
-	    data: {
-	        sku: "AZDTF4346",
-	        qty: 21
-	    }
-	});
+postal.publish({
+    channel: "orders",
+    topic: "item.add",
+    data: {
+        sku: "AZDTF4346",
+        qty: 21
+    }
+});
 ```
 
 ### Channels? WAT?
@@ -47,16 +47,16 @@ A channel is a logical partition of topics. Conceptually, it's like a dedicated 
 While the above code snippets work just fine, it's possible to get a more terse API if you want to hang onto an `ChannelDefinition` instance - which is really a convenience wrapper around publishing and subscribing on a specific channel (instead of having to specify it each time):
 
 ```javascript
-	var channel = postal.channel("orders");
+var channel = postal.channel("orders");
 
-	var subscription = channel.subscribe("item.add", function(data, envelope) {
-		/*do stuff with data */
-	});
+var subscription = channel.subscribe("item.add", function(data, envelope) {
+    /* do stuff with data */
+});
 
-	channel.publish("item.add", {
-        sku: "AZDTF4346",
-        qty: 21
-    });
+channel.publish("item.add", {
+    sku: "AZDTF4346",
+    qty: 21
+});
 ```
 
 ###But Wait - How's This Different Than {Insert "X" Eventing Library Here}?
