@@ -34,9 +34,24 @@ var banner = [ "/**",
 	""
 ].join( "\n" );
 
-gulp.task( "combine", [ "combine.postal", "combine.postal-lodash" ] );
+gulp.task( "jshint", function() {
+	return gulp.src( [ "src/**/*.js", "spec/**/*.js" ] )
+		.pipe( jshint() )
+		.pipe( jshint.reporter( "jshint-stylish" ) )
+		.pipe( jshint.reporter( "fail" ) );
+} );
 
-gulp.task( "combine.postal", [ "format-src" ], function() {
+gulp.task( "format-src", gulp.series("jshint", function() {
+	return gulp.src( [ "./src/**/*.js", "!node_modules/**" ] )
+		.pipe( jscs( {
+			configPath: ".jscsrc",
+			fix: true
+		} ) )
+		.pipe( gulpChanged( "./src", { hasChanged: gulpChanged.compareSha1Digest } ) )
+		.pipe( gulp.dest( "./src" ) );
+}));
+
+gulp.task( "combine.postal", gulp.series( "format-src" , function() {
 	return gulp.src( [ "./src/postal.js" ] )
 		.pipe( header( banner, {
 			pkg: pkg
@@ -54,9 +69,9 @@ gulp.task( "combine.postal", [ "format-src" ], function() {
 		} ) )
 		.pipe( rename( "postal.min.js" ) )
 		.pipe( gulp.dest( "./lib/" ) );
-} );
+}) );
 
-gulp.task( "combine.postal-lodash", [ "format-src" ], function() {
+gulp.task( "combine.postal-lodash", gulp.series("format-src", function() {
 	return gulp.src( [ "./src/postal.lodash.js" ] )
 		.pipe( header( banner, {
 			pkg: pkg
@@ -74,9 +89,20 @@ gulp.task( "combine.postal-lodash", [ "format-src" ], function() {
 		} ) )
 		.pipe( rename( "postal.lodash.min.js" ) )
 		.pipe( gulp.dest( "./lib/" ) );
-} );
+}));
 
-gulp.task( "default", [ "format-lib" ] );
+gulp.task( "combine", gulp.parallel("combine.postal", "combine.postal-lodash") );
+
+gulp.task( "format-lib", gulp.series("combine", function() {
+	return gulp.src( [ "./lib/postal.js", "./lib/postal.lodash.js" ] )
+		.pipe( jscs( {
+			configPath: ".jscsrc",
+			fix: true
+		} ) )
+		.pipe( gulp.dest( "./lib" ) );
+}));
+
+gulp.task( "default", gulp.series("format-lib" ));
 
 var mocha = require( "gulp-spawn-mocha" );
 gulp.task( "mocha", function() {
@@ -123,40 +149,14 @@ var createServer = function( port ) {
 
 var servers;
 
-gulp.task( "server", [ "combine" ], function() {
+gulp.task( "server", gulp.series("combine", function() {
 	if ( !servers ) {
 		servers = createServer( port );
 	}
 	open( "http://localhost:" + port + "/index.html" );
-} );
+}));
 
-gulp.task( "watch", [ "default", "mocha" ], function() {
+gulp.task( "watch", gulp.series(gulp.parallel("default", "mocha"), function() {
 	gulp.watch( "src/**/*", [ "default" ] );
 	gulp.watch( "{lib,spec}/**/*", [ "mocha" ] );
-} );
-
-gulp.task( "jshint", function() {
-	return gulp.src( [ "src/**/*.js", "spec/**/*.js" ] )
-		.pipe( jshint() )
-		.pipe( jshint.reporter( "jshint-stylish" ) )
-		.pipe( jshint.reporter( "fail" ) );
-} );
-
-gulp.task( "format-lib", [ "combine" ], function() {
-	return gulp.src( [ "./lib/postal.js", "./lib/postal.lodash.js" ] )
-		.pipe( jscs( {
-			configPath: ".jscsrc",
-			fix: true
-		} ) )
-		.pipe( gulp.dest( "./lib" ) );
-} );
-
-gulp.task( "format-src", [ "jshint" ], function() {
-	return gulp.src( [ "./src/**/*.js", "!node_modules/**" ] )
-		.pipe( jscs( {
-			configPath: ".jscsrc",
-			fix: true
-		} ) )
-		.pipe( gulpChanged( "./src", { hasChanged: gulpChanged.compareSha1Digest } ) )
-		.pipe( gulp.dest( "./src" ) );
-} );
+}));
