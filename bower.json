@@ -24,7 +24,7 @@
         "lib/postal.js"
     ],
     "dependencies": {
-        "lodash": "^4.12"
+        "lodash": "^4.17.11"
     },
     "devDependencies": {
         "jquery": "~1.10.2",
