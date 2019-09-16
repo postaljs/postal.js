@@ -1,7 +1,7 @@
 {
   "name": "postal",
   "description": "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "homepage": "http://github.com/postaljs/postal.js",
   "repository": {
     "type": "git",
@@ -79,6 +79,10 @@
     {
       "name": "Adria Jimenez",
       "url": "https://github.com/ajimix"
+    },
+    {
+      "name": "Parker Johansen",
+      "url": "https://github.com/auroq"
     }
   ],
   "keywords": [
@@ -105,7 +109,7 @@
     "node": ">=0.4.0"
   },
   "dependencies": {
-    "lodash": "^4.12.0"
+    "lodash": "^4.17.15"
   },
   "devDependencies": {
     "bower": "^1.4.1",

@@ -1,5 +1,8 @@
 # v2.x
 
+## v2.0.6
+* Update lodash version as per CVE-2019-10744
+
 ## v2.0.5
 * Fixed caching when resolverNoCache is set to true
 * Allowed resolverNoCache config option to be passed to envelope headers
