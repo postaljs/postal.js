@@ -14,3 +14,4 @@ component.json
 .npmignore
 classic-resolver*
 bower*
+report/
