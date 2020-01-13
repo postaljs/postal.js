@@ -59,7 +59,7 @@ While the above code snippets work just fine, it's possible to get a more terse 
     });
 ```
 
-###But Wait - How's This Different Than {Insert "X" Eventing Library Here}?
+### But Wait - How's This Different Than {Insert "X" Eventing Library Here}?
 
 * postal is not an event emitter - it's not meant to be mixed into an instance. Instead, it's a stand alone "broker" – a *message bus*.
 * postal uses an *envelope* to pass messages. This means you get a consistent method signature in ALL of your subscriber callbacks. Most eventing libs take what I call the "0-n args approach", and what gets passed to the subscriber in those libs is solely at the mercy/whim of the developer that wrote the code emitting the event.
