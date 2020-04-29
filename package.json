@@ -123,7 +123,7 @@
     "gulp-uglify": "^1.2.0",
     "gulp-util": "~2.2.9",
     "istanbul": "^0.3.13",
-    "jquery": "^2.2.4",
+    "jquery": "^3.5.0",
     "jshint-stylish": "^1.0.2",
     "karma": "^0.12.31",
     "mocha": "^2.2.4",
