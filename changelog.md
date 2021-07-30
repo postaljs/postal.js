@@ -1,5 +1,10 @@
 # v2.x
 
+## v2.0.6
+* Updated lodash to 4.17.21
+* Addressed formatting issues in the README
+* Went a bit crazy in the .npmignore (even though this package uses the `files` option in the package.json)
+* Added an nvmrc to run local examples in node 11, since the examples are broken in later versions (does not affect postal's ability to run in later node versions!)
 ## v2.0.5
 * Fixed caching when resolverNoCache is set to true
 * Allowed resolverNoCache config option to be passed to envelope headers
