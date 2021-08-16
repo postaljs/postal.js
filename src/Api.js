@@ -226,7 +226,7 @@ _.extend( postal, {
 			subDef.inactive = true;
 			if ( pubInProgress ) {
 				unSubQueue.push( subDef );
-				return;
+				continue;
 			}
 			channelSubs = this.subscriptions[ subDef.channel ];
 			topicSubs = channelSubs && channelSubs[ subDef.topic ];
