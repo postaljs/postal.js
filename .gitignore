@@ -41,3 +41,5 @@ pnpm-debug.log*
 .ai/*
 
 .obsidian/
+
+docs/archive/*
