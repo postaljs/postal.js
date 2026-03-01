@@ -1,0 +1,153 @@
+{
+  "name": "postal",
+  "description": "Pub/Sub library providing wildcard subscriptions, complex message handling, etc.  Works server and client-side.",
+  "version": "2.0.6",
+  "homepage": "http://github.com/postaljs/postal.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/postaljs/postal.js.git"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
+  "author": "Jim Cowart (http://ifandelse.com)",
+  "contributors": [
+    {
+      "name": "Jim Cowart",
+      "url": "http://ifandelse.com"
+    },
+    {
+      "name": "Alex Robson",
+      "url": "http://nerdventure.io"
+    },
+    {
+      "name": "Nicholas Cloud",
+      "url": "http://nicholascloud.com"
+    },
+    {
+      "name": "Doug Neiner",
+      "url": "http://dougneiner.com"
+    },
+    {
+      "name": "Jonathan Creamer",
+      "url": "https://github.com/jcreamer898"
+    },
+    {
+      "name": "Elijah Manor",
+      "url": "http://www.elijahmanor.com"
+    },
+    {
+      "name": "Ger Hobbelt",
+      "url": "http://hebbut.net/"
+    },
+    {
+      "name": "Christian Haas",
+      "url": "http://github.com/dertseha"
+    },
+    {
+      "name": "Mark Swaffer",
+      "url": "https://github.com/swaff"
+    },
+    {
+      "name": "Sergio Pereira",
+      "url": "https://github.com/sergiopereiraTT"
+    },
+    {
+      "name": "Anthony van der Hoorn",
+      "url": "http://blog.anthonyvanderhoorn.com/"
+    },
+    {
+      "name": "John-David Dalton",
+      "url": "http://www.allyoucanleet.com"
+    },
+    {
+      "name": "Derick Bailey",
+      "url": "http://derickbailey.com/"
+    },
+    {
+      "name": "Kamil Biela",
+      "url": "https://github.com/kamilbiela"
+    },
+    {
+      "name": "Ryan Niemeyer",
+      "url": "https://github.com/rniemeyer"
+    },
+    {
+      "name": "Caleb Rugg",
+      "url": "https://github.com/crugg"
+    },
+    {
+      "name": "Adria Jimenez",
+      "url": "https://github.com/ajimix"
+    }
+  ],
+  "keywords": [
+    "pub/sub",
+    "pub",
+    "sub",
+    "messaging",
+    "message",
+    "bus",
+    "event",
+    "mediator",
+    "broker",
+    "envelope"
+  ],
+  "bugs": {
+    "email": "PleaseJustUseTheIssuesPage@github.com",
+    "url": "http://github.com/postaljs/postal.js/issues"
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "main": "lib/postal.js",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "bower": "^1.4.1",
+    "express": "^4.12.3",
+    "gulp": "^3.8.8",
+    "gulp-changed": "^1.2.1",
+    "gulp-header": "^1.2.2",
+    "gulp-imports": "~0.0.1",
+    "gulp-jscs": "^1.6.0",
+    "gulp-jshint": "^1.10.0",
+    "gulp-plato": "^1.0.2",
+    "gulp-rename": "^1.2.2",
+    "gulp-replace": "^0.5.3",
+    "gulp-spawn-mocha": "^2.0.1",
+    "gulp-uglify": "^1.2.0",
+    "gulp-util": "~2.2.9",
+    "istanbul": "^0.3.13",
+    "jquery": "^3.5.0",
+    "jshint-stylish": "^1.0.2",
+    "karma": "^0.12.31",
+    "mocha": "^2.2.4",
+    "open": "~7.0.0",
+    "postal.diagnostics": "^0.7.4",
+    "should": "^6.0.1",
+    "sinon": "~1.14.1"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/mit-license.php"
+    }
+  ],
+  "scripts": {
+    "build": "gulp",
+    "test": "./node_modules/mocha/bin/mocha -r spec/helpers/node-setup.js spec",
+    "test-lodash": "./node_modules/mocha/bin/mocha -r spec/helpers/node-lodash-build-setup.js spec",
+    "coverage": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -x 'spec/**/*'  -- -r spec/helpers/node-setup.js spec spec/*.spec.js",
+    "show-coverage": "open ./coverage/lcov-report/index.html",
+    "start": "gulp server"
+  },
+  "files": [
+    "lib",
+    "LICENSE"
+  ]
+}
