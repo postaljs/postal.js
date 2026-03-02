@@ -16,6 +16,26 @@ import { getInstanceId, setOutboundHook, dispatchInbound, onReset } from "./chan
 // --- Public types ---
 
 /**
+ * Metadata passed to `Transport.send()` by the core.
+ *
+ * Transports can use this to make send-time decisions that require context
+ * the transport can't determine on its own. Currently carries `peerCount` so
+ * a transport knows whether other transports are also receiving this envelope.
+ *
+ * Transports that don't need this can safely ignore it — the parameter is optional.
+ */
+export type TransportSendMeta = {
+    /**
+     * Number of transports that passed the filter for this envelope
+     * (including the current transport).
+     *
+     * A value of 1 means this transport is the sole recipient.
+     * A value > 1 means multiple transports are receiving the same envelope.
+     */
+    peerCount: number;
+};
+
+/**
  * A transport bridges postal across execution boundaries (iframes, workers, tabs).
  *
  * Implementers provide `send` (push envelopes to the remote) and `subscribe`
@@ -24,7 +44,7 @@ import { getInstanceId, setOutboundHook, dispatchInbound, onReset } from "./chan
  */
 export type Transport = {
     /** Send an envelope to the remote side. */
-    send: (envelope: Envelope) => void;
+    send: (envelope: Envelope, meta?: TransportSendMeta) => void;
     /** Listen for envelopes arriving from the remote side. Returns an unsubscribe function. */
     subscribe: (callback: (envelope: Envelope) => void) => () => void;
     /** Optional cleanup when the transport is removed or reset. */
@@ -91,6 +111,10 @@ const passesFilter = (envelope: Envelope, filter?: TransportFilter): boolean => 
 /**
  * Broadcasts an envelope to all registered transports that pass their filter.
  * Stamps each outbound copy with `source: instanceId` for echo prevention.
+ *
+ * Pre-filters into a list first so `peerCount` can be passed as meta —
+ * some transports (e.g. MessagePort) use this to decide between zero-copy
+ * transfer and structured clone when binary payloads are involved.
  */
 const broadcastToTransports = (envelope: Envelope): void => {
     if (transports.length === 0) {
@@ -98,12 +122,12 @@ const broadcastToTransports = (envelope: Envelope): void => {
     }
 
     const source = getInstanceId();
+    const matching = transports.filter(entry => passesFilter(envelope, entry.filter));
+    const meta: TransportSendMeta = { peerCount: matching.length };
 
-    for (const entry of transports) {
-        if (passesFilter(envelope, entry.filter)) {
-            // Shallow copy with source stamp — never mutate the original.
-            entry.transport.send({ ...envelope, source });
-        }
+    for (const entry of matching) {
+        // Shallow copy with source stamp — never mutate the original.
+        entry.transport.send({ ...envelope, source }, meta);
     }
 };
 

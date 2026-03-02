@@ -1,24 +1,38 @@
 export default {};
 
-import { addTransport, resetTransports, type Transport, type Envelope } from "./index";
+import {
+    addTransport,
+    resetTransports,
+    type Transport,
+    type Envelope,
+    type TransportSendMeta,
+} from "./index";
 import { getChannel, createChannel, resetChannels, getInstanceId } from "./channel";
 import { createEnvelope } from "./envelope";
 
 // --- Mock transport factory ---
 
+type SentCall = {
+    envelope: Envelope;
+    meta: TransportSendMeta | undefined;
+};
+
 type MockTransport = {
     transport: Transport;
     simulateInbound: (envelope: Envelope) => void;
     sentEnvelopes: Envelope[];
+    sentCalls: SentCall[];
 };
 
 const createMockTransport = (): MockTransport => {
     let inboundCallback: ((envelope: Envelope) => void) | null = null;
     const sentEnvelopes: Envelope[] = [];
+    const sentCalls: SentCall[] = [];
 
     const transport: Transport = {
-        send: jest.fn((envelope: Envelope) => {
+        send: jest.fn((envelope: Envelope, meta?: TransportSendMeta) => {
             sentEnvelopes.push(envelope);
+            sentCalls.push({ envelope, meta });
         }),
         subscribe: jest.fn((callback: (envelope: Envelope) => void) => {
             inboundCallback = callback;
@@ -38,6 +52,7 @@ const createMockTransport = (): MockTransport => {
             inboundCallback(envelope);
         },
         sentEnvelopes,
+        sentCalls,
     };
 };
 
@@ -130,6 +145,69 @@ describe("transport", () => {
             it("should send to all transports", () => {
                 expect(mockA.transport.send).toHaveBeenCalledTimes(1);
                 expect(mockB.transport.send).toHaveBeenCalledTimes(1);
+            });
+        });
+    });
+
+    describe("TransportSendMeta peerCount", () => {
+        describe("when a single transport is registered", () => {
+            let mock: MockTransport;
+
+            beforeEach(() => {
+                mock = createMockTransport();
+                addTransport(mock.transport);
+                const channel = getChannel(CHANNEL_NAME);
+                channel.publish("item.placed", { sku: "LONE-WOLF" });
+            });
+
+            it("should call send with peerCount of 1", () => {
+                expect(mock.sentCalls[0].meta?.peerCount).toBe(1);
+            });
+        });
+
+        describe("when multiple transports are registered and all pass the filter", () => {
+            let mockA: MockTransport;
+            let mockB: MockTransport;
+            let mockC: MockTransport;
+
+            beforeEach(() => {
+                mockA = createMockTransport();
+                mockB = createMockTransport();
+                mockC = createMockTransport();
+                addTransport(mockA.transport);
+                addTransport(mockB.transport);
+                addTransport(mockC.transport);
+                const channel = getChannel(CHANNEL_NAME);
+                channel.publish("item.placed", { sku: "THREE-MUSKETEERS" });
+            });
+
+            it("should call each transport send with peerCount of 3", () => {
+                expect(mockA.sentCalls[0].meta?.peerCount).toBe(3);
+                expect(mockB.sentCalls[0].meta?.peerCount).toBe(3);
+                expect(mockC.sentCalls[0].meta?.peerCount).toBe(3);
+            });
+        });
+
+        describe("when a channel filter excludes some transports", () => {
+            let mockFiltered: MockTransport;
+            let mockUnfiltered: MockTransport;
+
+            beforeEach(() => {
+                mockFiltered = createMockTransport();
+                mockUnfiltered = createMockTransport();
+                // This transport only accepts "inventory" channel — will not match "orders"
+                addTransport(mockFiltered.transport, { filter: { channels: ["inventory"] } });
+                addTransport(mockUnfiltered.transport);
+                const channel = getChannel(CHANNEL_NAME);
+                channel.publish("item.placed", { sku: "MCFLY-SHOES" });
+            });
+
+            it("should not send to the filtered-out transport", () => {
+                expect(mockFiltered.transport.send).not.toHaveBeenCalled();
+            });
+
+            it("should call the passing transport with peerCount of 1", () => {
+                expect(mockUnfiltered.sentCalls[0].meta?.peerCount).toBe(1);
             });
         });
     });

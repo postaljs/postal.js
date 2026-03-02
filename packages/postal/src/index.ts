@@ -14,4 +14,4 @@ export type { Envelope, EnvelopeType } from "./envelope";
 
 export { addTransport, resetTransports } from "./transport";
 
-export type { Transport, TransportFilter, TransportOptions } from "./transport";
+export type { Transport, TransportFilter, TransportOptions, TransportSendMeta } from "./transport";

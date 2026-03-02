@@ -1,8 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export default {};
 
-import type { Transport, Envelope } from "postal";
+import {
+    addTransport,
+    getChannel,
+    resetChannels,
+    type Transport,
+    type Envelope,
+    type TransportSendMeta,
+} from "postal";
 import { createMessagePortTransport } from "./messagePortTransport";
+import { markTransferable } from "./transferables";
 
 // --- Mock port helpers ---
 // Used by error-isolation and disposed-guard tests that need synchronous,
@@ -389,6 +397,118 @@ describe("createMessagePortTransport (mock port)", () => {
         });
     });
 
+    describe("when send is called without markTransferable", () => {
+        let envelope: Envelope;
+
+        beforeEach(() => {
+            transport = createMessagePortTransport(makeMockPort());
+            envelope = makeEnvelope({ payload: { sku: "PLAIN-ENVELOPE" } });
+            transport.send(envelope);
+        });
+
+        it("should call postMessage with an empty transfer list", () => {
+            expect(mockPostMessage).toHaveBeenCalledTimes(1);
+            expect(mockPostMessage).toHaveBeenCalledWith(expect.any(Object), []);
+        });
+    });
+
+    describe("when send is called with markTransferable and peerCount of 1", () => {
+        let buffer: ArrayBuffer;
+        let envelope: Envelope;
+        const singlePeerMeta: TransportSendMeta = { peerCount: 1 };
+
+        beforeEach(() => {
+            transport = createMessagePortTransport(makeMockPort());
+            buffer = new ArrayBuffer(64);
+            const payload = markTransferable({ frame: "WEBCAM-FRAME" }, [buffer]);
+            envelope = makeEnvelope({ payload });
+            transport.send(envelope, singlePeerMeta);
+        });
+
+        it("should call postMessage with the transfer list", () => {
+            expect(mockPostMessage).toHaveBeenCalledTimes(1);
+            expect(mockPostMessage).toHaveBeenCalledWith(expect.any(Object), [buffer]);
+        });
+    });
+
+    describe("when send is called with markTransferable and peerCount greater than 1", () => {
+        let envelope: Envelope;
+        const multiPeerMeta: TransportSendMeta = { peerCount: 2 };
+
+        beforeEach(() => {
+            transport = createMessagePortTransport(makeMockPort());
+            const buffer = new ArrayBuffer(64);
+            const payload = markTransferable({ frame: "SHARED-FRAME" }, [buffer]);
+            envelope = makeEnvelope({ payload });
+            transport.send(envelope, multiPeerMeta);
+        });
+
+        it("should call postMessage without a transfer list (structured clone fallback)", () => {
+            expect(mockPostMessage).toHaveBeenCalledTimes(1);
+            expect(mockPostMessage).toHaveBeenCalledWith(expect.any(Object));
+        });
+    });
+
+    describe("when send is called on a disposed transport with a marked payload", () => {
+        let buffer: ArrayBuffer;
+
+        beforeEach(() => {
+            transport = createMessagePortTransport(makeMockPort());
+            buffer = new ArrayBuffer(32);
+            const payload = markTransferable({ frame: "DISPOSED-FRAME" }, [buffer]);
+            const envelope = makeEnvelope({ payload });
+            transport.dispose?.();
+            transport.send(envelope);
+        });
+
+        it("should not call postMessage", () => {
+            expect(mockPostMessage).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("when two transports share the same marked payload", () => {
+        let transportB: Transport;
+        let mockPostMessageB: jest.Mock;
+
+        beforeEach(() => {
+            mockPostMessageB = jest.fn();
+            const mockPortB = {
+                postMessage: mockPostMessageB,
+                close: jest.fn(),
+                addEventListener: jest.fn(),
+                removeEventListener: jest.fn(),
+                start: jest.fn(),
+            } as unknown as MessagePort;
+
+            transport = createMessagePortTransport(makeMockPort());
+            transportB = createMessagePortTransport(mockPortB);
+
+            const buffer = new ArrayBuffer(128);
+            const payload = markTransferable({ frame: "CONTESTED-FRAME" }, [buffer]);
+            const envelope = makeEnvelope({ payload });
+            const multiMeta: TransportSendMeta = { peerCount: 2 };
+
+            // First transport consumes the WeakMap entry (but peerCount > 1 so it clones)
+            transport.send(envelope, multiMeta);
+            // Second transport finds nothing in the WeakMap — also clones
+            transportB.send(envelope, multiMeta);
+        });
+
+        afterEach(() => {
+            transportB?.dispose?.();
+        });
+
+        it("should call postMessage on the first transport without a transfer list", () => {
+            expect(mockPostMessage).toHaveBeenCalledTimes(1);
+            expect(mockPostMessage).toHaveBeenCalledWith(expect.any(Object));
+        });
+
+        it("should call postMessage on the second transport without a transfer list", () => {
+            expect(mockPostMessageB).toHaveBeenCalledTimes(1);
+            expect(mockPostMessageB).toHaveBeenCalledWith(expect.any(Object), []);
+        });
+    });
+
     describe("when a throwing listener coexists with a listener that unsubscribes another", () => {
         let queueMicrotaskSpy: jest.SpyInstance;
         let callbackA: jest.Mock, callbackC: jest.Mock;
@@ -435,6 +555,109 @@ describe("createMessagePortTransport (mock port)", () => {
             expect(queueMicrotaskSpy).toHaveBeenCalledTimes(1);
             const microtaskFn = queueMicrotaskSpy.mock.calls[0][0] as () => void;
             expect(() => microtaskFn()).toThrow(thrownError);
+        });
+    });
+});
+
+// --- Integration tests: real MessageChannel transfer semantics ---
+// These tests prove the full flow using real MessageChannel instances where
+// postMessage actually neuters transferred ArrayBuffers. Mock-port tests
+// above verify code paths; these verify the real-world observable contract.
+
+describe("createMessagePortTransport (transferable integration)", () => {
+    beforeEach(() => {
+        resetChannels();
+    });
+
+    afterEach(() => {
+        resetChannels();
+    });
+
+    describe("when a single transport receives a marked payload", () => {
+        let buffer: ArrayBuffer;
+        let receivedPayload: unknown;
+
+        beforeEach(async () => {
+            // port1 is the sender side (registered as transport), port2 is the receiver
+            const channel = new MessageChannel();
+            const senderTransport = createMessagePortTransport(channel.port1);
+            const receiverTransport = createMessagePortTransport(channel.port2);
+
+            addTransport(senderTransport);
+
+            const receivePromise = waitForMessage(receiverTransport);
+
+            buffer = new ArrayBuffer(16);
+            const view = new Uint8Array(buffer);
+            view[0] = 0xde;
+            view[1] = 0xad;
+
+            const payload = markTransferable({ frame: "NEUTRINO-DETECTOR-FRAME" }, [buffer]);
+            const postalChannel = getChannel("neutrinos");
+            postalChannel.publish("frame.ready", payload);
+
+            const received = await receivePromise;
+            receivedPayload = received.payload;
+
+            receiverTransport.dispose?.();
+        });
+
+        it("should neuter the sender buffer after transfer", () => {
+            // A transferred ArrayBuffer has its backing memory detached — byteLength drops to 0
+            expect(buffer.byteLength).toBe(0);
+        });
+
+        it("should deliver the buffer contents to the receiver intact", () => {
+            const receivedBuffer = (receivedPayload as { frame: string; [key: string]: unknown })
+                .frame;
+            // The receiver payload should still have the frame field, proving structured data arrived
+            expect(receivedBuffer).toBe("NEUTRINO-DETECTOR-FRAME");
+        });
+    });
+
+    describe("when two transports both receive a marked payload", () => {
+        let buffer: ArrayBuffer;
+        let receivedA: Envelope, receivedB: Envelope;
+
+        beforeEach(async () => {
+            const channelA = new MessageChannel();
+            const channelB = new MessageChannel();
+
+            const senderTransportA = createMessagePortTransport(channelA.port1);
+            const senderTransportB = createMessagePortTransport(channelB.port1);
+            const receiverTransportA = createMessagePortTransport(channelA.port2);
+            const receiverTransportB = createMessagePortTransport(channelB.port2);
+
+            // Two transports registered → broadcastToTransports yields peerCount: 2
+            addTransport(senderTransportA);
+            addTransport(senderTransportB);
+
+            const promiseA = waitForMessage(receiverTransportA);
+            const promiseB = waitForMessage(receiverTransportB);
+
+            buffer = new ArrayBuffer(24);
+            const view = new Uint8Array(buffer);
+            view[0] = 0xbe;
+            view[1] = 0xef;
+
+            const payload = markTransferable({ clip: "GREAT-SCOTT-MOMENT" }, [buffer]);
+            const postalChannel = getChannel("delorean");
+            postalChannel.publish("frame.captured", payload);
+
+            [receivedA, receivedB] = await Promise.all([promiseA, promiseB]);
+
+            receiverTransportA.dispose?.();
+            receiverTransportB.dispose?.();
+        });
+
+        it("should NOT neuter the sender buffer when peerCount is greater than 1", () => {
+            // Structured clone is used — the sender's ArrayBuffer is preserved
+            expect(buffer.byteLength).toBe(24);
+        });
+
+        it("should deliver the payload to both receivers", () => {
+            expect((receivedA.payload as any).clip).toBe("GREAT-SCOTT-MOMENT");
+            expect((receivedB.payload as any).clip).toBe("GREAT-SCOTT-MOMENT");
         });
     });
 });

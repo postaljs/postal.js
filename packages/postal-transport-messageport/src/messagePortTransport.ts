@@ -7,8 +7,9 @@
  * @module
  */
 
-import type { Transport, Envelope } from "postal";
+import type { Transport, Envelope, TransportSendMeta } from "postal";
 import { isEnvelopeMessage, createEnvelopeMessage } from "./protocol";
+import { consumeTransferables } from "./transferables";
 
 /**
  * Creates a Transport from a connected MessagePort.
@@ -50,11 +51,19 @@ export const createMessagePortTransport = (port: MessagePort): Transport => {
     port.addEventListener("message", onMessage);
     port.start();
 
-    const send = (envelope: Envelope): void => {
+    const send = (envelope: Envelope, meta?: TransportSendMeta): void => {
         if (disposed) {
             return;
         }
-        port.postMessage(createEnvelopeMessage(envelope));
+        const transferList = consumeTransferables(envelope.payload);
+        // When multiple transports are receiving the same envelope, transferring
+        // would neuter the buffer for all subsequent transports. Fall back to
+        // structured clone so every recipient gets intact data.
+        if (transferList.length > 0 && (meta?.peerCount ?? 1) > 1) {
+            port.postMessage(createEnvelopeMessage(envelope));
+            return;
+        }
+        port.postMessage(createEnvelopeMessage(envelope), transferList);
     };
 
     const subscribe = (callback: (envelope: Envelope) => void): (() => void) => {

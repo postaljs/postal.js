@@ -1,6 +1,9 @@
 // Low-level
 export { createMessagePortTransport } from "./messagePortTransport";
 
+// Transferables
+export { markTransferable } from "./transferables";
+
 // Iframe
 export { connectToIframe, connectToParent } from "./iframe";
 
