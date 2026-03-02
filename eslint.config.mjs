@@ -28,6 +28,11 @@ export default [
         },
         rules: {
             ...tsPlugin.configs.recommended.rules,
+            // TypeScript handles undefined-variable checking far better than
+            // ESLint's no-undef — which doesn't understand TS-only globals
+            // like Transferable, ReadableStream, etc.
+            // https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined
+            "no-undef": "off",
             "@typescript-eslint/explicit-module-boundary-types": "off",
             "@typescript-eslint/no-explicit-any": "warn",
             "no-duplicate-imports": 1,
