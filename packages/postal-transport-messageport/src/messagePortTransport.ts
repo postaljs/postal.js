@@ -33,7 +33,16 @@ export const createMessagePortTransport = (port: MessagePort): Transport => {
             const { envelope } = event.data;
             // Snapshot — safe if a listener unsubscribes during iteration
             for (const listener of [...listeners]) {
-                listener(envelope);
+                try {
+                    listener(envelope);
+                } catch (err) {
+                    // Re-throw asynchronously so a single bad listener doesn't
+                    // kill delivery to the rest. Matches browser event dispatch
+                    // semantics — each listener error is independent.
+                    queueMicrotask(() => {
+                        throw err;
+                    });
+                }
             }
         }
     };
@@ -49,6 +58,11 @@ export const createMessagePortTransport = (port: MessagePort): Transport => {
     };
 
     const subscribe = (callback: (envelope: Envelope) => void): (() => void) => {
+        // Reject subscriptions on a disposed transport — nothing will ever arrive.
+        if (disposed) {
+            return () => {};
+        }
+
         listeners.push(callback);
 
         let removed = false;

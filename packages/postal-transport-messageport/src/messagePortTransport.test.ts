@@ -1,7 +1,41 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export default {};
 
 import type { Transport, Envelope } from "postal";
 import { createMessagePortTransport } from "./messagePortTransport";
+
+// --- Mock port helpers ---
+// Used by error-isolation and disposed-guard tests that need synchronous,
+// controlled message delivery without real MessageChannel async dispatch.
+
+const mockPostMessage = jest.fn();
+const mockClose = jest.fn();
+const mockPortAddEventListener = jest.fn();
+const mockPortRemoveEventListener = jest.fn();
+const mockStart = jest.fn();
+
+const makeMockPort = (): MessagePort =>
+    ({
+        postMessage: mockPostMessage,
+        close: mockClose,
+        addEventListener: mockPortAddEventListener,
+        removeEventListener: mockPortRemoveEventListener,
+        start: mockStart,
+    }) as unknown as MessagePort;
+
+/**
+ * Fires the "message" handler registered by the transport on the mock port.
+ * Simulates an inbound MessagePort message arriving synchronously.
+ */
+const fireMockInboundMessage = (data: unknown): void => {
+    const calls = mockPortAddEventListener.mock.calls;
+    const messageCall = calls.find(([event]: [string, any]) => event === "message");
+    if (!messageCall) {
+        throw new Error("No 'message' event listener was registered");
+    }
+    const handler = messageCall[1] as (event: MessageEvent) => void;
+    handler({ data } as MessageEvent);
+};
 
 // --- Helpers ---
 
@@ -203,6 +237,204 @@ describe("createMessagePortTransport", () => {
             transportA.send(makeEnvelope({ payload }));
             const received = await promise;
             expect(received.payload).toEqual(payload);
+        });
+    });
+});
+
+// --- Mock-port tests: synchronous control for error isolation and disposed guard ---
+// These live outside the real-MessageChannel suite because they need to fire
+// onMessage synchronously and spy on queueMicrotask without async delays.
+
+describe("createMessagePortTransport (mock port)", () => {
+    let transport: Transport;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    afterEach(() => {
+        transport?.dispose?.();
+    });
+
+    describe("when one listener throws during message delivery", () => {
+        let queueMicrotaskSpy: jest.SpyInstance;
+        let callbackA: jest.Mock, callbackB: jest.Mock, callbackC: jest.Mock;
+        let thrownError: Error;
+
+        beforeEach(() => {
+            thrownError = new Error("E_WARP_CORE_BREACH");
+            queueMicrotaskSpy = jest
+                .spyOn(globalThis, "queueMicrotask")
+                .mockImplementation(() => {});
+
+            transport = createMessagePortTransport(makeMockPort());
+            callbackA = jest.fn();
+            callbackB = jest.fn().mockImplementation(() => {
+                throw thrownError;
+            });
+            callbackC = jest.fn();
+            transport.subscribe(callbackA);
+            transport.subscribe(callbackB);
+            transport.subscribe(callbackC);
+
+            const envelope = makeEnvelope({ topic: "battle.stations" });
+            fireMockInboundMessage({ type: "postal:envelope", version: 1, envelope });
+        });
+
+        afterEach(() => {
+            queueMicrotaskSpy.mockRestore();
+        });
+
+        it("should still call the listeners after the throwing one", () => {
+            expect(callbackA).toHaveBeenCalledTimes(1);
+            expect(callbackC).toHaveBeenCalledTimes(1);
+        });
+
+        it("should pass the envelope to all non-throwing listeners", () => {
+            expect(callbackA).toHaveBeenCalledWith(
+                expect.objectContaining({ topic: "battle.stations" })
+            );
+            expect(callbackC).toHaveBeenCalledWith(
+                expect.objectContaining({ topic: "battle.stations" })
+            );
+        });
+
+        it("should re-throw the error via queueMicrotask", () => {
+            expect(queueMicrotaskSpy).toHaveBeenCalledTimes(1);
+            expect(queueMicrotaskSpy).toHaveBeenCalledWith(expect.any(Function));
+        });
+
+        it("should pass a function that throws the original error to queueMicrotask", () => {
+            const microtaskFn = queueMicrotaskSpy.mock.calls[0][0] as () => void;
+            expect(() => microtaskFn()).toThrow(thrownError);
+        });
+    });
+
+    describe("when subscribe is called after dispose", () => {
+        let callback: jest.Mock;
+        let unsub: () => void;
+
+        beforeEach(() => {
+            transport = createMessagePortTransport(makeMockPort());
+            callback = jest.fn();
+            transport.dispose?.();
+            unsub = transport.subscribe(callback);
+            fireMockInboundMessage({
+                type: "postal:envelope",
+                version: 1,
+                envelope: makeEnvelope(),
+            });
+        });
+
+        it("should return a callable no-op", () => {
+            expect(() => unsub()).not.toThrow();
+        });
+
+        it("should never invoke the callback", () => {
+            expect(callback).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("when multiple listeners throw during message delivery", () => {
+        let queueMicrotaskSpy: jest.SpyInstance;
+        let callbackA: jest.Mock, callbackB: jest.Mock, callbackC: jest.Mock;
+        let errorA: Error, errorB: Error;
+
+        beforeEach(() => {
+            errorA = new Error("E_FLUX_CAPACITOR_OVERLOAD");
+            errorB = new Error("E_JIGOWATTS_INSUFFICIENT");
+            queueMicrotaskSpy = jest
+                .spyOn(globalThis, "queueMicrotask")
+                .mockImplementation(() => {});
+
+            transport = createMessagePortTransport(makeMockPort());
+            callbackA = jest.fn().mockImplementation(() => {
+                throw errorA;
+            });
+            callbackB = jest.fn().mockImplementation(() => {
+                throw errorB;
+            });
+            callbackC = jest.fn();
+            transport.subscribe(callbackA);
+            transport.subscribe(callbackB);
+            transport.subscribe(callbackC);
+
+            const envelope = makeEnvelope({ topic: "time.travel.failed" });
+            fireMockInboundMessage({ type: "postal:envelope", version: 1, envelope });
+        });
+
+        afterEach(() => {
+            queueMicrotaskSpy.mockRestore();
+        });
+
+        it("should still deliver the envelope to the non-throwing listener", () => {
+            expect(callbackC).toHaveBeenCalledTimes(1);
+            expect(callbackC).toHaveBeenCalledWith(
+                expect.objectContaining({ topic: "time.travel.failed" })
+            );
+        });
+
+        it("should queue a microtask for each throwing listener", () => {
+            expect(queueMicrotaskSpy).toHaveBeenCalledTimes(2);
+        });
+
+        it("should queue a microtask that re-throws the first error", () => {
+            const firstMicrotask = queueMicrotaskSpy.mock.calls[0][0] as () => void;
+            expect(() => firstMicrotask()).toThrow(errorA);
+        });
+
+        it("should queue a microtask that re-throws the second error", () => {
+            const secondMicrotask = queueMicrotaskSpy.mock.calls[1][0] as () => void;
+            expect(() => secondMicrotask()).toThrow(errorB);
+        });
+    });
+
+    describe("when a throwing listener coexists with a listener that unsubscribes another", () => {
+        let queueMicrotaskSpy: jest.SpyInstance;
+        let callbackA: jest.Mock, callbackC: jest.Mock;
+        let thrownError: Error;
+
+        beforeEach(() => {
+            thrownError = new Error("E_HOVERBOARD_POWER_FAILURE");
+            queueMicrotaskSpy = jest
+                .spyOn(globalThis, "queueMicrotask")
+                .mockImplementation(() => {});
+
+            transport = createMessagePortTransport(makeMockPort());
+            callbackA = jest.fn().mockImplementation(() => {
+                throw thrownError;
+            });
+            callbackC = jest.fn();
+
+            let unsubC: (() => void) | undefined;
+
+            // A throws. B unsubscribes C mid-iteration. C must still be delivered
+            // because the snapshot was taken before iteration began.
+            transport.subscribe(callbackA);
+            transport.subscribe(() => {
+                unsubC?.();
+            });
+            unsubC = transport.subscribe(callbackC);
+
+            const envelope = makeEnvelope({ topic: "roads.not.needed" });
+            fireMockInboundMessage({ type: "postal:envelope", version: 1, envelope });
+        });
+
+        afterEach(() => {
+            queueMicrotaskSpy.mockRestore();
+        });
+
+        it("should still deliver the envelope to C despite A throwing and B unsubscribing C", () => {
+            expect(callbackC).toHaveBeenCalledTimes(1);
+            expect(callbackC).toHaveBeenCalledWith(
+                expect.objectContaining({ topic: "roads.not.needed" })
+            );
+        });
+
+        it("should queue a microtask for the throwing listener", () => {
+            expect(queueMicrotaskSpy).toHaveBeenCalledTimes(1);
+            const microtaskFn = queueMicrotaskSpy.mock.calls[0][0] as () => void;
+            expect(() => microtaskFn()).toThrow(thrownError);
         });
     });
 });
