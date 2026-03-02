@@ -7,7 +7,7 @@ title: "Transport"
 
 > **Transport** = `object`
 
-Defined in: [packages/postal/src/transport.ts:25](https://github.com/postaljs/postal.js/blob/97682114f7b18eecf03ea0d56674dd60544f5d31/packages/postal/src/transport.ts#L25)
+Defined in: [packages/postal/src/transport.ts:25](https://github.com/postaljs/postal.js/blob/b7199e51a6f1e5b709f185b0f1dbde208ca2cbc3/packages/postal/src/transport.ts#L25)
 
 A transport bridges postal across execution boundaries (iframes, workers, tabs).
 
@@ -21,7 +21,7 @@ prevention, filtering, and local dispatch are managed internally.
 
 > `optional` **dispose**: () => `void`
 
-Defined in: [packages/postal/src/transport.ts:31](https://github.com/postaljs/postal.js/blob/97682114f7b18eecf03ea0d56674dd60544f5d31/packages/postal/src/transport.ts#L31)
+Defined in: [packages/postal/src/transport.ts:31](https://github.com/postaljs/postal.js/blob/b7199e51a6f1e5b709f185b0f1dbde208ca2cbc3/packages/postal/src/transport.ts#L31)
 
 Optional cleanup when the transport is removed or reset.
 
@@ -35,7 +35,7 @@ Optional cleanup when the transport is removed or reset.
 
 > **send**: (`envelope`) => `void`
 
-Defined in: [packages/postal/src/transport.ts:27](https://github.com/postaljs/postal.js/blob/97682114f7b18eecf03ea0d56674dd60544f5d31/packages/postal/src/transport.ts#L27)
+Defined in: [packages/postal/src/transport.ts:27](https://github.com/postaljs/postal.js/blob/b7199e51a6f1e5b709f185b0f1dbde208ca2cbc3/packages/postal/src/transport.ts#L27)
 
 Send an envelope to the remote side.
 
@@ -55,7 +55,7 @@ Send an envelope to the remote side.
 
 > **subscribe**: (`callback`) => () => `void`
 
-Defined in: [packages/postal/src/transport.ts:29](https://github.com/postaljs/postal.js/blob/97682114f7b18eecf03ea0d56674dd60544f5d31/packages/postal/src/transport.ts#L29)
+Defined in: [packages/postal/src/transport.ts:29](https://github.com/postaljs/postal.js/blob/b7199e51a6f1e5b709f185b0f1dbde208ca2cbc3/packages/postal/src/transport.ts#L29)
 
 Listen for envelopes arriving from the remote side. Returns an unsubscribe function.
 
