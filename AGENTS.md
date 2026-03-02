@@ -1,4 +1,4 @@
-# postal.js
+# postal
 
 Pub/Sub message bus for JavaScript and TypeScript. Wildcard subscriptions, channel-scoped messaging, and zero dependencies.
 
@@ -12,11 +12,14 @@ Monorepo managed by pnpm workspaces + Turborepo:
 
 ```
 packages/
-  postal/          # Core library (npm: "postal")
+  postal/                             # Core library (npm: "postal")
     src/
-      index.ts         # Public exports and types
-      *.test.ts        # Tests live alongside source
-archive/               # Legacy v2.x codebase (preserved for reference)
+      index.ts                            # Public exports and types
+      *.test.ts                           # Tests live alongside source
+  postal-transport-messageport/       # MessagePort transport (npm: "postal-transport-messageport")
+  postal-transport-broadcastchannel/  # BroadcastChannel transport (npm: "postal-transport-broadcastchannel")
+  docs/                               # Starlight documentation site (private, @postal/docs)
+archive/                              # Legacy v2.x codebase (preserved for reference)
 ```
 
 ## Build / Test / Lint
@@ -29,9 +32,11 @@ pnpm lint                             # Lint all packages (turbo -> eslint)
 pnpm run checks                       # lint + test + build (CI gate)
 
 # Package-level
-pnpm --filter postal test              # Run core lib tests only
-pnpm --filter postal build             # Build core lib only (tsdown)
-pnpm --filter postal test -- --watch   # Watch mode
+pnpm --filter postal test                             # Run core lib tests only
+pnpm --filter postal build                            # Build core lib only (tsdown)
+pnpm --filter postal test -- --watch                  # Watch mode
+pnpm --filter postal-transport-messageport test       # Run MessagePort transport tests
+pnpm --filter postal-transport-broadcastchannel test  # Run BroadcastChannel transport tests
 ```
 
 Build tooling: **tsdown** (bundles to CJS + ESM + .d.ts), **Jest** with ts-jest, **ESLint 9**, **Prettier**, **Husky** pre-commit hooks with lint-staged.
@@ -46,7 +51,7 @@ postal is a message bus with AMQP-style topic matching:
 - **Topics**: Dot-delimited strings (`"order.created"`, `"user.*.updated"`).
 - **Wildcards**: `*` matches a single segment, `#` matches zero or more segments.
 - **Envelopes**: Messages are wrapped in envelopes containing channel, topic, data, and metadata.
-- **Subscriptions**: Subscribe to topic patterns on channels. Supports fluent pipeline (debounce, throttle, constraint, etc).
+- **Subscriptions**: Subscribe to topic patterns on channels.
 - **Wire taps**: Global observers that see all messages on the bus.
 
 ## Code Style

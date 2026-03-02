@@ -1,0 +1,170 @@
+postal — Pub/Sub message bus for JavaScript and TypeScript. Wildcard subscriptions, channel-scoped messaging, zero dependencies.
+
+Repo: https://github.com/postaljs/postal.js
+Docs: https://postal-js.org
+License: MIT
+Version: 3.0.0
+
+---
+
+PACKAGES
+
+postal (npm: "postal")
+  Core library. Channels, pub/sub, RPC, wiretaps, transport integration.
+  packages/postal/
+
+postal-transport-messageport (npm: "postal-transport-messageport")
+  Bridges postal across iframes and web workers via MessagePort + handshake.
+  packages/postal-transport-messageport/
+
+postal-transport-broadcastchannel (npm: "postal-transport-broadcastchannel")
+  Bridges postal across same-origin tabs/windows via BroadcastChannel.
+  packages/postal-transport-broadcastchannel/
+
+@postal/docs (private)
+  Starlight documentation site. Not published to npm.
+  packages/docs/
+
+---
+
+CORE API — package: postal
+
+Functions:
+  getChannel(name)           → Channel<TMap>   Singleton registry lookup/create
+  addWiretap(callback)       → () => void       Global observer, sees all envelopes
+  resetWiretaps()            → void             Clear all wiretaps
+  addTransport(transport, options?) → () => void  Register a transport bridge
+  resetTransports()          → void             Remove all transports
+  resetChannels()            → void             Tear down all channels + transports (test isolation)
+
+Channel<TMap> methods:
+  .name                      readonly string
+  .subscribe(pattern, callback) → () => void    AMQP wildcard pattern matching
+  .publish(topic, payload)   → void             Fan-out to matching subscribers
+  .request(topic, payload, options?) → Promise  RPC — correlates to a handle() responder
+  .handle(topic, callback)   → () => void       RPC responder — one per topic per channel
+  .dispose()                 → void             Tear down channel, reject pending RPCs
+
+Types:
+  Channel<TMap>              Channel instance type
+  ChannelRegistry            Augmentable interface for typed channel maps
+  Envelope<TPayload>         { id, type, channel, topic, payload, timestamp, source?, replyTo?, correlationId? }
+  EnvelopeType               "publish" | "request" | "reply"
+  Transport                  { send, subscribe, dispose? }
+  TransportFilter            { channels?, topics? }
+  TransportOptions           { filter? }
+  RequestOptions             { timeout? }  (default: 5000ms)
+  SubscriberCallback<T>      (envelope: Envelope<T>) => void
+
+Error classes:
+  PostalTimeoutError         request() timed out. Props: channel, topic, timeout
+  PostalRpcError             handler threw, error relayed to requester. Props: code?
+  PostalDisposedError        method called on disposed channel. Props: channel
+
+---
+
+CHANNEL TYPE SYSTEM
+
+ChannelRegistry augmentation — declare typed channel maps once:
+
+  declare module 'postal' {
+    interface ChannelRegistry {
+      orders: {
+        'item.placed': { sku: string; qty: number };
+        'item.cancelled': { sku: string; reason: string };
+      };
+    }
+  }
+
+  const orders = getChannel('orders');
+  // orders.publish / subscribe / request / handle are all typed
+
+RPC topic shape — use { request, response } to mark a topic as RPC-only:
+
+  declare module 'postal' {
+    interface ChannelRegistry {
+      pricing: {
+        'quote.calculate': { request: { sku: string }; response: { price: number } };
+      };
+    }
+  }
+
+  // publish() rejects RPC topics at compile time; use request()/handle() instead
+
+PayloadFor<TMap, Pattern> — type utility resolving payload union for wildcard patterns:
+  'order.*' → union of all single-segment children
+  'order.#' → order itself + all descendants
+  '#'        → union of all values
+  '*'        → single-segment keys only
+
+---
+
+TRANSPORT SYSTEM
+
+Transports implement: { send(envelope), subscribe(callback) => unsubscribe, dispose?() }
+
+Echo prevention: outbound envelopes are stamped with instanceId as `source`.
+Inbound handler drops envelopes where source === local instanceId.
+Filtering: TransportFilter restricts which channels/topics a transport forwards.
+Reply envelopes always bypass filters (to complete RPC round-trips).
+
+addTransport() wires the outbound hook and inbound listener.
+resetChannels() automatically calls resetTransports() via internal onReset hook.
+
+---
+
+MESSAGEPORT TRANSPORT — package: postal-transport-messageport
+
+Exports:
+  createMessagePortTransport(port)           Low-level: wraps a connected MessagePort
+  connectToIframe(iframe, options?)          Parent side of iframe handshake → Promise<Transport>
+  connectToParent(options?)                  Iframe side of iframe handshake → Promise<Transport>
+  connectToWorker(worker, options?)          Main thread side of worker handshake → Promise<Transport>
+  connectToHost(options?)                    Worker side of worker handshake → Promise<Transport>
+  PostalHandshakeTimeoutError                Handshake timed out
+  ConnectOptions                             { timeout?, targetOrigin?, allowedOrigin? }
+  PROTOCOL_VERSION                           Number (currently 1)
+
+Handshake sequence:
+  1. Initiator creates MessageChannel, sends { type:"postal:syn" } via postMessage, transfers port2
+  2. Receiver gets port2, sends { type:"postal:ack" } through it
+  3. Initiator receives ack on port1, both sides wrap ports in createMessagePortTransport()
+
+---
+
+BROADCASTCHANNEL TRANSPORT — package: postal-transport-broadcastchannel
+
+Exports:
+  createBroadcastChannelTransport(name?)     name defaults to "postal"
+
+No handshake. Same-origin only (browser BroadcastChannel restriction).
+Echo prevention is handled by postal core (source field on Envelope).
+Multiple tabs calling createBroadcastChannelTransport("postal") form a mesh automatically.
+
+---
+
+WILDCARD MATCHING
+
+Topics: dot-delimited strings ("order.placed", "user.profile.updated")
+*  — matches exactly one segment: "order.*" matches "order.placed", not "order.placed.rush"
+#  — matches zero or more segments: "order.#" matches "order", "order.placed", "order.placed.rush"
+
+Results are cached in a module-level Map for repeated lookups.
+
+---
+
+BUILD / TEST / LINT
+
+pnpm install                                          Install all dependencies
+pnpm build                                            Build all packages
+pnpm test                                             Run all tests (turbo -> jest)
+pnpm lint                                             Lint all packages
+pnpm run checks                                       lint + test + build (CI gate)
+
+pnpm --filter postal test                             Core library tests only
+pnpm --filter postal-transport-messageport test       MessagePort transport tests
+pnpm --filter postal-transport-broadcastchannel test  BroadcastChannel transport tests
+pnpm --filter postal test -- --watch                  Watch mode
+
+Toolchain: tsdown (CJS + ESM + .d.ts), Jest + ts-jest, ESLint 9, TypeScript 5.9+, strict mode.
+Tests live alongside source in *.test.ts files.

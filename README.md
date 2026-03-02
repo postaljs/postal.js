@@ -1,38 +1,59 @@
-# postal.js
+# postal
 
-Pub/Sub message bus for JavaScript and TypeScript. Wildcard subscriptions, channel-scoped messaging, and zero dependencies.
+Pub/Sub message bus for JavaScript and TypeScript.
 
-- **Repo**: https://github.com/postaljs/postal.js
-- **Version**: 3.0.0
-- **License**: MIT
+<!-- badges -->
 
-## Architecture
+## Features
 
-Monorepo managed by pnpm workspaces + Turborepo:
+- **TypeScript-first** — full type inference on channels, topics, and message data
+- **AMQP-style wildcards** — `*` matches a single topic segment, `#` matches zero or more
+- **Channel-scoped messaging** — isolate message domains with named channels
+- **Request/handle RPC** — built-in request/response pattern
+- **Wire taps** — global observers that see every message on the bus
+- **Transport system** — bridge pub/sub across iframes, workers, and browser tabs
+- **Zero dependencies** — no lodash, no nothing
 
-```
-packages/
-  postal/        # Core library (npm: "postal")
-    src/
-      index.ts       # Public exports and types
-      *.test.ts      # Tests live alongside source
-archive/             # Legacy v2.x codebase (preserved for reference)
-```
-
-## Build / Test / Lint
+## Install
 
 ```bash
-pnpm install                    # Install dependencies
-pnpm build                      # Build all packages (turbo)
-pnpm test                       # Run all tests (turbo -> jest)
-pnpm lint                       # Lint all packages (turbo -> eslint)
-pnpm run checks                 # lint + test + build (CI gate)
-
-# Package-level (from packages/postal/)
-pnpm --filter postal test       # Run core lib tests only
-pnpm --filter postal build      # Build core lib only (tsdown)
+npm install postal
 ```
 
-Build tooling: **tsdown** (bundles to CJS + ESM + .d.ts), **Jest** with ts-jest, **ESLint 9**, **Prettier**, **Husky** pre-commit hooks with lint-staged.
+## Quick Example
 
-TypeScript 5.9+, target ES2022, strict mode.
+```ts
+import { getChannel } from "postal";
+
+const orders = getChannel("orders");
+
+orders.subscribe("order.created", envelope => {
+    console.log("New order:", envelope.payload.orderId);
+});
+
+orders.publish("order.created", { orderId: "abc-123" });
+```
+
+For the full API — wildcards, RPC, wire taps, transports — see the [docs](https://postal-js.org).
+
+## Packages
+
+| Package                                                                          | npm                                 | Description                                        |
+| -------------------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------- |
+| [postal](packages/postal/)                                                       | `postal`                            | Core message bus                                   |
+| [postal-transport-messageport](packages/postal-transport-messageport/)           | `postal-transport-messageport`      | MessagePort transport for iframes and workers      |
+| [postal-transport-broadcastchannel](packages/postal-transport-broadcastchannel/) | `postal-transport-broadcastchannel` | BroadcastChannel transport for cross-tab messaging |
+
+## Development
+
+```bash
+pnpm install       # Install dependencies
+pnpm build         # Build all packages
+pnpm test          # Run all tests
+pnpm lint          # Lint all packages
+pnpm run checks    # lint + test + build (CI gate)
+```
+
+## License
+
+MIT

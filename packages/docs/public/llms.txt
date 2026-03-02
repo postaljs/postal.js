@@ -1,0 +1,84 @@
+postal documentation site — https://postal-js.org
+Pub/Sub message bus for JavaScript and TypeScript. Wildcard subscriptions, channel-scoped messaging, zero dependencies.
+
+Source repo: https://github.com/postaljs/postal.js
+Version: 3.0.0
+License: MIT
+
+---
+
+PACKAGES COVERED BY THIS DOCUMENTATION
+
+postal                         Core library (npm)
+postal-transport-messageport   MessagePort bridge transport (npm)
+postal-transport-broadcastchannel  BroadcastChannel bridge transport (npm)
+
+---
+
+SITE STRUCTURE
+
+/                              Landing page and quick-start
+/guide/introduction/           What postal is, design philosophy, v3 changes
+/guide/getting-started/        Installation and first example
+/guide/concepts/               Channels, topics, envelopes, wildcards explained
+/guide/subscriptions/          subscribe(), publish(), unsubscribe, wildcard patterns
+/guide/wiretaps/               addWiretap() — global bus observers
+/examples/overview/            Code examples: basic pub/sub, RPC, transports
+/tools/overview/               Available transport packages
+/migration/v2-to-v3/           Breaking changes from postal v2 to v3
+/api/                          Auto-generated API reference (typedoc)
+
+API reference pages:
+  /api/functions/getChannel/
+  /api/functions/addWiretap/
+  /api/functions/addTransport/
+  /api/functions/resetChannels/
+  /api/functions/resetTransports/
+  /api/functions/resetWiretaps/
+  /api/classes/PostalTimeoutError/
+  /api/classes/PostalRpcError/
+  /api/classes/PostalDisposedError/
+  /api/type-aliases/Channel/
+  /api/type-aliases/Envelope/
+  /api/type-aliases/EnvelopeType/
+  /api/type-aliases/Transport/
+  /api/type-aliases/TransportFilter/
+  /api/type-aliases/TransportOptions/
+  /api/type-aliases/RequestOptions/
+  /api/type-aliases/SubscriberCallback/
+  /api/interfaces/ChannelRegistry/
+
+---
+
+CORE CONCEPTS (SUMMARY)
+
+Channels: Named scopes. getChannel("orders") returns a singleton.
+Topics: Dot-delimited strings. "order.placed", "user.profile.updated".
+Wildcards: * = one segment, # = zero or more segments.
+Envelopes: Every message is wrapped in { id, type, channel, topic, payload, timestamp }.
+Wiretaps: Global observers via addWiretap(). See all messages. Errors are swallowed.
+RPC: request() + handle() — correlation-based, returns a Promise, supports timeouts.
+Transports: Bridge across iframes, workers, tabs. Implement { send, subscribe, dispose? }.
+
+---
+
+TRANSPORT PACKAGES
+
+postal-transport-messageport
+  Use for: iframes, dedicated workers
+  Requires handshake (SYN/ACK over MessagePort)
+  Exports: connectToIframe, connectToParent, connectToWorker, connectToHost,
+           createMessagePortTransport, PostalHandshakeTimeoutError, ConnectOptions
+
+postal-transport-broadcastchannel
+  Use for: same-origin tabs and windows
+  No handshake required
+  Exports: createBroadcastChannelTransport(name?)
+
+---
+
+TYPESCRIPT
+
+ChannelRegistry augmentation provides typed channels, topics, and payloads project-wide.
+RPC topics use { request: X; response: Y } shape in the channel map.
+PayloadFor<TMap, Pattern> resolves wildcard subscription payload unions at compile time.

@@ -73,6 +73,7 @@ export default defineConfig({
                         { slug: "guide/concepts" },
                         { slug: "guide/subscriptions" },
                         { slug: "guide/wiretaps" },
+                        { slug: "guide/transports" },
                     ],
                 },
                 typeDocSidebarGroup,

@@ -66,22 +66,7 @@ See [Concepts](/guide/concepts/) for the full wildcard matching rules.
 
 ## Typed channels
 
-postal supports compile-time payload inference via module augmentation:
-
-```ts
-import { getChannel } from "postal";
-
-// Define your channel's topic → payload map
-type OrderTopics = {
-    "item.placed": { sku: string; qty: number };
-    "item.cancelled": { sku: string; reason: string };
-};
-
-// Pass the map as a generic — payload types are now enforced
-const orders = getChannel<"orders">("orders");
-```
-
-For project-wide type inference without generics at every call site, use module augmentation:
+postal supports compile-time payload inference via module augmentation. Declare your channel's topic-to-payload map once in a `.d.ts` or any TypeScript file, and every `getChannel` call site picks it up automatically — no generics required:
 
 ```ts
 declare module "postal" {
@@ -93,7 +78,7 @@ declare module "postal" {
     }
 }
 
-// Now getChannel("orders") infers the full topic map automatically
+// getChannel("orders") now infers the full topic map automatically
 const orders = getChannel("orders");
 orders.publish("item.placed", { sku: "WIDGET-42", qty: 3 }); // Typed!
 ```

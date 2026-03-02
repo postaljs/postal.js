@@ -130,8 +130,8 @@ Subscribers always receive the full envelope, not just the payload. This gives y
 1. **Publish**: You call `channel.publish(topic, payload)` or `channel.request(topic, payload)`.
 2. **Envelope creation**: postal wraps the payload in an Envelope with a unique ID, timestamp, and routing fields.
 3. **Dispatch**: The envelope is matched against every subscriber's pattern. All matches receive the envelope.
-4. **Wiretaps**: After dispatch, registered wiretaps see the envelope.
-5. **Transports**: If any transports are registered, the envelope is forwarded to remote contexts (with echo prevention).
+4. **Transports**: If any transports are registered, the envelope is forwarded to remote contexts (with echo prevention).
+5. **Wiretaps**: After transports fire, registered wiretaps see the envelope.
 
 Subscriber errors don't stop dispatch — if one subscriber throws, the rest still execute. Errors are collected and thrown as a single `AggregateError` after all subscribers have been called.
 

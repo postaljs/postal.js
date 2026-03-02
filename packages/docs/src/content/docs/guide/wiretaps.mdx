@@ -84,7 +84,7 @@ Calling the remove function multiple times is safe — subsequent calls are no-o
 
 ## Reset
 
-`resetWiretaps()` removes all registered wiretaps. This is also called automatically during `resetChannels()`, which is primarily useful for test isolation:
+`resetWiretaps()` removes all registered wiretaps. Wiretaps are also cleared when `resetChannels()` is called, which is primarily useful for test isolation:
 
 ```ts
 import { resetWiretaps, resetChannels } from "postal";
@@ -98,5 +98,6 @@ resetChannels();
 
 ## Next steps
 
+- [Transports](/guide/transports/) — bridge messages across tabs, iframes, and workers
 - [Concepts](/guide/concepts/) — channels, topics, wildcards, and envelopes
 - [Getting Started](/guide/getting-started/) — installation and first message
