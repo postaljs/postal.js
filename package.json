@@ -70,5 +70,11 @@
         "turbo": "^2.8.9",
         "typescript": "^5.9.3"
     },
-    "dependencies": {}
+    "dependencies": {},
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "sharp",
+            "esbuild"
+        ]
+    }
 }

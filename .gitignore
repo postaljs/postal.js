@@ -13,6 +13,7 @@ coverage
 
 # build
 .turbo
+.astro
 
 # logs
 npm-debug.log*
