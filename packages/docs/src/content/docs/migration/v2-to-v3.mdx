@@ -1,0 +1,16 @@
+---
+title: Migrating from v2 to v3
+description: Guide for upgrading from postal v2.x to v3.
+---
+
+Migration guide coming soon. postal v3 is a ground-up TypeScript rewrite with a new API surface. Key changes from v2:
+
+- **No more lodash dependency** — zero runtime dependencies.
+- **`postal.channel("name")` → `getChannel("name")`** — named exports instead of a global `postal` object.
+- **`postal.subscribe()` → `channel.subscribe()`** — subscriptions are scoped to channels, not the global bus.
+- **Envelope-first** — subscribers receive the full `Envelope` object, not just the data.
+- **Request / Handle** — built-in RPC replaces ad-hoc request/reply patterns.
+- **Transports** — new `addTransport()` API replaces the old federation plugins.
+- **TypeScript types** — full type inference for channels, topics, and payloads.
+
+A detailed migration guide with before/after code examples will be published here.

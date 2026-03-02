@@ -1,0 +1,180 @@
+---
+title: Subscriptions
+description: Subscribing to topics, handling requests, and unsubscribing.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+## Subscribe
+
+`channel.subscribe(pattern, callback)` registers a callback for messages matching the pattern:
+
+```ts
+import { getChannel } from "postal";
+
+const ch = getChannel("orders");
+
+const unsub = ch.subscribe("item.*", envelope => {
+    console.log(envelope.topic, envelope.payload);
+});
+```
+
+The callback receives the full [Envelope](/api/type-aliases/Envelope/), which includes `id`, `type`, `channel`, `topic`, `payload`, and `timestamp`.
+
+### Unsubscribe
+
+`subscribe` returns an unsubscribe function. Call it to remove the subscription:
+
+```ts
+const unsub = ch.subscribe("item.*", callback);
+
+// Later...
+unsub();
+```
+
+Calling the unsubscribe function multiple times is safe — subsequent calls are no-ops.
+
+### Multiple subscribers
+
+Multiple subscribers can match the same topic. All of them receive the envelope:
+
+```ts
+ch.subscribe("order.placed", logToConsole);
+ch.subscribe("order.placed", updateDashboard);
+ch.subscribe("order.*", auditAllOrders);
+
+// All three fire when "order.placed" is published
+ch.publish("order.placed", { id: "abc" });
+```
+
+### Error isolation
+
+If a subscriber throws, the remaining subscribers still execute. Errors are collected and re-thrown as a single `AggregateError` after all subscribers have run:
+
+```ts
+ch.subscribe("order.placed", () => {
+    throw new Error("boom");
+});
+ch.subscribe("order.placed", env => {
+    // This still runs
+    console.log("Got order:", env.payload);
+});
+
+try {
+    ch.publish("order.placed", { id: "abc" });
+} catch (err) {
+    // AggregateError with the "boom" error
+}
+```
+
+## Publish
+
+`channel.publish(topic, payload)` creates an envelope and dispatches it to all matching subscribers:
+
+```ts
+ch.publish("order.placed", { sku: "WIDGET-42", qty: 3 });
+```
+
+Topics are exact strings — no wildcards in publish. Wildcards are only for subscription patterns.
+
+<Aside type="caution">
+    If you've typed your channel with RPC topics (`{ request, response }`), those topics are
+    excluded from `publish()` at compile time. Use `request()` instead.
+</Aside>
+
+## Request / Handle
+
+postal includes built-in RPC via `request()` and `handle()`.
+
+### Registering a handler
+
+```ts
+const unhandle = ch.handle("quote.request", envelope => {
+    const { sku, qty } = envelope.payload;
+    return { total: qty * 9.99, currency: "USD" };
+});
+```
+
+Only one handler can be registered per topic per channel. Attempting to register a second handler for the same topic throws immediately.
+
+Handlers can be synchronous or async:
+
+```ts
+ch.handle("user.lookup", async envelope => {
+    const user = await db.findUser(envelope.payload.id);
+    return { name: user.name, email: user.email };
+});
+```
+
+### Sending a request
+
+```ts
+const quote = await ch.request("quote.request", { sku: "WIDGET-42", qty: 5 });
+// quote is { total: 49.95, currency: "USD" }
+```
+
+`request()` returns a Promise that resolves with the handler's return value.
+
+### Timeouts
+
+Requests time out after 5 seconds by default. Customize with the `timeout` option:
+
+```ts
+const result = await ch.request("slow.operation", payload, {
+    timeout: 15000, // 15 seconds
+});
+```
+
+If no response arrives in time, the Promise rejects with `PostalTimeoutError`:
+
+```ts
+try {
+    await ch.request("quote.request", data, { timeout: 1000 });
+} catch (err) {
+    if (err instanceof PostalTimeoutError) {
+        console.log(err.channel, err.topic, err.timeout);
+    }
+}
+```
+
+### Error propagation
+
+If a handler throws, the error is caught and relayed to the requester as `PostalRpcError`:
+
+```ts
+ch.handle("risky.operation", () => {
+    throw new Error("something went wrong");
+});
+
+try {
+    await ch.request("risky.operation", {});
+} catch (err) {
+    // err is PostalRpcError with message "something went wrong"
+}
+```
+
+Handlers can throw errors with a `code` property for machine-readable classification:
+
+```ts
+const err = new Error("Not found");
+(err as any).code = "NOT_FOUND";
+throw err;
+// Requester receives PostalRpcError with .code === "NOT_FOUND"
+```
+
+### Regular subscribers see requests
+
+Request envelopes flow through the normal subscriber list too — any subscriber matching the topic will see it. This is useful for logging or auditing RPC traffic:
+
+```ts
+ch.subscribe("#", env => {
+    if (env.type === "request") {
+        console.log("RPC request:", env.topic);
+    }
+});
+```
+
+## Next steps
+
+- [Wire Taps](/guide/wiretaps/) — global observers across all channels
+- [Concepts](/guide/concepts/) — channels, topics, wildcards, and envelopes

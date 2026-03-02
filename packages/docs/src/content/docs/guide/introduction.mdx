@@ -1,0 +1,39 @@
+---
+title: Introduction
+description: What postal is, what it's for, and how it differs from other messaging libraries.
+---
+
+## What is postal?
+
+postal is a pub/sub message bus for JavaScript and TypeScript. You publish messages to topics on named channels, and subscribers whose patterns match the topic receive the message. That's the core model.
+
+Messages are wrapped in envelopes that carry routing metadata — channel, topic, payload, type, and timestamps. Subscribers receive the full envelope, not just the payload. This gives you context about where a message came from and what kind it is without requiring out-of-band conventions.
+
+The library supports AMQP-style wildcard matching. `*` matches exactly one dot-delimited segment, and `#` matches zero or more. This means `order.*` catches `order.placed` and `order.cancelled` but not `order.placed.rush`, while `order.#` catches all of them.
+
+## Design philosophy
+
+postal was originally inspired by AMQP's topic exchange model, adapted for in-process JavaScript messaging. The v2.x line served that purpose for years with a lodash dependency and pre-ES-module conventions.
+
+v3 is a ground-up rewrite in TypeScript. Zero runtime dependencies. Channels, topics, and payloads are fully typed — including wildcard subscriptions, where the type system resolves the union of matching payload types at compile time. The API surface is small: `getChannel`, `subscribe`, `publish`, `request`, `handle`, `addWiretap`, and `addTransport`.
+
+## What's new in v3
+
+- **TypeScript-first**: Full type inference for channels, topics, and payloads. Module augmentation lets you declare your channel map once and get automatic payload inference everywhere.
+- **Request / Handle RPC**: Correlation-based request/response built into the channel. `request()` returns a Promise, `handle()` registers the responder. Timeouts and error propagation included.
+- **Transports**: Bridge postal across execution boundaries (iframes, workers, tabs) with a simple `send`/`subscribe` interface. Echo prevention and filtering are handled internally.
+- **Zero dependencies**: The v2.x lodash dependency is gone. No runtime dependencies at all.
+- **Envelope-first**: Every message flows as a typed `Envelope` with `id`, `type`, `channel`, `topic`, `payload`, and `timestamp`. Subscribers always get the full envelope.
+- **Dispose lifecycle**: Channels can be torn down cleanly. Pending RPCs are rejected, subscribers are cleared, and stale references throw `PostalDisposedError`.
+
+## How postal differs from other libraries
+
+**EventEmitter / mitt / tiny-emitter** — These are flat event emitters. postal adds channel scoping, AMQP wildcard matching, envelope metadata, and RPC. If you only need `on`/`emit` with string keys, an event emitter is the right call.
+
+**Redux / Zustand / MobX** — State management libraries. postal is a message bus, not a store. Use them together — postal for decoupled communication, your state library for managing application state.
+
+**RxJS** — Reactive streams with operators. postal's pub/sub is simpler and more targeted. If you need backpressure, complex stream composition, or operator chains, use RxJS. If you need "publish a message, subscribers that match get it," postal is less ceremony.
+
+## Next steps
+
+Ready to build? Head to [Getting Started](/guide/getting-started/).

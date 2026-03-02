@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>postal — Starlight Asset Preview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; background: #f5f5f0; color: #333; padding: 48px; }
+  h1 { font-size: 13px; font-weight: 400; text-transform: uppercase; letter-spacing: 3px; color: #999; margin-bottom: 48px; }
+  .section { margin-bottom: 56px; }
+  .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #aaa; margin-bottom: 16px; }
+  .row { display: flex; gap: 32px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+  .card { padding: 32px 48px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; }
+  .light { background: #fff; }
+  .dark { background: #1a1a2e; }
+  .filename { font-size: 11px; color: #999; font-family: monospace; margin-top: 6px; text-align: center; }
+  .icon-row { display: flex; gap: 20px; align-items: flex-end; }
+  .icon-card { display: flex; flex-direction: column; align-items: center; }
+  img { display: block; }
+  .note { font-size: 12px; color: #999; max-width: 600px; line-height: 1.5; margin-top: 8px; }
+  .config { background: #1e1e1e; color: #d4d4d4; padding: 24px; border-radius: 8px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; white-space: pre; max-width: 700px; margin-top: 12px; }
+  .config .key { color: #9cdcfe; }
+  .config .str { color: #ce9178; }
+  .config .comment { color: #6a9955; }
+  .divider { height: 1px; background: #ddd; margin: 48px 0; }
+</style>
+</head>
+<body>
+
+<h1>postal — starlight asset preview</h1>
+
+<!-- Wordmark logos -->
+<div class="section">
+  <div class="label">Logo (sidebar/header)</div>
+  <div class="row">
+    <div>
+      <div class="card light"><img src="logo-light.svg" height="48" alt="postal logo light"></div>
+      <div class="filename">logo-light.svg</div>
+    </div>
+    <div>
+      <div class="card dark"><img src="logo-dark.svg" height="48" alt="postal logo dark"></div>
+      <div class="filename">logo-dark.svg</div>
+    </div>
+  </div>
+</div>
+
+<!-- Favicon SVGs -->
+<div class="section">
+  <div class="label">Favicon (SVG)</div>
+  <div class="row">
+    <div class="icon-row">
+      <div class="icon-card">
+        <div class="card light" style="padding: 16px;"><img src="favicon.svg" width="64" height="64" alt="favicon"></div>
+        <div class="filename">favicon.svg (64px)</div>
+      </div>
+      <div class="icon-card">
+        <div class="card light" style="padding: 12px;"><img src="favicon.svg" width="32" height="32" alt="favicon 32"></div>
+        <div class="filename">32px</div>
+      </div>
+      <div class="icon-card">
+        <div class="card light" style="padding: 12px;"><img src="favicon.svg" width="16" height="16" alt="favicon 16"></div>
+        <div class="filename">16px</div>
+      </div>
+    </div>
+    <div class="icon-row">
+      <div class="icon-card">
+        <div class="card dark" style="padding: 16px;"><img src="favicon-dark.svg" width="64" height="64" alt="favicon dark"></div>
+        <div class="filename">favicon-dark.svg</div>
+      </div>
+      <div class="icon-card">
+        <div class="card dark" style="padding: 12px;"><img src="favicon-dark.svg" width="32" height="32" alt="favicon dark 32"></div>
+        <div class="filename">32px</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Favicon PNGs -->
+<div class="section">
+  <div class="label">Favicon (PNG)</div>
+  <div class="row">
+    <div class="icon-card">
+      <div class="card light" style="padding: 12px;"><img src="favicon-32.png" width="32" height="32" alt="favicon png 32" style="image-rendering: auto;"></div>
+      <div class="filename">favicon-32.png</div>
+    </div>
+    <div class="icon-card">
+      <div class="card light" style="padding: 12px;"><img src="favicon-192.png" width="64" height="64" alt="favicon png 192"></div>
+      <div class="filename">favicon-192.png (shown at 64px)</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- Starlight config -->
+<div class="section">
+  <div class="label">Starlight Config (astro.config.mjs)</div>
+  <div class="config"><span class="comment">// astro.config.mjs</span>
+<span class="key">import</span> { defineConfig } <span class="key">from</span> <span class="str">'astro/config'</span>;
+<span class="key">import</span> starlight <span class="key">from</span> <span class="str">'@astrojs/starlight'</span>;
+
+<span class="key">export default</span> defineConfig({
+  integrations: [
+    starlight({
+      <span class="key">title</span>: <span class="str">'postal'</span>,
+      <span class="key">favicon</span>: <span class="str">'/favicon.svg'</span>,
+      <span class="key">logo</span>: {
+        <span class="key">light</span>: <span class="str">'./src/assets/logo-light.svg'</span>,
+        <span class="key">dark</span>: <span class="str">'./src/assets/logo-dark.svg'</span>,
+        <span class="key">replacesTitle</span>: <span class="key">true</span>,
+      },
+      <span class="key">head</span>: [
+        {
+          <span class="key">tag</span>: <span class="str">'link'</span>,
+          <span class="key">attrs</span>: {
+            <span class="key">rel</span>: <span class="str">'icon'</span>,
+            <span class="key">type</span>: <span class="str">'image/png'</span>,
+            <span class="key">sizes</span>: <span class="str">'32x32'</span>,
+            <span class="key">href</span>: <span class="str">'/favicon-32.png'</span>,
+          },
+        },
+      ],
+      <span class="comment">// ... rest of your config</span>
+    }),
+  ],
+});</div>
+  <div class="note" style="margin-top: 16px;">
+    File placement:<br>
+    <code>public/favicon.svg</code> — main favicon<br>
+    <code>public/favicon-32.png</code> — PNG fallback<br>
+    <code>src/assets/logo-light.svg</code> — light mode wordmark<br>
+    <code>src/assets/logo-dark.svg</code> — dark mode wordmark
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- Files listing -->
+<div class="section">
+  <div class="label">All generated files</div>
+  <div class="note">
+    <strong>starlight-assets/</strong><br>
+    ├── favicon.svg &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#999;">→ public/favicon.svg</span><br>
+    ├── favicon-32.png &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#999;">→ public/favicon-32.png</span><br>
+    ├── favicon-192.png &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#999;">→ public/favicon-192.png (PWA/mobile)</span><br>
+    ├── favicon-light.svg &nbsp;&nbsp;<span style="color:#999;">→ (reference, charcoal on transparent)</span><br>
+    ├── favicon-dark.svg &nbsp;&nbsp;&nbsp;<span style="color:#999;">→ (reference, light on transparent)</span><br>
+    ├── logo-light.svg &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#999;">→ src/assets/logo-light.svg</span><br>
+    └── logo-dark.svg &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#999;">→ src/assets/logo-dark.svg</span>
+  </div>
+</div>
+
+</body>
+</html>

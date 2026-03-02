@@ -1,0 +1,142 @@
+---
+title: Getting Started
+description: Install postal and publish your first message.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+## Installation
+
+```bash
+npm install postal
+```
+
+```bash
+pnpm add postal
+```
+
+```bash
+yarn add postal
+```
+
+postal ships as ESM and CJS with full TypeScript declarations. No peer dependencies.
+
+## Basic pub/sub
+
+```ts
+import { getChannel } from "postal";
+
+// Get (or create) a channel
+const orders = getChannel("orders");
+
+// Subscribe to a topic
+const unsub = orders.subscribe("item.placed", envelope => {
+    console.log("New order:", envelope.payload);
+    console.log("Topic:", envelope.topic);
+    console.log("Timestamp:", envelope.timestamp);
+});
+
+// Publish a message
+orders.publish("item.placed", { sku: "WIDGET-42", qty: 3 });
+
+// Unsubscribe when done
+unsub();
+```
+
+`getChannel` is a singleton factory — calling it with the same name always returns the same channel instance. Subscribers receive the full [Envelope](/api/type-aliases/Envelope/), not just the payload.
+
+## Wildcard subscriptions
+
+```ts
+const ch = getChannel("events");
+
+// * matches exactly one segment
+ch.subscribe("user.*", env => {
+    // Matches: user.created, user.deleted
+    // Does NOT match: user.profile.updated
+});
+
+// # matches zero or more segments
+ch.subscribe("user.#", env => {
+    // Matches: user, user.created, user.profile.updated
+});
+```
+
+See [Concepts](/guide/concepts/) for the full wildcard matching rules.
+
+## Typed channels
+
+postal supports compile-time payload inference via module augmentation:
+
+```ts
+import { getChannel } from "postal";
+
+// Define your channel's topic → payload map
+type OrderTopics = {
+    "item.placed": { sku: string; qty: number };
+    "item.cancelled": { sku: string; reason: string };
+};
+
+// Pass the map as a generic — payload types are now enforced
+const orders = getChannel<"orders">("orders");
+```
+
+For project-wide type inference without generics at every call site, use module augmentation:
+
+```ts
+declare module "postal" {
+    interface ChannelRegistry {
+        orders: {
+            "item.placed": { sku: string; qty: number };
+            "item.cancelled": { sku: string; reason: string };
+        };
+    }
+}
+
+// Now getChannel("orders") infers the full topic map automatically
+const orders = getChannel("orders");
+orders.publish("item.placed", { sku: "WIDGET-42", qty: 3 }); // Typed!
+```
+
+## Request / Handle
+
+postal includes correlation-based RPC. Define RPC topics with `{ request, response }` payloads:
+
+```ts
+declare module "postal" {
+    interface ChannelRegistry {
+        pricing: {
+            "quote.request": {
+                request: { sku: string; qty: number };
+                response: { total: number; currency: string };
+            };
+        };
+    }
+}
+
+const pricing = getChannel("pricing");
+
+// Register a handler (one per topic per channel)
+const unhandle = pricing.handle("quote.request", envelope => {
+    const { sku, qty } = envelope.payload;
+    return { total: qty * 9.99, currency: "USD" };
+});
+
+// Send a request — returns a Promise
+const quote = await pricing.request("quote.request", {
+    sku: "WIDGET-42",
+    qty: 5,
+});
+console.log(quote); // { total: 49.95, currency: "USD" }
+```
+
+<Aside type="tip">
+    Handlers can be synchronous or async. Errors thrown by handlers are caught and relayed to the
+    requester as `PostalRpcError`.
+</Aside>
+
+## Next steps
+
+- [Concepts](/guide/concepts/) — channels, topics, wildcards, and envelopes in depth
+- [Subscriptions](/guide/subscriptions/) — the full subscribe API
+- [Wire Taps](/guide/wiretaps/) — global bus observers
