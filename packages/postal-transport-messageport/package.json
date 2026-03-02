@@ -1,0 +1,57 @@
+{
+    "name": "postal-transport-messageport",
+    "version": "3.0.0",
+    "description": "MessagePort transport for postal — bridges pub/sub across iframes and web workers.",
+    "author": "Jim Cowart (http://ifandelse.com)",
+    "license": "MIT",
+    "homepage": "https://github.com/postaljs/postal.js",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/postaljs/postal.js.git",
+        "directory": "packages/postal-transport-messageport"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "main": "dist/index.cjs",
+    "module": "dist/index.mjs",
+    "types": "dist/index.d.cts",
+    "exports": {
+        ".": {
+            "import": {
+                "types": "./dist/index.d.mts",
+                "default": "./dist/index.mjs"
+            },
+            "require": {
+                "types": "./dist/index.d.cts",
+                "default": "./dist/index.cjs"
+            }
+        }
+    },
+    "files": [
+        "dist",
+        "README.md"
+    ],
+    "engines": {
+        "node": ">=22.22"
+    },
+    "sideEffects": false,
+    "scripts": {
+        "dev": "tsdown --watch",
+        "build": "tsdown",
+        "test": "jest --passWithNoTests",
+        "test:watch": "jest --watch",
+        "lint": "eslint 'src/**/*.{ts,tsx}'"
+    },
+    "peerDependencies": {
+        "postal": "^3.0.0"
+    },
+    "devDependencies": {
+        "postal": "workspace:*",
+        "eslint": "^9.39.2",
+        "jest": "^30.2.0",
+        "ts-jest": "^29.4.6",
+        "tsdown": "^0.20.3",
+        "typescript": "^5.9.3"
+    }
+}
