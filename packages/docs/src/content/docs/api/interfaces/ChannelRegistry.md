@@ -5,7 +5,7 @@ prev: false
 title: "ChannelRegistry"
 ---
 
-Defined in: [packages/postal/src/channel.ts:42](https://github.com/postaljs/postal.js/blob/7ec96daac66b67b9cf6a6ba4a6805aa4639d3c51/packages/postal/src/channel.ts#L42)
+Defined in: [packages/postal/src/channel.ts:42](https://github.com/postaljs/postal.js/blob/ce385092ed93b7b9761ddacc65bbc4af0423befa/packages/postal/src/channel.ts#L42)
 
 Augmentable interface for global channel type registration.
 

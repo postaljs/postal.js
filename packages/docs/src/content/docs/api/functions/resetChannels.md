@@ -7,7 +7,7 @@ title: "resetChannels"
 
 > **resetChannels**(): `void`
 
-Defined in: [packages/postal/src/channel.ts:769](https://github.com/postaljs/postal.js/blob/7ec96daac66b67b9cf6a6ba4a6805aa4639d3c51/packages/postal/src/channel.ts#L769)
+Defined in: [packages/postal/src/channel.ts:769](https://github.com/postaljs/postal.js/blob/ce385092ed93b7b9761ddacc65bbc4af0423befa/packages/postal/src/channel.ts#L769)
 
 Clears the channel registry and all RPC state. Primarily useful for test isolation.
 

@@ -17,6 +17,14 @@ pnpm --filter postal build
 echo "Building postal-transport-messageport..."
 pnpm --filter postal-transport-messageport build
 
+echo "Building notification-dashboard example..."
+VITE_BASE_PATH="/demos/notification-dashboard/" pnpm --filter @postal-examples/notification-dashboard build
+
+echo "Copying notification-dashboard demo to docs dist..."
+DEST="$REPO_ROOT/packages/docs/dist/demos/notification-dashboard"
+mkdir -p "$DEST"
+cp -r "$REPO_ROOT/examples/notification-dashboard/dist/"* "$DEST/"
+
 echo "Building gif-stitch example..."
 VITE_BASE_PATH="/demos/gif-stitch/" pnpm --filter @postal-examples/gif-stitch build
 
