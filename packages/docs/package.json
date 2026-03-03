@@ -5,7 +5,8 @@
     "scripts": {
         "dev": "astro dev",
         "build": "astro build",
-        "preview": "astro preview"
+        "preview": "astro preview",
+        "build:full": "astro build && bash scripts/copy-demos.sh"
     },
     "dependencies": {
         "@astrojs/starlight": "^0.37.0",

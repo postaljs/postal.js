@@ -7,7 +7,7 @@ title: "Transport"
 
 > **Transport** = `object`
 
-Defined in: [packages/postal/src/transport.ts:25](https://github.com/postaljs/postal.js/blob/b7199e51a6f1e5b709f185b0f1dbde208ca2cbc3/packages/postal/src/transport.ts#L25)
+Defined in: [packages/postal/src/transport.ts:45](https://github.com/postaljs/postal.js/blob/7ec96daac66b67b9cf6a6ba4a6805aa4639d3c51/packages/postal/src/transport.ts#L45)
 
 A transport bridges postal across execution boundaries (iframes, workers, tabs).
 
@@ -21,7 +21,7 @@ prevention, filtering, and local dispatch are managed internally.
 
 > `optional` **dispose**: () => `void`
 
-Defined in: [packages/postal/src/transport.ts:31](https://github.com/postaljs/postal.js/blob/b7199e51a6f1e5b709f185b0f1dbde208ca2cbc3/packages/postal/src/transport.ts#L31)
+Defined in: [packages/postal/src/transport.ts:51](https://github.com/postaljs/postal.js/blob/7ec96daac66b67b9cf6a6ba4a6805aa4639d3c51/packages/postal/src/transport.ts#L51)
 
 Optional cleanup when the transport is removed or reset.
 
@@ -33,9 +33,9 @@ Optional cleanup when the transport is removed or reset.
 
 ### send()
 
-> **send**: (`envelope`) => `void`
+> **send**: (`envelope`, `meta?`) => `void`
 
-Defined in: [packages/postal/src/transport.ts:27](https://github.com/postaljs/postal.js/blob/b7199e51a6f1e5b709f185b0f1dbde208ca2cbc3/packages/postal/src/transport.ts#L27)
+Defined in: [packages/postal/src/transport.ts:47](https://github.com/postaljs/postal.js/blob/7ec96daac66b67b9cf6a6ba4a6805aa4639d3c51/packages/postal/src/transport.ts#L47)
 
 Send an envelope to the remote side.
 
@@ -44,6 +44,10 @@ Send an envelope to the remote side.
 ##### envelope
 
 [`Envelope`](/api/type-aliases/envelope/)
+
+##### meta?
+
+[`TransportSendMeta`](/api/type-aliases/transportsendmeta/)
 
 #### Returns
 
@@ -55,7 +59,7 @@ Send an envelope to the remote side.
 
 > **subscribe**: (`callback`) => () => `void`
 
-Defined in: [packages/postal/src/transport.ts:29](https://github.com/postaljs/postal.js/blob/b7199e51a6f1e5b709f185b0f1dbde208ca2cbc3/packages/postal/src/transport.ts#L29)
+Defined in: [packages/postal/src/transport.ts:49](https://github.com/postaljs/postal.js/blob/7ec96daac66b67b9cf6a6ba4a6805aa4639d3c51/packages/postal/src/transport.ts#L49)
 
 Listen for envelopes arriving from the remote side. Returns an unsubscribe function.
 

@@ -1,6 +1,21 @@
 ---
 title: Examples
-description: Example applications and usage patterns for postal.
+description: Example applications demonstrating postal v3 in action.
 ---
 
-Examples are coming soon. In the meantime, check out the [Getting Started](/guide/getting-started/) guide for basic usage patterns.
+import { LinkCard } from "@astrojs/starlight/components";
+
+These example apps show postal in the context of real browser features.
+Each one demonstrates a specific combination of postal patterns — check the individual pages for architecture breakdowns and live demos.
+
+<LinkCard
+    title="Notification Dashboard"
+    description="Interactive pub/sub demo. Shows getChannel, publish, wildcard subscriptions, live subscribe/unsubscribe toggling, and wiretaps — no transports, no workers, just the core API."
+    href="/examples/notification-dashboard/"
+/>
+
+<LinkCard
+    title="Gif Stitch"
+    description="Webcam-to-animated-GIF recorder. Shows transport bridging, request/handle RPC, pub/sub progress, and zero-copy transferables — all in one app."
+    href="/examples/gif-stitch/"
+/>

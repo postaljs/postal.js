@@ -25,6 +25,7 @@ title: "postal"
 - [Transport](/api/type-aliases/transport/)
 - [TransportFilter](/api/type-aliases/transportfilter/)
 - [TransportOptions](/api/type-aliases/transportoptions/)
+- [TransportSendMeta](/api/type-aliases/transportsendmeta/)
 
 ## Functions
 

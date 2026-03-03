@@ -7,7 +7,7 @@ title: "TransportOptions"
 
 > **TransportOptions** = `object`
 
-Defined in: [packages/postal/src/transport.ts:43](https://github.com/postaljs/postal.js/blob/b7199e51a6f1e5b709f185b0f1dbde208ca2cbc3/packages/postal/src/transport.ts#L43)
+Defined in: [packages/postal/src/transport.ts:63](https://github.com/postaljs/postal.js/blob/7ec96daac66b67b9cf6a6ba4a6805aa4639d3c51/packages/postal/src/transport.ts#L63)
 
 Options when registering a transport.
 
@@ -17,6 +17,6 @@ Options when registering a transport.
 
 > `optional` **filter**: [`TransportFilter`](/api/type-aliases/transportfilter/)
 
-Defined in: [packages/postal/src/transport.ts:45](https://github.com/postaljs/postal.js/blob/b7199e51a6f1e5b709f185b0f1dbde208ca2cbc3/packages/postal/src/transport.ts#L45)
+Defined in: [packages/postal/src/transport.ts:65](https://github.com/postaljs/postal.js/blob/7ec96daac66b67b9cf6a6ba4a6805aa4639d3c51/packages/postal/src/transport.ts#L65)
 
 Optional filter restricting which envelopes this transport forwards.

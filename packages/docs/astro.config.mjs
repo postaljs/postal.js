@@ -79,7 +79,11 @@ export default defineConfig({
                 typeDocSidebarGroup,
                 {
                     label: "Examples",
-                    items: [{ slug: "examples/overview" }],
+                    items: [
+                        { slug: "examples/overview" },
+                        { slug: "examples/notification-dashboard" },
+                        { slug: "examples/gif-stitch" },
+                    ],
                 },
                 {
                     label: "Tools",

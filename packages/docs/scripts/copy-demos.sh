@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# copy-demos.sh
+#
+# Builds the postal library packages and example apps, then copies the built
+# demo output into the docs dist directory so they're served alongside the
+# docs at /demos/<name>/.
+#
+# Run from the repo root. Requires pnpm.
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+
+echo "Building postal core..."
+pnpm --filter postal build
+
+echo "Building postal-transport-messageport..."
+pnpm --filter postal-transport-messageport build
+
+echo "Building gif-stitch example..."
+VITE_BASE_PATH="/demos/gif-stitch/" pnpm --filter @postal-examples/gif-stitch build
+
+echo "Copying gif-stitch demo to docs dist..."
+DEST="$REPO_ROOT/packages/docs/dist/demos/gif-stitch"
+mkdir -p "$DEST"
+cp -r "$REPO_ROOT/examples/gif-stitch/dist/"* "$DEST/"
+
+echo "Demos copied successfully."
