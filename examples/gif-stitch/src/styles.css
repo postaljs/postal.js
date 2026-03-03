@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+/* Custom properties for the app accent palette */
+:root {
+    --accent-primary: #22d3ee; /* cyan-400 */
+    --accent-violet: #a78bfa; /* violet-400 */
+    --accent-emerald: #34d399; /* emerald-400 */
+    --accent-amber: #fbbf24; /* amber-400 */
+}
+
+/* Slot border pulse animation — used during the "capturing" state.
+   CSS animation beats JS setInterval for visual smoothness. */
+@keyframes border-pulse {
+    0%,
+    100% {
+        border-color: var(--accent-primary);
+        opacity: 1;
+    }
+    50% {
+        border-color: var(--accent-primary);
+        opacity: 0.3;
+    }
+}
+
+.slot-capturing {
+    animation: border-pulse 1s ease-in-out infinite;
+    border-color: var(--accent-primary) !important;
+}
+
+/* Progress bar fill animation */
+@keyframes progress-fill {
+    from {
+        width: 0%;
+    }
+}
+
+/* Camera recording dot pulse */
+@keyframes rec-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.4;
+    }
+}
+
+/* Subtle fade-in for completed GIF images */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.gif-appear {
+    animation: fade-in 0.25s ease-out forwards;
+}
+
+/* Settings panel open/close — the translate class is toggled by JS.
+   The transition is declared on the element in HTML. */
+.settings-open {
+    transform: translateX(0) !important;
+}
