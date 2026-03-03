@@ -64,5 +64,5 @@
 /* Settings panel open/close — the translate class is toggled by JS.
    The transition is declared on the element in HTML. */
 .settings-open {
-    transform: translateX(0) !important;
+    translate: 0 !important;
 }
