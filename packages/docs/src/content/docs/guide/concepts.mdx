@@ -1,0 +1,141 @@
+---
+title: Concepts
+description: Channels, topics, wildcards, envelopes, and the message lifecycle.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+## Channels
+
+A channel is a named scope for messages. Think of it as a namespace — subscribers on the `"orders"` channel only see messages published to that channel.
+
+```ts
+import { getChannel } from "postal";
+
+const orders = getChannel("orders");
+const users = getChannel("users");
+```
+
+Channels are singletons. `getChannel("orders")` always returns the same instance, regardless of where you call it. This means you can import `getChannel` in multiple modules and they'll all share the same subscriber list.
+
+### Default channel
+
+If you don't need multiple channels, call `getChannel()` with no arguments:
+
+```ts
+const bus = getChannel();
+```
+
+### Dispose
+
+Channels can be torn down with `dispose()`:
+
+```ts
+const ch = getChannel("temp");
+// ... use it ...
+ch.dispose();
+```
+
+Disposing a channel:
+
+- Clears all subscribers and handlers
+- Rejects any pending RPC promises with `PostalDisposedError`
+- Removes the channel from the singleton registry
+- Makes subsequent `subscribe`, `publish`, `request`, and `handle` calls throw `PostalDisposedError`
+
+Calling `dispose()` on an already-disposed channel is a no-op. Unsubscribe functions returned before disposal become silent no-ops.
+
+## Topics
+
+Topics are dot-delimited strings that describe what a message is about:
+
+```
+order.placed
+order.placed.rush
+user.profile.updated
+system.health.check
+```
+
+There's no registration step — any string works as a topic. The dots are meaningful only for wildcard matching.
+
+## Wildcards
+
+Subscription patterns support two wildcards, following the AMQP standard:
+
+### `*` — matches exactly one segment
+
+```ts
+ch.subscribe("order.*", callback);
+// Matches: order.placed, order.cancelled
+// Does NOT match: order.placed.rush (two segments after "order")
+```
+
+### `#` — matches zero or more segments
+
+```ts
+ch.subscribe("order.#", callback);
+// Matches: order, order.placed, order.placed.rush, order.a.b.c.d
+```
+
+### Combined patterns
+
+Wildcards can appear anywhere in the pattern:
+
+```ts
+ch.subscribe("*.placed", callback); // user.placed, order.placed
+ch.subscribe("#.updated", callback); // updated, user.updated, user.profile.updated
+ch.subscribe("order.*.rush", callback); // order.placed.rush, order.cancelled.rush
+```
+
+### Bare wildcards
+
+```ts
+ch.subscribe("*", callback); // Any single-segment topic
+ch.subscribe("#", callback); // Every topic on the channel
+```
+
+<Aside type="note">
+    Match results are cached internally for performance. Repeated calls with the same pattern/topic
+    pair don't re-run the matching algorithm.
+</Aside>
+
+## Envelopes
+
+Every message flowing through postal is wrapped in an **Envelope**:
+
+```ts
+type Envelope<TPayload = unknown> = {
+    id: string; // UUID v4, unique per message
+    type: EnvelopeType; // "publish" | "request" | "reply"
+    channel: string; // Channel name
+    topic: string; // Topic string
+    payload: TPayload; // The message data
+    timestamp: number; // Date.now() when created
+    source?: string; // Set by transports for echo prevention
+    replyTo?: string; // Present on request envelopes
+    correlationId?: string; // Links replies to requests
+};
+```
+
+Subscribers always receive the full envelope, not just the payload. This gives you routing context without needing to thread metadata through your application.
+
+### Envelope types
+
+- **`"publish"`** — Standard pub/sub message. Created by `channel.publish()`.
+- **`"request"`** — RPC request. Created by `channel.request()`. Includes `replyTo` and `correlationId`.
+- **`"reply"`** — RPC response. Created internally by `handle()`. Carries the handler's return value and the `correlationId` from the original request.
+
+## Message lifecycle
+
+1. **Publish**: You call `channel.publish(topic, payload)` or `channel.request(topic, payload)`.
+2. **Envelope creation**: postal wraps the payload in an Envelope with a unique ID, timestamp, and routing fields.
+3. **Dispatch**: The envelope is matched against every subscriber's pattern. All matches receive the envelope.
+4. **Transports**: If any transports are registered, the envelope is forwarded to remote contexts (with echo prevention).
+5. **Wiretaps**: After transports fire, registered wiretaps see the envelope.
+
+Subscriber errors don't stop dispatch — if one subscriber throws, the rest still execute. Errors are collected and thrown as a single `AggregateError` after all subscribers have been called.
+
+## Next steps
+
+- [Subscriptions](/guide/subscriptions/) — the full subscribe API and RPC patterns
+- [Wire Taps](/guide/wiretaps/) — global bus observers

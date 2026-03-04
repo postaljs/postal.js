@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Notification Dashboard — postal pub/sub demo</title>
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📬</text></svg>" />
+    </head>
+    <body class="bg-zinc-950 text-zinc-100 min-h-screen">
+        <div id="app">
+            <!-- Header -->
+            <header class="border-b border-zinc-800 px-6 py-4 flex items-center gap-3">
+                <span class="text-2xl">📬</span>
+                <div>
+                    <h1 class="text-lg font-bold text-white leading-tight">Notification Dashboard</h1>
+                    <p class="text-xs text-zinc-400">postal pub/sub &amp; wiretap demo</p>
+                </div>
+            </header>
+
+            <!-- Main layout: four panels -->
+            <main class="grid grid-cols-1 lg:grid-cols-[280px_1fr_1fr] lg:grid-rows-[1fr] lg:h-[calc(100vh-5rem)] gap-4 p-4 lg:p-6">
+
+                <!-- Left column: Service buttons + Subscription chips -->
+                <div class="flex flex-col gap-4 lg:overflow-y-auto">
+
+                    <!-- Panel 1: Services -->
+                    <section class="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden">
+                        <div class="px-4 py-3 border-b border-zinc-800">
+                            <h2 class="text-sm font-semibold text-white">Services</h2>
+                            <p class="text-xs text-zinc-500 mt-0.5">Click a button to publish an event</p>
+                        </div>
+                        <div class="p-4 flex flex-col gap-4">
+
+                            <!-- Users (blue) -->
+                            <div class="flex flex-col gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0"></span>
+                                    <span class="text-xs font-semibold text-blue-400 uppercase tracking-wide">Users</span>
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <button class="service-btn" data-service="users" data-topic="users.login">users.login</button>
+                                    <button class="service-btn" data-service="users" data-topic="users.logout">users.logout</button>
+                                    <button class="service-btn" data-service="users" data-topic="users.signup">users.signup</button>
+                                </div>
+                            </div>
+
+                            <!-- Orders (green) -->
+                            <div class="flex flex-col gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0"></span>
+                                    <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wide">Orders</span>
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <button class="service-btn" data-service="orders" data-topic="orders.created">orders.created</button>
+                                    <button class="service-btn" data-service="orders" data-topic="orders.shipped">orders.shipped</button>
+                                    <button class="service-btn" data-service="orders" data-topic="orders.cancelled">orders.cancelled</button>
+                                </div>
+                            </div>
+
+                            <!-- Payments (amber) -->
+                            <div class="flex flex-col gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0"></span>
+                                    <span class="text-xs font-semibold text-amber-400 uppercase tracking-wide">Payments</span>
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <button class="service-btn" data-service="payments" data-topic="payments.received">payments.received</button>
+                                    <button class="service-btn" data-service="payments" data-topic="payments.refund.initiated">payments.refund.initiated</button>
+                                    <button class="service-btn" data-service="payments" data-topic="payments.refund.completed">payments.refund.completed</button>
+                                </div>
+                            </div>
+
+                            <!-- System (purple) -->
+                            <div class="flex flex-col gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-violet-400 flex-shrink-0"></span>
+                                    <span class="text-xs font-semibold text-violet-400 uppercase tracking-wide">System</span>
+                                </div>
+                                <div class="flex flex-col gap-1.5">
+                                    <button class="service-btn" data-service="system" data-topic="system.health.ok">system.health.ok</button>
+                                    <button class="service-btn" data-service="system" data-topic="system.deploy.started">system.deploy.started</button>
+                                    <button class="service-btn" data-service="system" data-topic="system.error">system.error</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Panel 2: Subscriptions -->
+                    <section class="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden">
+                        <div class="px-4 py-3 border-b border-zinc-800">
+                            <h2 class="text-sm font-semibold text-white">Subscriptions</h2>
+                            <p class="text-xs text-zinc-500 mt-0.5">Toggle patterns on/off — each calls <code class="text-zinc-400">subscribe()</code> or <code class="text-zinc-400">unsubscribe()</code></p>
+                        </div>
+                        <div class="p-4 flex flex-wrap gap-2">
+                            <!-- orders.* — active by default -->
+                            <button
+                                class="chip chip-active"
+                                data-chip-id="orders-star"
+                                data-pattern="orders.*"
+                                title="* matches exactly one segment — matches orders.created, orders.shipped, etc."
+                            >orders.*</button>
+
+                            <!-- system.# — active by default -->
+                            <button
+                                class="chip chip-active"
+                                data-chip-id="system-hash"
+                                data-pattern="system.#"
+                                title="# matches zero or more segments — matches system.error, system.health.ok, etc."
+                            >system.#</button>
+
+                            <!-- payments.refund.# — inactive by default -->
+                            <button
+                                class="chip chip-inactive"
+                                data-chip-id="payments-refund-hash"
+                                data-pattern="payments.refund.#"
+                                title="# matches zero or more segments — matches payments.refund.initiated, payments.refund.completed"
+                            >payments.refund.#</button>
+
+                            <!-- *.created — inactive by default -->
+                            <button
+                                class="chip chip-inactive"
+                                data-chip-id="star-created"
+                                data-pattern="*.created"
+                                title="* matches exactly one segment — matches users.created, orders.created, etc."
+                            >*.created</button>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Middle column: Notification feed -->
+                <section class="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden flex flex-col min-h-[500px] lg:min-h-0">
+                    <div class="px-4 py-3 border-b border-zinc-800 flex items-center justify-between flex-shrink-0">
+                        <div>
+                            <h2 class="text-sm font-semibold text-white">Notification Feed</h2>
+                            <p class="text-xs text-zinc-500 mt-0.5">Messages matching active subscriptions</p>
+                        </div>
+                        <span id="notif-count" class="text-xs text-zinc-600 font-mono tabular-nums">0</span>
+                    </div>
+                    <div id="notif-feed" class="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
+                        <!-- Empty state -->
+                        <div id="notif-empty" class="flex flex-col items-center justify-center h-full gap-2 text-center py-8">
+                            <span class="text-2xl opacity-30">🔔</span>
+                            <p class="text-xs text-zinc-600">Activate a subscription chip<br />and click a service button</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Right column: Wiretap feed -->
+                <section class="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden flex flex-col min-h-[500px] lg:min-h-0">
+                    <div class="px-4 py-3 border-b border-zinc-800 flex items-center justify-between flex-shrink-0">
+                        <div>
+                            <h2 class="text-sm font-semibold text-white">Wiretap <span class="text-xs font-normal text-zinc-500">(firehose)</span></h2>
+                            <p class="text-xs text-zinc-500 mt-0.5">All messages — subscriptions don't filter this</p>
+                        </div>
+                        <span id="wiretap-count" class="text-xs text-zinc-600 font-mono tabular-nums">0</span>
+                    </div>
+                    <div id="wiretap-feed" class="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
+                        <!-- Empty state -->
+                        <div id="wiretap-empty" class="flex flex-col items-center justify-center h-full gap-2 text-center py-8">
+                            <span class="text-2xl opacity-30">📡</span>
+                            <p class="text-xs text-zinc-600">Click any service button<br />to see raw bus traffic</p>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- How postal works — the teaching moment -->
+            <section class="px-4 lg:px-6 pb-12 mt-2">
+                <div class="rounded-2xl bg-zinc-900 border border-zinc-800 p-6 md:p-8">
+                    <h2 class="text-lg font-bold text-white mb-1">How postal makes this work</h2>
+                    <p class="text-sm text-zinc-400 mb-6">
+                        This dashboard is entirely in-memory — no servers, no workers, no transports.
+                        Just <strong class="text-zinc-200">postal</strong>'s core pub/sub API showing what
+                        it can do before you add any cross-boundary infrastructure.
+                    </p>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Channel setup -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0"></span>
+                                <span class="text-sm font-semibold text-emerald-400">Channel-scoped messaging</span>
+                            </div>
+                            <p class="text-xs text-zinc-400 leading-relaxed">
+                                All messages flow through a single channel created with
+                                <code class="text-zinc-300 bg-zinc-800 px-1 rounded">getChannel("notifications")</code>.
+                                Channels scope messaging to a named domain — every
+                                <code class="text-zinc-300 bg-zinc-800 px-1 rounded">publish()</code>,
+                                <code class="text-zinc-300 bg-zinc-800 px-1 rounded">subscribe()</code>,
+                                and wiretap operates within that scope.
+                                Multiple channels can coexist without interfering.
+                            </p>
+                        </div>
+
+                        <!-- Publish / subscribe -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2 h-2 rounded-full bg-cyan-400 flex-shrink-0"></span>
+                                <span class="text-sm font-semibold text-cyan-400">Wildcard subscriptions</span>
+                            </div>
+                            <p class="text-xs text-zinc-400 leading-relaxed">
+                                Each subscription chip calls
+                                <code class="text-zinc-300 bg-zinc-800 px-1 rounded">channel.subscribe(pattern, callback)</code>
+                                with an AMQP-style wildcard topic.
+                                <code class="text-zinc-300 bg-zinc-800 px-1 rounded">*</code> matches exactly one segment —
+                                <code class="text-zinc-300 bg-zinc-800 px-1 rounded">orders.*</code> catches
+                                <code class="text-zinc-300 bg-zinc-800 px-1 rounded">orders.created</code> but not
+                                <code class="text-zinc-300 bg-zinc-800 px-1 rounded">payments.refund.initiated</code>.
+                                <code class="text-zinc-300 bg-zinc-800 px-1 rounded">#</code> matches zero or more —
+                                <code class="text-zinc-300 bg-zinc-800 px-1 rounded">system.#</code> catches everything
+                                under <code class="text-zinc-300 bg-zinc-800 px-1 rounded">system</code>.
+                            </p>
+                        </div>
+
+                        <!-- Unsubscribe -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0"></span>
+                                <span class="text-sm font-semibold text-amber-400">Live subscribe / unsubscribe</span>
+                            </div>
+                            <p class="text-xs text-zinc-400 leading-relaxed">
+                                Toggling a chip calls the real API — not a filter flag.
+                                Deactivating calls the
+                                <code class="text-zinc-300 bg-zinc-800 px-1 rounded">unsubscribe()</code> function
+                                returned by the previous
+                                <code class="text-zinc-300 bg-zinc-800 px-1 rounded">subscribe()</code> call.
+                                Reactivating calls
+                                <code class="text-zinc-300 bg-zinc-800 px-1 rounded">subscribe()</code> again
+                                and stores the new unsubscribe function.
+                                The notification feed immediately reflects the change.
+                            </p>
+                        </div>
+
+                        <!-- Wiretap -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2 h-2 rounded-full bg-violet-400 flex-shrink-0"></span>
+                                <span class="text-sm font-semibold text-violet-400">Wiretap — global observer</span>
+                            </div>
+                            <p class="text-xs text-zinc-400 leading-relaxed">
+                                <code class="text-zinc-300 bg-zinc-800 px-1 rounded">addWiretap(callback)</code>
+                                registers a global observer that receives every envelope published
+                                to the bus — regardless of channel, topic, or active subscriptions.
+                                The wiretap fires for messages that match subscriptions AND messages
+                                that don't. This is the "firehose" view.
+                                Wiretap errors are swallowed so observers can't break dispatch.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-6 border-t border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                        <a
+                            href="https://github.com/postaljs/postal.js/tree/v3-postal/examples/notification-dashboard"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="inline-flex items-center gap-2 text-xs text-zinc-400 hover:text-white transition-colors"
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+                            </svg>
+                            View source on GitHub
+                        </a>
+                        <span class="hidden sm:block text-zinc-700">·</span>
+                        <a
+                            href="https://postal-js.org/guide/getting-started/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-xs text-zinc-400 hover:text-white transition-colors"
+                        >
+                            postal docs →
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <script type="module" src="/src/main.ts"></script>
+    </body>
+</html>

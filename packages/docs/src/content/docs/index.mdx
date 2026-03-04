@@ -1,0 +1,48 @@
+---
+title: postal
+description: Pub/sub message bus for JavaScript and TypeScript.
+template: splash
+hero:
+    tagline: Pub/sub message bus for JavaScript and TypeScript. Wildcard subscriptions, channel-scoped messaging, and zero dependencies.
+    image:
+        dark: ../../assets/icon-dark.svg
+        light: ../../assets/icon-light.svg
+    actions:
+        - text: Get Started
+          link: /guide/getting-started/
+          icon: right-arrow
+          variant: primary
+        - text: View on GitHub
+          link: https://github.com/postaljs/postal.js
+          icon: external
+          variant: minimal
+---
+
+import { Card, CardGrid } from "@astrojs/starlight/components";
+
+<CardGrid>
+    <Card icon="seti:typescript" title="TypeScript-First">
+        Written in TypeScript with full type inference. Channels, topics, and payloads are all
+        type-checked — including wildcard subscriptions.
+    </Card>
+    <Card icon="random" title="AMQP-Style Wildcards">
+        Subscribe with `*` (one segment) and `#` (zero or more). Topic matching follows the same
+        rules as AMQP, with results cached for performance.
+    </Card>
+    <Card icon="puzzle" title="Channel-Scoped Messaging">
+        Organize messages into named channels. Each channel is a singleton with its own subscriber
+        list. Default channel is `"/"` — use as many as you need.
+    </Card>
+    <Card icon="rocket" title="Request / Handle RPC">
+        Built-in correlation-based RPC. Send a request, register a handler, get a Promise back.
+        Timeouts, error propagation, and typed payloads included.
+    </Card>
+    <Card icon="list-format" title="Wire Taps">
+        Attach global observers that see every envelope flowing through the bus. Ideal for logging,
+        debugging, and audit trails. Errors in wiretaps never affect dispatch.
+    </Card>
+    <Card icon="approve-check-circle" title="Zero Dependencies">
+        No lodash, no framework lock-in, no transitive dependency tree to audit. Just postal and
+        your code.
+    </Card>
+</CardGrid>

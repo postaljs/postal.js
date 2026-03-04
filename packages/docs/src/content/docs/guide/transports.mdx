@@ -1,0 +1,233 @@
+---
+title: Transports
+description: Bridge postal messages across tabs, iframes, and workers.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+## What is a transport?
+
+A transport is how postal crosses an execution boundary — same-origin tabs via `BroadcastChannel`, iframes and workers via `MessagePort`. Without a transport, a postal bus is local to its JavaScript context. With one, publishes on one side automatically appear on the other.
+
+Transports are symmetric: each side registers its own transport, and postal handles the rest — echo prevention, filtering, and local dispatch.
+
+## The Transport interface
+
+```ts
+type Transport = {
+    /** Send an outbound envelope to the remote side. */
+    send: (envelope: Envelope) => void;
+
+    /** Listen for inbound envelopes from the remote side. Returns an unsubscribe function. */
+    subscribe: (callback: (envelope: Envelope) => void) => () => void;
+
+    /** Optional cleanup when the transport is removed or the bus is reset. */
+    dispose?: () => void;
+};
+```
+
+You rarely implement this directly — the transport packages do it for you. The interface matters when you're building a custom transport (see [below](#writing-a-custom-transport)).
+
+## Registering a transport
+
+```ts
+import { addTransport } from "postal";
+
+const removeTransport = addTransport(transport);
+
+// Remove it later
+removeTransport();
+```
+
+`addTransport` wires the transport into postal's outbound hook and starts listening for inbound envelopes. It returns an idempotent remove function.
+
+### Filtering
+
+You can restrict which envelopes a transport forwards using a `TransportFilter`. Unfiltered transports forward everything.
+
+```ts
+addTransport(transport, {
+    filter: {
+        // Only forward envelopes on these channels (exact match)
+        channels: ["orders", "inventory"],
+
+        // Only forward envelopes matching these topic patterns (AMQP wildcards)
+        topics: ["item.*", "stock.#"],
+    },
+});
+```
+
+Both `channels` and `topics` are optional and additive — an envelope must pass both to be forwarded. `"reply"` envelopes (RPC responses) always bypass the filter, because they need to complete a round-trip that already matched on the way out.
+
+## Echo prevention
+
+When postal forwards an outbound envelope, it stamps it with the local `instanceId` in the `source` field. On the receiving side, any envelope whose `source` matches the local `instanceId` is silently dropped before dispatch. This prevents a message from bouncing back and triggering a second dispatch in the originating context.
+
+You don't need to do anything — it's automatic. It's documented here so you know why `envelope.source` exists.
+
+## Available transport packages
+
+### `postal-transport-messageport`
+
+Point-to-point transport for iframes and dedicated workers. Uses a `MessageChannel` with a handshake (SYN/ACK) to ensure both sides are ready before messages flow.
+
+```bash
+npm install postal-transport-messageport
+```
+
+**Iframe — parent side:**
+
+```ts
+import { addTransport, getChannel } from "postal";
+import { connectToIframe } from "postal-transport-messageport";
+
+const iframe = document.querySelector<HTMLIFrameElement>("#my-frame")!;
+const transport = await connectToIframe(iframe);
+
+addTransport(transport);
+
+// Messages published here are now forwarded into the iframe
+getChannel("orders").publish("item.placed", { sku: "WIDGET-42", qty: 1 });
+```
+
+**Iframe — child side:**
+
+```ts
+import { addTransport } from "postal";
+import { connectToParent } from "postal-transport-messageport";
+
+const transport = await connectToParent();
+addTransport(transport);
+
+// Inbound messages from the parent are dispatched locally
+getChannel("orders").subscribe("item.*", env => {
+    console.log("Got from parent:", env.payload);
+});
+```
+
+**Worker — main thread:**
+
+```ts
+import { addTransport } from "postal";
+import { connectToWorker } from "postal-transport-messageport";
+
+const worker = new Worker(new URL("./my-worker.js", import.meta.url));
+const transport = await connectToWorker(worker);
+
+addTransport(transport);
+```
+
+**Worker — inside the worker:**
+
+```ts
+import { addTransport } from "postal";
+import { connectToHost } from "postal-transport-messageport";
+
+const transport = await connectToHost();
+addTransport(transport);
+```
+
+<Aside type="note">
+    `connectToIframe` / `connectToWorker` throw `PostalHandshakeTimeoutError` if the other side
+    doesn't complete the handshake within the timeout (default 5 seconds). Make sure the iframe or
+    worker calls its corresponding connect function.
+</Aside>
+
+### `postal-transport-broadcastchannel`
+
+Many-to-many transport for same-origin tabs and windows. Uses the browser's `BroadcastChannel` API — no handshake, no configuration. Every tab that registers the transport is immediately in the mesh.
+
+```bash
+npm install postal-transport-broadcastchannel
+```
+
+```ts
+import { addTransport, getChannel } from "postal";
+import { createBroadcastChannelTransport } from "postal-transport-broadcastchannel";
+
+// All tabs using "postal" as the channel name share messages automatically
+addTransport(createBroadcastChannelTransport());
+
+// Optional: use a custom name to isolate multiple apps on the same origin
+addTransport(createBroadcastChannelTransport("my-app"));
+
+// Now any publish is forwarded to all other tabs
+getChannel("orders").publish("item.placed", { sku: "WIDGET-42", qty: 1 });
+```
+
+<Aside type="caution">
+    `BroadcastChannel` is same-origin only. It doesn't cross iframes from different origins, service
+    workers, or dedicated workers. For those boundaries, use `postal-transport-messageport`.
+</Aside>
+
+## Writing a custom transport
+
+If you need a different channel (WebSocket, SharedWorker, `postMessage` with a custom protocol), implement the `Transport` interface directly:
+
+```ts
+import type { Transport, Envelope } from "postal";
+import { addTransport } from "postal";
+
+const createWebSocketTransport = (ws: WebSocket): Transport => {
+    const listeners: ((envelope: Envelope) => void)[] = [];
+
+    const onMessage = (event: MessageEvent): void => {
+        const envelope = JSON.parse(event.data) as Envelope;
+        for (const listener of [...listeners]) {
+            listener(envelope);
+        }
+    };
+
+    ws.addEventListener("message", onMessage);
+
+    return {
+        send: envelope => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(envelope));
+            }
+        },
+
+        subscribe: callback => {
+            listeners.push(callback);
+            return () => {
+                const index = listeners.indexOf(callback);
+                if (index !== -1) {
+                    listeners.splice(index, 1);
+                }
+            };
+        },
+
+        dispose: () => {
+            ws.removeEventListener("message", onMessage);
+            listeners.splice(0, listeners.length);
+        },
+    };
+};
+
+const ws = new WebSocket("wss://example.com/postal");
+addTransport(createWebSocketTransport(ws));
+```
+
+The contract:
+
+- `send` is called with a shallow copy of the envelope already stamped with `source`. Don't mutate it.
+- `subscribe` must return an unsubscribe function. postal calls it when the transport is removed.
+- `dispose` is called once on removal or reset. Make it idempotent.
+
+## Cleanup and test isolation
+
+`resetTransports()` removes all registered transports and calls `dispose()` on each:
+
+```ts
+import { resetTransports } from "postal";
+
+// Tear down transports only
+resetTransports();
+```
+
+`resetChannels()` calls `resetTransports()` internally, so a full bus reset also cleans up transports. Use `resetTransports()` directly when you want transport-only teardown without clearing channels and subscribers.
+
+## Next steps
+
+- [Wire Taps](/guide/wiretaps/) — global observers that see every envelope
+- [Concepts](/guide/concepts/) — envelope structure and message lifecycle

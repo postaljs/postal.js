@@ -1,0 +1,139 @@
+@import "tailwindcss";
+
+/* ─── Color system ──────────────────────────────────────────────────────────── */
+
+:root {
+    --color-users: #60a5fa; /* blue-400 */
+    --color-orders: #34d399; /* emerald-400 */
+    --color-payments: #fbbf24; /* amber-400 */
+    --color-system: #a78bfa; /* violet-400 */
+}
+
+/* ─── Service buttons ────────────────────────────────────────────────────────── */
+
+/* Base style for all service buttons. Color class applied per-service by JS
+   based on the data-service attribute, so we keep the base here. */
+.service-btn {
+    @apply w-full text-left px-3 py-1.5 rounded-lg text-xs font-mono
+           transition-all duration-150 cursor-pointer
+           bg-zinc-800 text-zinc-400
+           hover:text-zinc-100 hover:bg-zinc-700
+           active:scale-95;
+}
+
+/* Press flash: briefly scale and brighten on click */
+.service-btn-flash {
+    animation: btn-flash 0.2s ease-out forwards;
+}
+
+@keyframes btn-flash {
+    0% {
+        transform: scale(0.95);
+        filter: brightness(1.5);
+    }
+    100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+}
+
+/* ─── Subscription chips ─────────────────────────────────────────────────────── */
+
+.chip {
+    @apply px-3 py-1.5 rounded-full text-xs font-mono font-medium
+           cursor-pointer transition-all duration-200 border;
+}
+
+.chip-active {
+    @apply bg-cyan-500/15 border-cyan-500/60 text-cyan-300
+           hover:bg-cyan-500/25 hover:border-cyan-400;
+}
+
+.chip-inactive {
+    @apply bg-zinc-800 border-zinc-700 text-zinc-500
+           hover:bg-zinc-700 hover:border-zinc-600 hover:text-zinc-400;
+}
+
+/* ─── Feed entries ───────────────────────────────────────────────────────────── */
+
+/* New entries slide in from the top and fade in together */
+@keyframes entry-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Brief background flash on new entries — draws the eye to new content
+   without being distracting during rapid-fire clicking. */
+@keyframes entry-flash {
+    0% {
+        background-color: rgb(6 182 212 / 0.12);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+.feed-entry {
+    @apply rounded-lg border border-zinc-800 bg-zinc-800/50 p-3 flex-shrink-0;
+    animation:
+        entry-in 0.18s ease-out,
+        entry-flash 0.8s ease-out;
+}
+
+/* Wiretap entries use the same animation but a different accent flash
+   so they're visually distinct from notification feed entries. */
+.wiretap-entry {
+    @apply rounded-lg border border-zinc-800/60 bg-zinc-800/30 p-2.5 flex-shrink-0;
+    animation:
+        entry-in 0.18s ease-out,
+        wiretap-flash 0.8s ease-out;
+}
+
+@keyframes wiretap-flash {
+    0% {
+        background-color: rgb(139 92 246 / 0.12);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+/* ─── Service color badges ───────────────────────────────────────────────────── */
+
+/* Topic badges in feed entries are color-coded by service prefix.
+   These are set as inline CSS custom properties from JS so Tailwind's
+   JIT doesn't need to know the exact color values at build time. */
+.topic-badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono
+           font-semibold leading-none;
+}
+
+.topic-badge-users {
+    background-color: rgb(96 165 250 / 0.15);
+    color: var(--color-users);
+}
+
+.topic-badge-orders {
+    background-color: rgb(52 211 153 / 0.15);
+    color: var(--color-orders);
+}
+
+.topic-badge-payments {
+    background-color: rgb(251 191 36 / 0.15);
+    color: var(--color-payments);
+}
+
+.topic-badge-system {
+    background-color: rgb(167 139 250 / 0.15);
+    color: var(--color-system);
+}
+
+.topic-badge-unknown {
+    @apply bg-zinc-700/50 text-zinc-400;
+}

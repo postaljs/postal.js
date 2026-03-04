@@ -1,0 +1,103 @@
+---
+title: Wire Taps
+description: Global observers that see every message on the bus.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+## What is a wire tap?
+
+A wire tap is a global observer that sees every envelope flowing through postal — across all channels and topics. Wire taps fire for publishes, requests, handler replies, and inbound envelopes from transports.
+
+```ts
+import { addWiretap } from "postal";
+
+const removeTap = addWiretap(envelope => {
+    console.log(`[${envelope.channel}] ${envelope.topic}`, envelope.payload);
+});
+```
+
+## Use cases
+
+### Logging
+
+```ts
+addWiretap(envelope => {
+    console.log(
+        `[${envelope.type}] ${envelope.channel}/${envelope.topic}`,
+        JSON.stringify(envelope.payload)
+    );
+});
+```
+
+### Debugging
+
+```ts
+addWiretap(envelope => {
+    if (envelope.channel === "orders" && envelope.topic.startsWith("item.")) {
+        debugger;
+    }
+});
+```
+
+### Metrics
+
+```ts
+const counts = new Map<string, number>();
+
+addWiretap(envelope => {
+    const key = `${envelope.channel}/${envelope.topic}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+});
+```
+
+## Error isolation
+
+Errors thrown by wiretaps are silently swallowed. Wiretaps are passive observers — they must never affect message dispatch:
+
+```ts
+addWiretap(() => {
+    throw new Error("this won't break anything");
+});
+
+// Publishing still works normally
+ch.publish("order.placed", { id: "abc" }); // No error thrown
+```
+
+<Aside type="tip">
+    This means you can safely add logging wiretaps in production without worrying about them taking
+    down your message bus if something goes wrong.
+</Aside>
+
+## Removing a wire tap
+
+`addWiretap` returns a remove function:
+
+```ts
+const removeTap = addWiretap(callback);
+
+// Later...
+removeTap();
+```
+
+Calling the remove function multiple times is safe — subsequent calls are no-ops.
+
+## Reset
+
+`resetWiretaps()` removes all registered wiretaps. Wiretaps are also cleared when `resetChannels()` is called, which is primarily useful for test isolation:
+
+```ts
+import { resetWiretaps, resetChannels } from "postal";
+
+// Remove just wiretaps
+resetWiretaps();
+
+// Or reset everything (channels, wiretaps, transports, RPC state)
+resetChannels();
+```
+
+## Next steps
+
+- [Transports](/guide/transports/) — bridge messages across tabs, iframes, and workers
+- [Concepts](/guide/concepts/) — channels, topics, wildcards, and envelopes
+- [Getting Started](/guide/getting-started/) — installation and first message

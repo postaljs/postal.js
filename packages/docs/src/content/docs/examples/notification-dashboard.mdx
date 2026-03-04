@@ -1,0 +1,107 @@
+---
+title: Notification Dashboard
+description: An interactive pub/sub, wildcard, and wiretap demo that shows postal's core API in under 60 seconds of clicking around.
+---
+
+import { LinkCard, CardGrid, Card } from "@astrojs/starlight/components";
+
+**Notification Dashboard** is a single-page interactive demo that shows postal's core API — pub/sub, wildcard topic matching, and wiretaps — without transports, workers, or RPC.
+It's designed to be understood in under 60 seconds of clicking around.
+
+---
+
+## What it demonstrates
+
+<CardGrid>
+    <Card title="Channel-scoped messaging" icon="approve-check">
+        Everything flows through a single channel created with `getChannel("notifications")`.
+        Channels scope pub/sub to a named domain — multiple channels can coexist without
+        interfering, and you only get the messages you care about.
+    </Card>
+    <Card title="Wildcard subscriptions" icon="magnifier">
+        Each subscription chip uses AMQP-style wildcards. `*` matches exactly one dot-delimited
+        segment — `orders.*` matches `orders.created` but not `payments.refund.initiated`. `#`
+        matches zero or more segments — `system.#` matches everything under `system`, including
+        nested topics.
+    </Card>
+    <Card title="Live subscribe / unsubscribe" icon="setting">
+        Toggling a chip calls the real API. Deactivating calls the `unsubscribe()` function returned
+        by `subscribe()`. Reactivating calls `subscribe()` again. The notification feed immediately
+        reflects the change — no filter flags involved.
+    </Card>
+    <Card title="Wiretap — the firehose" icon="warning">
+        `addWiretap()` registers a global observer that sees every message flowing through the bus,
+        regardless of active subscriptions. The wiretap panel shows all messages; the notification
+        feed shows only matched messages. That contrast is the core teaching moment.
+    </Card>
+</CardGrid>
+
+---
+
+## The teaching moment
+
+The notification feed and the wiretap panel show different things:
+
+- **Notification feed** — only messages that match at least one active subscription chip
+- **Wiretap panel** — every message published, period
+
+Toggle a chip off, then click a service button. The message appears in the wiretap but not in the notification feed. Toggle the chip back on — messages resume in the notification feed. The wiretap was watching the whole time.
+
+This contrast is why `addWiretap()` exists. Subscriptions are opt-in filters. Wiretaps are global observers. They serve different purposes and both are first-class citizens.
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  main.ts — all postal API calls                                 │
+│                                                                 │
+│  channel = getChannel("notifications")                          │
+│                                                                 │
+│  Service buttons  →  channel.publish(topic, payload)            │
+│                                                                 │
+│  Subscription chips:                                            │
+│    toggle on   →  channel.subscribe(pattern, callback)          │
+│    toggle off  →  unsubscribe()                                 │
+│                                                                 │
+│  addWiretap(envelope => ui.addWiretapEntry(envelope))           │
+│                                                                 │
+│  ui.ts — all DOM manipulation, no postal imports                │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+The postal integration code lives entirely in `main.ts`. `ui.ts` handles DOM manipulation and has no postal imports — the split keeps the API surface visible in one place.
+
+---
+
+## Running locally
+
+```bash
+# From the repo root
+pnpm install
+pnpm --filter @postal-examples/notification-dashboard dev
+```
+
+Then open [http://localhost:5173](http://localhost:5173) and start clicking service buttons.
+
+---
+
+## Live demo
+
+<LinkCard
+    title="Open Notification Dashboard"
+    description="Live demo — click service buttons, toggle subscription chips, watch the feeds."
+    href="/demos/notification-dashboard/"
+/>
+
+---
+
+## Source code
+
+The full source is in [`examples/notification-dashboard/`](https://github.com/postaljs/postal.js/tree/v3-postal/examples/notification-dashboard) in the postal.js repository.
+
+Key files:
+
+- `src/main.ts` — all postal API calls: channel setup, publish, subscribe, wiretap
+- `src/ui.ts` — DOM management, feed rendering, chip state, button delegation

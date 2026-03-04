@@ -1,0 +1,20 @@
+{
+    "name": "@postal-examples/notification-dashboard",
+    "version": "0.0.2",
+    "private": true,
+    "description": "Notification Dashboard — an interactive postal pub/sub, wildcard, and wiretap demo",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "postal": "workspace:*"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.1.3",
+        "tailwindcss": "^4.1.3",
+        "typescript": "^5.9.3",
+        "vite": "^6.3.5"
+    }
+}

@@ -1,0 +1,20 @@
+{
+    "name": "@postal/docs",
+    "version": "0.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "astro dev",
+        "build": "astro build",
+        "preview": "astro preview",
+        "build:full": "astro build && bash scripts/copy-demos.sh"
+    },
+    "dependencies": {
+        "@astrojs/starlight": "^0.37.0",
+        "astro": "^5.7.0",
+        "sharp": "^0.33.0",
+        "starlight-theme-nova": "^0.11.5",
+        "starlight-typedoc": "^0.21.5",
+        "typedoc": "^0.28.17",
+        "typedoc-plugin-markdown": "^4.10.0"
+    }
+}

@@ -1,18 +1,46 @@
+*.log
 .DS_Store
-*.suo
-*.csproj.user
-bin
-obj
-*.pdb
-_ReSharper*
-*.ReSharper.user
-*.ReSharper
-desktop.ini
-.eprj
+node_modules
+dist
+archive/*
+
+# dependencies
+.pnp
+.pnp.js
+
+# testing
+coverage
+
+# build
+.turbo
+.astro
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# misc
+*.pem
 .idea
-.anvil
-*node_modules
-*npm-debug*
-report/
-bower/
-coverage/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Claude AI
+.claude/settings.local.json
+.claude/agents/*
+.claude/commands/*
+.ai/*
+
+.obsidian/
+
+docs/archive/*

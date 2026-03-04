@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Gif Stitch — postal MessagePort demo</title>
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎞️</text></svg>" />
+    </head>
+    <body class="bg-zinc-950 text-zinc-100 min-h-screen">
+        <div id="app">
+            <!-- Header -->
+            <header class="border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">🎞️</span>
+                    <div>
+                        <h1 class="text-lg font-bold text-white leading-tight">Gif Stitch</h1>
+                        <p class="text-xs text-zinc-400">postal MessagePort transport demo</p>
+                    </div>
+                </div>
+                <button
+                    id="settings-btn"
+                    class="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                    title="Settings"
+                    aria-label="Open settings"
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                </button>
+            </header>
+
+            <!-- Main layout: camera + grid -->
+            <main class="flex flex-col lg:flex-row gap-6 p-6">
+                <!-- Left column: camera + controls -->
+                <div class="flex flex-col gap-4 lg:w-72 flex-shrink-0">
+                    <!-- Camera preview area -->
+                    <div id="camera-area" class="relative rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 aspect-video">
+                        <!-- Video element (shown when camera is active) -->
+                        <video
+                            id="camera-video"
+                            class="w-full h-full object-cover"
+                            autoplay
+                            playsinline
+                            muted
+                        ></video>
+
+                        <!-- Camera denied message (hidden by default) -->
+                        <div id="camera-denied" class="hidden absolute inset-0 flex flex-col items-center justify-center gap-3 p-4 text-center">
+                            <div class="text-4xl">📷</div>
+                            <p class="text-sm font-medium text-zinc-200">Camera access required</p>
+                            <p class="text-xs text-zinc-400">Grant camera permission to capture frames for GIF encoding.</p>
+                            <button
+                                id="camera-retry-btn"
+                                class="mt-1 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black text-sm font-medium transition-colors"
+                            >
+                                Try Again
+                            </button>
+                        </div>
+
+                        <!-- Recording indicator (hidden by default) -->
+                        <div id="recording-indicator" class="hidden absolute top-3 left-3 flex items-center gap-1.5 px-2 py-1 rounded-full bg-red-500/90 text-white text-xs font-medium">
+                            <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                            REC
+                        </div>
+
+                        <!-- Camera loading state -->
+                        <div id="camera-loading" class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-zinc-500 text-sm">Initializing camera…</div>
+                        </div>
+                    </div>
+
+                    <!-- Control buttons -->
+                    <div class="flex flex-col gap-2">
+                        <button
+                            id="start-btn"
+                            disabled
+                            class="w-full py-2.5 rounded-xl font-semibold text-sm transition-all
+                                   bg-cyan-500 hover:bg-cyan-400 text-black
+                                   disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-cyan-500"
+                        >
+                            Start Recording
+                        </button>
+                        <button
+                            id="clear-btn"
+                            class="hidden w-full py-2.5 rounded-xl font-semibold text-sm transition-all
+                                   bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
+                        >
+                            Clear Grid
+                        </button>
+                        <button
+                            id="download-all-btn"
+                            class="hidden w-full py-2.5 rounded-xl font-semibold text-sm transition-all
+                                   border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-white"
+                        >
+                            Download All (.zip)
+                        </button>
+                    </div>
+
+                    <!-- Status text -->
+                    <p id="status-text" class="text-xs text-zinc-500 text-center">Waiting for camera…</p>
+                </div>
+
+                <!-- Right column: GIF grid -->
+                <div class="flex-1">
+                    <div id="gif-grid" class="grid grid-cols-3 gap-3">
+                        <!-- Slots are rendered by ui.ts -->
+                    </div>
+                </div>
+            </main>
+
+            <!-- Settings panel (slide-out from right) -->
+            <div id="settings-overlay" class="hidden fixed inset-0 z-40" aria-hidden="true"></div>
+            <aside
+                id="settings-panel"
+                class="fixed top-0 right-0 h-full w-80 z-50 bg-zinc-900 border-l border-zinc-800
+                       translate-x-full transition-transform duration-300 ease-in-out
+                       flex flex-col"
+                aria-label="Settings panel"
+            >
+                <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+                    <h2 class="font-semibold text-white">Settings</h2>
+                    <button
+                        id="settings-close-btn"
+                        class="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                        aria-label="Close settings"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div id="settings-fields" class="flex flex-col gap-6 px-6 py-6 overflow-y-auto flex-1">
+                    <!-- GIF Count -->
+                    <div class="flex flex-col gap-2">
+                        <label class="flex justify-between text-sm">
+                            <span class="text-zinc-300 font-medium">GIF count</span>
+                            <span id="gif-count-val" class="text-cyan-400 font-mono">9</span>
+                        </label>
+                        <input
+                            id="gif-count"
+                            type="number"
+                            min="1"
+                            max="25"
+                            value="9"
+                            class="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700
+                                   text-white text-sm focus:outline-none focus:border-cyan-500 transition-colors"
+                        />
+                    </div>
+
+                    <!-- Frames per GIF -->
+                    <div class="flex flex-col gap-2">
+                        <label class="flex justify-between text-sm">
+                            <span class="text-zinc-300 font-medium">Frames per GIF</span>
+                            <span id="frames-per-gif-val" class="text-cyan-400 font-mono">10</span>
+                        </label>
+                        <input
+                            id="frames-per-gif"
+                            type="number"
+                            min="2"
+                            max="30"
+                            value="10"
+                            class="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700
+                                   text-white text-sm focus:outline-none focus:border-cyan-500 transition-colors"
+                        />
+                    </div>
+
+                    <!-- Capture interval -->
+                    <div class="flex flex-col gap-2">
+                        <label class="flex justify-between text-sm">
+                            <span class="text-zinc-300 font-medium">Capture interval</span>
+                            <span id="capture-interval-val" class="text-cyan-400 font-mono">500ms</span>
+                        </label>
+                        <input
+                            id="capture-interval"
+                            type="range"
+                            min="100"
+                            max="2000"
+                            step="100"
+                            value="500"
+                            class="w-full accent-cyan-500"
+                        />
+                        <div class="flex justify-between text-xs text-zinc-500">
+                            <span>100ms</span><span>2000ms</span>
+                        </div>
+                    </div>
+
+                    <!-- Playback delay -->
+                    <div class="flex flex-col gap-2">
+                        <label class="flex justify-between text-sm">
+                            <span class="text-zinc-300 font-medium">Playback delay</span>
+                            <span id="playback-delay-val" class="text-cyan-400 font-mono">250ms</span>
+                        </label>
+                        <input
+                            id="playback-delay"
+                            type="range"
+                            min="50"
+                            max="1000"
+                            step="50"
+                            value="250"
+                            class="w-full accent-cyan-500"
+                        />
+                        <div class="flex justify-between text-xs text-zinc-500">
+                            <span>50ms</span><span>1000ms</span>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-zinc-500 mt-2">Settings are locked while recording.</p>
+                </div>
+            </aside>
+
+            <!-- How postal works — the teaching moment -->
+            <section class="px-6 pb-12 mt-4">
+                <div>
+                    <div class="rounded-2xl bg-zinc-900 border border-zinc-800 p-6 md:p-8">
+                        <h2 class="text-lg font-bold text-white mb-1">How postal makes this work</h2>
+                        <p class="text-sm text-zinc-400 mb-6">
+                            Gif Stitch runs in two JavaScript execution contexts — the main thread and a Web Worker.
+                            <strong class="text-zinc-200">postal</strong> bridges them with its MessagePort transport,
+                            turning what would be raw <code class="text-cyan-400 text-xs bg-zinc-800 px-1 py-0.5 rounded">postMessage</code> plumbing
+                            into clean pub/sub and RPC.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <!-- Transport bridge -->
+                            <div class="flex flex-col gap-2">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="w-2 h-2 rounded-full bg-cyan-400 flex-shrink-0"></span>
+                                    <span class="text-sm font-semibold text-cyan-400">Transport bridging</span>
+                                </div>
+                                <p class="text-xs text-zinc-400 leading-relaxed">
+                                    The main thread calls <code class="text-zinc-300 bg-zinc-800 px-1 rounded">connectToWorker(worker)</code> and the
+                                    worker calls <code class="text-zinc-300 bg-zinc-800 px-1 rounded">connectToHost()</code>. They perform a SYN/ACK
+                                    handshake over a <code class="text-zinc-300 bg-zinc-800 px-1 rounded">MessageChannel</code>, then
+                                    <code class="text-zinc-300 bg-zinc-800 px-1 rounded">addTransport()</code> wires the result into postal's
+                                    outbound hook — from that point on, every publish and request flows across the boundary automatically.
+                                </p>
+                            </div>
+
+                            <!-- Request / Handle RPC -->
+                            <div class="flex flex-col gap-2">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="w-2 h-2 rounded-full bg-violet-400 flex-shrink-0"></span>
+                                    <span class="text-sm font-semibold text-violet-400">Request / Handle RPC</span>
+                                </div>
+                                <p class="text-xs text-zinc-400 leading-relaxed">
+                                    When you hit Start, the main thread calls
+                                    <code class="text-zinc-300 bg-zinc-800 px-1 rounded">channel.request("encode.start", payload)</code>
+                                    for each GIF slot. The worker's
+                                    <code class="text-zinc-300 bg-zinc-800 px-1 rounded">channel.handle("encode.start", ...)</code>
+                                    does the encoding and returns the finished GIF bytes. The main thread gets a
+                                    resolved Promise — no manual correlation IDs, no reply listeners, no ceremony.
+                                </p>
+                            </div>
+
+                            <!-- Pub/sub progress -->
+                            <div class="flex flex-col gap-2">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0"></span>
+                                    <span class="text-sm font-semibold text-emerald-400">Pub/sub for progress</span>
+                                </div>
+                                <p class="text-xs text-zinc-400 leading-relaxed">
+                                    While the worker encodes each frame, it calls
+                                    <code class="text-zinc-300 bg-zinc-800 px-1 rounded">channel.publish("encode.progress", {"{ index, percent }"})</code>.
+                                    The main thread subscribed to that topic before sending the request — so the
+                                    progress bar updates live, mid-RPC, as a fire-and-forget stream alongside the
+                                    pending Promise. That's two postal patterns running in parallel on the same channel.
+                                </p>
+                            </div>
+
+                            <!-- Transferables -->
+                            <div class="flex flex-col gap-2">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0"></span>
+                                    <span class="text-sm font-semibold text-amber-400">Zero-copy transferables</span>
+                                </div>
+                                <p class="text-xs text-zinc-400 leading-relaxed">
+                                    Webcam frames are RGBA data — roughly 1.2 MB per frame at 640×480.
+                                    Ten frames per GIF means ~12 MB per encoding request. Instead of structured-cloning
+                                    all that memory, we call
+                                    <code class="text-zinc-300 bg-zinc-800 px-1 rounded">markTransferable(payload, buffers)</code>
+                                    before the request. The transport passes the
+                                    <code class="text-zinc-300 bg-zinc-800 px-1 rounded">ArrayBuffer</code>s directly to
+                                    <code class="text-zinc-300 bg-zinc-800 px-1 rounded">postMessage</code>'s transfer list — zero-copy,
+                                    instant, no serialization cost.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 pt-6 border-t border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                            <a
+                                href="https://github.com/postaljs/postal.js/tree/v3-postal/examples/gif-stitch"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center gap-2 text-xs text-zinc-400 hover:text-white transition-colors"
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+                                </svg>
+                                View source on GitHub
+                            </a>
+                            <span class="hidden sm:block text-zinc-700">·</span>
+                            <a
+                                href="https://postal-js.org/guide/getting-started/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-xs text-zinc-400 hover:text-white transition-colors"
+                            >
+                                postal docs →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <script type="module" src="/src/main.ts"></script>
+    </body>
+</html>

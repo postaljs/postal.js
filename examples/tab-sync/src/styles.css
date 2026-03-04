@@ -1,0 +1,243 @@
+@import "tailwindcss";
+
+/* ─── Theme custom properties ───────────────────────────────────────────────
+   Applied to <html> so CSS transitions fire when theme toggles.
+   Transitions give a smooth crossfade instead of a jarring flash when another
+   tab changes the theme and applyState() updates these values. */
+
+html {
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
+}
+
+html[data-theme="light"] {
+    --theme-bg: #f4f4f5; /* zinc-100 */
+    --theme-bg-panel: #ffffff;
+    --theme-bg-card: #f9f9f9;
+    --theme-border: #e4e4e7; /* zinc-200 */
+    --theme-text: #18181b; /* zinc-900 */
+    --theme-text-muted: #71717a; /* zinc-500 */
+    --theme-text-faint: #a1a1aa; /* zinc-400 */
+    --theme-input-bg: #f4f4f5;
+    --theme-input-border: #d4d4d8; /* zinc-300 */
+}
+
+html[data-theme="dark"] {
+    --theme-bg: #09090b; /* zinc-950 */
+    --theme-bg-panel: #18181b; /* zinc-900 */
+    --theme-bg-card: #27272a; /* zinc-800 */
+    --theme-border: #27272a; /* zinc-800 */
+    --theme-text: #fafafa; /* zinc-50 */
+    --theme-text-muted: #a1a1aa; /* zinc-400 */
+    --theme-text-faint: #52525b; /* zinc-600 */
+    --theme-input-bg: #27272a; /* zinc-800 */
+    --theme-input-border: #3f3f46; /* zinc-700 */
+}
+
+/* ─── Body theming ──────────────────────────────────────────────────────────
+   Apply theme custom properties via Tailwind's arbitrary value syntax.
+   The transition on html covers background and color changes. */
+
+body {
+    background-color: var(--theme-bg);
+    color: var(--theme-text);
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
+}
+
+/* ─── Themed panel and border helpers ───────────────────────────────────────
+   Utility classes that reference theme variables so panels pick up the
+   light/dark switch without needing JS-driven class toggling on each element. */
+
+.theme-panel {
+    background-color: var(--theme-bg-panel);
+    border-color: var(--theme-border);
+}
+
+.theme-card {
+    background-color: var(--theme-bg-card);
+    border-color: var(--theme-border);
+}
+
+.theme-text {
+    color: var(--theme-text);
+}
+
+.theme-text-muted {
+    color: var(--theme-text-muted);
+}
+
+.theme-text-faint {
+    color: var(--theme-text-faint);
+}
+
+.theme-input {
+    background-color: var(--theme-input-bg);
+    border-color: var(--theme-input-border);
+    color: var(--theme-text);
+    transition:
+        background-color 0.3s ease,
+        border-color 0.3s ease,
+        color 0.3s ease;
+}
+
+.theme-input::placeholder {
+    color: var(--theme-text-faint);
+}
+
+.theme-border {
+    border-color: var(--theme-border);
+}
+
+/* ─── CSS toggle switch ─────────────────────────────────────────────────────
+   A sliding toggle with aria-checked state. The JS layer sets aria-checked
+   and the CSS uses it as the source of truth for appearance — keeps the
+   toggle accessible without duplicating state in both a class and aria attr. */
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 2.5rem; /* 40px */
+    height: 1.375rem; /* 22px */
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.toggle-switch-track {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background-color: #3f3f46; /* zinc-700 — off state */
+    transition: background-color 0.2s ease;
+}
+
+.toggle-switch[aria-checked="true"] .toggle-switch-track {
+    background-color: #22c55e; /* green-500 — on state */
+}
+
+.toggle-switch-knob {
+    position: absolute;
+    top: 0.1875rem; /* 3px */
+    left: 0.1875rem; /* 3px */
+    width: 1rem; /* 16px */
+    height: 1rem; /* 16px */
+    border-radius: 9999px;
+    background-color: #ffffff;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+}
+
+.toggle-switch[aria-checked="true"] .toggle-switch-knob {
+    transform: translateX(1.125rem); /* 18px — track width minus knob width minus both margins */
+}
+
+/* ─── Sync flash animation ──────────────────────────────────────────────────
+   Green pulse on the sync indicator when a remote update arrives.
+   Signals that this state change came from another tab, not a local action. */
+
+@keyframes sync-pulse {
+    0% {
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgb(34 197 94 / 0.7);
+    }
+    70% {
+        opacity: 0.8;
+        box-shadow: 0 0 0 8px rgb(34 197 94 / 0);
+    }
+    100% {
+        opacity: 0;
+        box-shadow: 0 0 0 0 rgb(34 197 94 / 0);
+    }
+}
+
+.sync-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background-color: #22c55e; /* green-500 */
+    opacity: 0;
+}
+
+.sync-dot.sync-flash {
+    animation: sync-pulse 0.8s ease-out forwards;
+}
+
+/* ─── Activity log entries ──────────────────────────────────────────────────
+   Slide-in + highlight animation. Same pattern as notification-dashboard
+   so the animation language is consistent across examples. */
+
+@keyframes entry-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes entry-flash {
+    0% {
+        background-color: rgb(34 197 94 / 0.12);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+.activity-entry {
+    border-radius: 0.5rem;
+    border: 1px solid var(--theme-border);
+    background-color: var(--theme-bg-card);
+    padding: 0.625rem 0.75rem;
+    flex-shrink: 0;
+    animation:
+        entry-in 0.18s ease-out,
+        entry-flash 0.9s ease-out;
+}
+
+/* Remote-origin entries get a green flash instead of the default — visual
+   distinction between "I did this" and "another tab did this". */
+@keyframes remote-flash {
+    0% {
+        background-color: rgb(34 197 94 / 0.15);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+.activity-entry.remote {
+    animation:
+        entry-in 0.18s ease-out,
+        remote-flash 0.9s ease-out;
+}
+
+/* ─── Topic badges ──────────────────────────────────────────────────────────
+   Color-coded by topic prefix, same approach as notification-dashboard. */
+
+.topic-badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-semibold leading-none;
+}
+
+.topic-badge-auth {
+    background-color: rgb(96 165 250 / 0.15);
+    color: #60a5fa; /* blue-400 */
+}
+
+.topic-badge-theme {
+    background-color: rgb(251 191 36 / 0.15);
+    color: #fbbf24; /* amber-400 */
+}
+
+.topic-badge-prefs {
+    background-color: rgb(167 139 250 / 0.15);
+    color: #a78bfa; /* violet-400 */
+}
+
+.topic-badge-unknown {
+    @apply bg-zinc-700/50 text-zinc-400;
+}

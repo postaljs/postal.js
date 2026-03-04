@@ -1,0 +1,23 @@
+{
+    "name": "@postal-examples/tab-sync",
+    "version": "0.0.2",
+    "private": true,
+    "description": "Tab Sync Dashboard — cross-tab state sync demo using postal's BroadcastChannel transport",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "test": "jest --passWithNoTests",
+        "test:watch": "jest --watch"
+    },
+    "dependencies": {
+        "postal": "workspace:*",
+        "postal-transport-broadcastchannel": "workspace:*"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.1.3",
+        "tailwindcss": "^4.1.3",
+        "typescript": "^5.9.3",
+        "vite": "^6.3.5"
+    }
+}

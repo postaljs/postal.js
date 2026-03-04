@@ -1,0 +1,88 @@
+---
+title: Gif Stitch
+description: A webcam-to-animated-GIF recorder that demonstrates postal's MessagePort transport, request/handle RPC, pub/sub progress events, and zero-copy transferables.
+---
+
+import { LinkCard, CardGrid, Card } from "@astrojs/starlight/components";
+
+**Gif Stitch** is a webcam-to-animated-GIF recorder built with vanilla TypeScript and Tailwind CSS.
+It has one job: show how postal's MessagePort transport makes cross-boundary browser communication feel like normal pub/sub.
+
+---
+
+## What it demonstrates
+
+<CardGrid>
+    <Card title="Transport bridging" icon="puzzle">
+        The main thread calls `connectToWorker()` and the worker calls `connectToHost()`.
+        After the SYN/ACK handshake, `addTransport()` wires the result into postal's outbound hook.
+        From that point on, every publish and request flows across the boundary automatically.
+    </Card>
+    <Card title="Request / Handle RPC" icon="right-arrow">
+        For each GIF slot, the main thread calls `channel.request("encode.start", payload)`.
+        The worker's `channel.handle("encode.start", ...)` encodes the frames and returns the GIF bytes.
+        The main thread gets a resolved Promise — no manual correlation IDs, no reply listeners.
+    </Card>
+    <Card title="Pub/sub for progress" icon="rocket">
+        While encoding each frame, the worker calls `channel.publish("encode.progress", { index, percent })`.
+        The main thread subscribed before sending the request — so the progress bar updates
+        live, mid-RPC, as a fire-and-forget stream alongside the pending Promise.
+    </Card>
+    <Card title="Zero-copy transferables" icon="laptop">
+        Webcam frames at 320×240 RGBA are ~0.3 MB each. Ten frames = ~3 MB per encoding request.
+        Calling `markTransferable(payload, buffers)` before the request tells the transport to
+        pass the `ArrayBuffer`s to `postMessage`'s transfer list — zero-copy, no serialization cost.
+    </Card>
+</CardGrid>
+
+---
+
+## Architecture
+
+```
+Main thread                            Worker
+───────────────                        ──────────────────────
+getChannel("gif-stitch")               getChannel("gif-stitch")
+addTransport(transport)                addTransport(transport)
+      │                                       │
+      │  channel.request("encode.start")  ──► │  channel.handle("encode.start")
+      │                                       │    → encode frames with gifenc
+      │  ◄── channel.publish("encode.progress") │  → publish progress per frame
+      │                                       │
+      │  ◄── response: { gif: Uint8Array }    │  → return GIF bytes
+```
+
+---
+
+## Running locally
+
+```bash
+# From the repo root
+pnpm install
+pnpm --filter @postal-examples/gif-stitch dev
+```
+
+Then open [http://localhost:5173](http://localhost:5173), grant camera access, and hit **Start Recording**.
+
+---
+
+## Live demo
+
+<LinkCard
+    title="Open Gif Stitch"
+    description="Live demo — grant camera access and start making animated GIFs."
+    href="/demos/gif-stitch/"
+/>
+
+---
+
+## Source code
+
+The full source is in [`examples/gif-stitch/`](https://github.com/postaljs/postal.js/tree/v3-postal/examples/gif-stitch) in the postal.js repository.
+
+Key files:
+
+- `src/main.ts` — postal setup, worker connection, orchestration loop
+- `src/encoder.worker.ts` — worker-side postal handler and gifenc encoding
+- `src/camera.ts` — `getUserMedia` and frame capture utilities
+- `src/ui.ts` — DOM management and UI state transitions

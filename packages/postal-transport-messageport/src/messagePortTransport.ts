@@ -1,0 +1,101 @@
+/**
+ * Low-level Transport backed by a raw MessagePort.
+ *
+ * Every high-level wrapper (iframe, worker) ultimately delegates
+ * to this after the handshake completes.
+ *
+ * @module
+ */
+
+import type { Transport, Envelope, TransportSendMeta } from "postal";
+import { isEnvelopeMessage, createEnvelopeMessage } from "./protocol";
+import { consumeTransferables } from "./transferables";
+
+/**
+ * Creates a Transport from a connected MessagePort.
+ *
+ * The port must already be connected (postMessage works). For ports
+ * from a MessageChannel, call port.start() first — though this
+ * function calls it defensively since start() is idempotent.
+ *
+ * @param port - A connected MessagePort instance
+ * @returns A Transport suitable for postal's addTransport()
+ */
+export const createMessagePortTransport = (port: MessagePort): Transport => {
+    let disposed = false;
+    const listeners: ((envelope: Envelope) => void)[] = [];
+
+    const onMessage = (event: MessageEvent): void => {
+        if (disposed) {
+            return;
+        }
+
+        if (isEnvelopeMessage(event.data)) {
+            const { envelope } = event.data;
+            // Snapshot — safe if a listener unsubscribes during iteration
+            for (const listener of [...listeners]) {
+                try {
+                    listener(envelope);
+                } catch (err) {
+                    // Re-throw asynchronously so a single bad listener doesn't
+                    // kill delivery to the rest. Matches browser event dispatch
+                    // semantics — each listener error is independent.
+                    queueMicrotask(() => {
+                        throw err;
+                    });
+                }
+            }
+        }
+    };
+
+    port.addEventListener("message", onMessage);
+    port.start();
+
+    const send = (envelope: Envelope, meta?: TransportSendMeta): void => {
+        if (disposed) {
+            return;
+        }
+        const transferList = consumeTransferables(envelope.payload);
+        // When multiple transports are receiving the same envelope, transferring
+        // would neuter the buffer for all subsequent transports. Fall back to
+        // structured clone so every recipient gets intact data.
+        if (transferList.length > 0 && (meta?.peerCount ?? 1) > 1) {
+            port.postMessage(createEnvelopeMessage(envelope));
+            return;
+        }
+        port.postMessage(createEnvelopeMessage(envelope), transferList);
+    };
+
+    const subscribe = (callback: (envelope: Envelope) => void): (() => void) => {
+        // Reject subscriptions on a disposed transport — nothing will ever arrive.
+        if (disposed) {
+            return () => {};
+        }
+
+        listeners.push(callback);
+
+        let removed = false;
+        return () => {
+            if (removed) {
+                return;
+            }
+            removed = true;
+            const index = listeners.indexOf(callback);
+            if (index !== -1) {
+                listeners.splice(index, 1);
+            }
+        };
+    };
+
+    const dispose = (): void => {
+        if (disposed) {
+            return;
+        }
+        disposed = true;
+        port.removeEventListener("message", onMessage);
+        listeners.splice(0, listeners.length);
+        port.close();
+    };
+
+    return { send, subscribe, dispose };
+};

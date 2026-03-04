@@ -1,0 +1,552 @@
+---
+title: Migrating from v2 to v3
+description: A practical guide for upgrading from postal v2.x to v3, with before/after examples for every breaking change.
+---
+
+import { Aside, Steps } from "@astrojs/starlight/components";
+
+postal v3 is a ground-up TypeScript rewrite. The core idea — channels, topics, wildcard subscriptions — is the same. Almost everything else changed. This guide walks through each breaking change with before/after code so you can migrate methodically.
+
+## The big picture
+
+|                           | v2                                                  | v3                                         |
+| ------------------------- | --------------------------------------------------- | ------------------------------------------ |
+| **Module**                | Global `postal` object (UMD)                        | Named exports (ESM + CJS)                  |
+| **Dependencies**          | lodash                                              | None                                       |
+| **Subscriber args**       | `(data, envelope)`                                  | `(envelope)` — data is `envelope.payload`  |
+| **Subscription chaining** | `.debounce()`, `.throttle()`, `.constraint()`, etc. | Removed — compose your own                 |
+| **RPC**                   | Add-on (`postal.request-response`)                  | Built-in `request()` / `handle()`          |
+| **Federation**            | `postal.federation`, `postal.xframe`                | `addTransport()` + transport packages      |
+| **Types**                 | None                                                | Full TypeScript with inference             |
+| **Error handling**        | Per-subscription `.catch()`                         | `AggregateError` after all subscribers run |
+| **Channel cleanup**       | `postal.reset()`                                    | `channel.dispose()` + `resetChannels()`    |
+
+## Installation
+
+```diff
+- npm install postal lodash
++ npm install postal
+```
+
+Zero runtime dependencies. The lodash peer dependency is gone.
+
+## Imports and channel access
+
+The global `postal` object is gone. Everything is a named export.
+
+```ts
+// v2
+var postal = require("postal");
+var ch = postal.channel("orders");
+
+// v3
+import { getChannel } from "postal";
+const ch = getChannel("orders");
+```
+
+`getChannel` is a singleton factory — same name, same instance. Calling it with no arguments returns the default channel (named `"__default__"`). In v2, the default channel was `"/"`.
+
+<Aside type="tip">
+    If your v2 code uses `postal.subscribe()` or `postal.publish()` (without creating a channel
+    first), those were implicitly scoped to the `"/"` channel. In v3, use `getChannel()` to get the
+    default channel, then call subscribe/publish on it.
+</Aside>
+
+## Subscriber callback signature
+
+This is the change that'll touch the most lines. Subscribers no longer receive data as the first argument.
+
+```ts
+// v2 — data first, envelope second
+ch.subscribe("order.placed", function (data, envelope) {
+    console.log(data.sku);
+    console.log(envelope.topic);
+});
+
+// v3 — envelope only, data is envelope.payload
+ch.subscribe("order.placed", envelope => {
+    console.log(envelope.payload.sku);
+    console.log(envelope.topic);
+});
+```
+
+**Search pattern** to find v2 subscribers in your codebase:
+
+```
+\.subscribe\(.*function\s*\(\s*data\s*,\s*env
+```
+
+## Envelope shape
+
+The envelope itself has changed.
+
+```ts
+// v2 envelope
+{
+    channel: "orders",
+    topic: "order.placed",
+    data: { sku: "X" },       // ← "data"
+    timeStamp: new Date(),     // ← Date object, camelCase "S"
+    headers: { ... }           // ← resolver cache hints
+}
+
+// v3 envelope
+{
+    id: "550e8400-...",        // ← new: UUID
+    type: "publish",           // ← new: "publish" | "request" | "reply"
+    channel: "orders",
+    topic: "order.placed",
+    payload: { sku: "X" },     // ← renamed: "data" → "payload"
+    timestamp: 1709571200000,  // ← Date.now(), lowercase "s"
+    source?: "...",            // ← new: transport origin tracking
+    replyTo?: "...",           // ← new: RPC routing
+    correlationId?: "..."      // ← new: RPC correlation
+}
+```
+
+Key renames:
+
+- `envelope.data` → `envelope.payload`
+- `envelope.timeStamp` → `envelope.timestamp` (lowercase `s`, now a number not a Date)
+- `envelope.headers` — removed entirely
+
+## Publish
+
+The signature simplified. No more object form, no more callbacks.
+
+```ts
+// v2 — multiple forms
+ch.publish("order.placed", { sku: "X" });
+ch.publish({ topic: "order.placed", data: { sku: "X" } });
+ch.publish("order.placed", { sku: "X" }, function (stats) {
+    console.log(stats.activated, "subscribers fired");
+});
+
+// v3 — one form, no callback
+ch.publish("order.placed", { sku: "X" });
+```
+
+The publish callback that reported `{ activated, skipped }` stats is gone. If you need dispatch metrics, use a [wire tap](/guide/wiretaps/).
+
+## Removed subscription methods
+
+v2 had a rich chainable API on `SubscriptionDefinition`. v3 returns a plain unsubscribe function — no chaining, no middleware pipeline.
+
+Here's how to replace each method:
+
+### `.constraint(predicate)` / `.constraints([...])`
+
+Filter inside your callback.
+
+```ts
+// v2
+ch.subscribe("order.placed", handler).constraint(function (data) {
+    return data.total > 100;
+});
+
+// v3
+ch.subscribe("order.placed", env => {
+    if (env.payload.total > 100) {
+        handler(env);
+    }
+});
+```
+
+### `.distinctUntilChanged()`
+
+Track the previous value yourself.
+
+```ts
+// v2
+ch.subscribe("sensor.reading", handler).distinctUntilChanged();
+
+// v3
+let prev: unknown;
+ch.subscribe("sensor.reading", env => {
+    if (env.payload !== prev) {
+        prev = env.payload;
+        handler(env);
+    }
+});
+```
+
+<Aside type="note">
+    v2 used lodash's `_.isEqual` for deep comparison. If you need deep equality checking, bring your
+    own comparison function.
+</Aside>
+
+### `.distinct()`
+
+Track all seen values.
+
+```ts
+// v2
+ch.subscribe("events.#", handler).distinct();
+
+// v3
+const seen = new Set();
+ch.subscribe("events.#", env => {
+    const key = JSON.stringify(env.payload);
+    if (!seen.has(key)) {
+        seen.add(key);
+        handler(env);
+    }
+});
+```
+
+### `.debounce(ms)`
+
+Use `setTimeout` / `clearTimeout`.
+
+```ts
+// v2
+ch.subscribe("search.input", handler).debounce(300);
+
+// v3
+let timer: ReturnType<typeof setTimeout>;
+ch.subscribe("search.input", env => {
+    clearTimeout(timer);
+    timer = setTimeout(() => handler(env), 300);
+});
+```
+
+### `.throttle(ms)`
+
+Standard throttle pattern.
+
+```ts
+// v2
+ch.subscribe("mouse.move", handler).throttle(100);
+
+// v3
+let lastFired = 0;
+ch.subscribe("mouse.move", env => {
+    const now = Date.now();
+    if (now - lastFired >= 100) {
+        lastFired = now;
+        handler(env);
+    }
+});
+```
+
+### `.delay(ms)` / `.defer()`
+
+Wrap in `setTimeout`.
+
+```ts
+// v2
+ch.subscribe("notification.show", handler).delay(500);
+ch.subscribe("cleanup.run", handler).defer();
+
+// v3
+ch.subscribe("notification.show", env => {
+    setTimeout(() => handler(env), 500);
+});
+ch.subscribe("cleanup.run", env => {
+    setTimeout(() => handler(env), 0);
+});
+```
+
+### `.disposeAfter(n)` / `.once()`
+
+Count invocations and unsubscribe.
+
+```ts
+// v2
+ch.subscribe("init.ready", handler).once();
+ch.subscribe("batch.item", handler).disposeAfter(10);
+
+// v3
+let unsub: () => void;
+unsub = ch.subscribe("init.ready", env => {
+    handler(env);
+    unsub();
+});
+
+// disposeAfter(n)
+let count = 0;
+let unsub2: () => void;
+unsub2 = ch.subscribe("batch.item", env => {
+    handler(env);
+    if (++count >= 10) {
+        unsub2();
+    }
+});
+```
+
+### `.withContext(ctx)` / `.context(ctx)`
+
+Use arrow functions or `.bind()`.
+
+```ts
+// v2
+ch.subscribe("order.placed", this.handleOrder).context(this);
+
+// v3 — arrow function captures `this`
+ch.subscribe("order.placed", env => {
+    this.handleOrder(env);
+});
+```
+
+### `.catch(errorHandler)`
+
+Wrap your callback in try/catch.
+
+```ts
+// v2
+ch.subscribe("risky.topic", handler).catch(function (err, data) {
+    console.error("Handler failed:", err);
+});
+
+// v3
+ch.subscribe("risky.topic", env => {
+    try {
+        handler(env);
+    } catch (err) {
+        console.error("Handler failed:", err);
+    }
+});
+```
+
+### `.logError()`
+
+Same idea — catch and log.
+
+```ts
+// v2
+ch.subscribe("thing.happened", handler).logError();
+
+// v3
+ch.subscribe("thing.happened", env => {
+    try {
+        handler(env);
+    } catch (err) {
+        console.warn(err);
+    }
+});
+```
+
+## Unsubscribing
+
+v2 returned a `SubscriptionDefinition` with an `.unsubscribe()` method (or you passed it to `postal.unsubscribe()`). v3 returns a plain function.
+
+```ts
+// v2
+var sub = ch.subscribe("topic", handler);
+sub.unsubscribe();
+// or
+postal.unsubscribe(sub);
+
+// v3
+const unsub = ch.subscribe("topic", handler);
+unsub();
+```
+
+## Wire taps
+
+The API is similar but the callback signature changed.
+
+```ts
+// v2
+var remove = postal.addWireTap(function (data, envelope, publishDepth) {
+    console.log(envelope.channel, envelope.topic, data);
+});
+
+// v3
+import { addWiretap } from "postal";
+
+const remove = addWiretap(envelope => {
+    console.log(envelope.channel, envelope.topic, envelope.payload);
+});
+```
+
+Changes:
+
+- `postal.addWireTap` → named export `addWiretap` (lowercase `t`)
+- Callback receives only `(envelope)` — no separate `data` or `publishDepth` args
+- Wire tap errors are silently swallowed (they never affect dispatch)
+
+## Request / Handle (new)
+
+v2 had no built-in RPC. You either used the `postal.request-response` add-on or rolled your own with paired subscribe/publish calls.
+
+v3 has first-class RPC with automatic correlation, timeouts, and error propagation:
+
+```ts
+// v2 — ad-hoc request/reply
+var replyTopic = "pricing.quote.reply." + someUniqueId;
+ch.subscribe(replyTopic, function (data) {
+    console.log("Got quote:", data);
+});
+ch.publish("pricing.quote.request", {
+    sku: "X",
+    replyTo: replyTopic,
+});
+
+// v3 — built-in RPC
+const quote = await ch.request("pricing.quote", { sku: "X" });
+console.log("Got quote:", quote);
+
+// Handler side
+ch.handle("pricing.quote", envelope => {
+    return { total: envelope.payload.qty * 9.99, currency: "USD" };
+});
+```
+
+See [Subscriptions — Request / Handle](/guide/subscriptions/#request--handle) for the full API.
+
+## Federation → Transports
+
+v2 used `postal.federation` and packages like `postal.xframe` for cross-boundary messaging. v3 replaces this with a `Transport` interface and dedicated packages.
+
+```ts
+// v2 — postal.xframe (cross-iframe)
+postal.fedx.addFilter([{ channel: "orders", topic: "#", direction: "both" }]);
+postal.fedx.signalReady();
+
+// v3 — MessagePort transport
+import { addTransport } from "postal";
+import { createMessagePortTransport } from "postal-transport-messageport";
+
+const transport = createMessagePortTransport(iframe.contentWindow, {
+    targetOrigin: "https://example.com",
+});
+const remove = addTransport(transport, {
+    filter: env => env.channel === "orders",
+    direction: "both",
+});
+```
+
+Available transport packages:
+
+- `postal-transport-messageport` — iframes and Web Workers
+- `postal-transport-broadcastchannel` — cross-tab communication
+
+See [Transports](/guide/transports/) for writing custom transports.
+
+## Error handling
+
+```ts
+// v2 — per-subscription .catch()
+ch.subscribe("topic", handler).catch(function (err) {
+    // handle this subscriber's error
+});
+
+// v3 — AggregateError after all subscribers run
+try {
+    ch.publish("topic", data);
+} catch (err) {
+    if (err instanceof AggregateError) {
+        for (const e of err.errors) {
+            console.error(e);
+        }
+    }
+}
+```
+
+In v3, if one subscriber throws, the rest still execute. All errors are collected and thrown as a single `AggregateError` after dispatch completes.
+
+## Channel disposal (new)
+
+v3 channels can be explicitly torn down:
+
+```ts
+const ch = getChannel("orders");
+// ... use channel ...
+ch.dispose();
+
+// After dispose:
+// - All subscribers and handlers are removed
+// - Pending RPC promises reject with PostalDisposedError
+// - The channel is removed from the singleton registry
+// - Any further calls throw PostalDisposedError
+```
+
+Disposal is idempotent — calling `dispose()` twice is safe.
+
+## Configuration
+
+v2 had a `postal.configuration` object with properties like `DEFAULT_CHANNEL`, `SYSTEM_CHANNEL`, `enableSystemMessages`, and the resolver cache settings. This is all gone in v3.
+
+```ts
+// v2
+postal.configuration.enableSystemMessages = false;
+postal.configuration.resolver.enableCache = false;
+
+// v3 — no configuration object. These concepts don't exist.
+```
+
+The v2 system channel (`"postal"`) that broadcast `subscription.created` / `subscription.removed` events is gone. If you relied on subscription lifecycle events, use the return value of `subscribe()` to track subscription state in your own code.
+
+## Test isolation
+
+```ts
+// v2
+postal.reset();
+
+// v3
+import { resetChannels, resetWiretaps, resetTransports } from "postal";
+
+// resetChannels() is the nuclear option — clears everything:
+// channels, subscribers, handlers, pending RPCs, wiretaps, and transports.
+resetChannels();
+
+// Or reset selectively:
+resetWiretaps();
+resetTransports();
+```
+
+## Removed APIs
+
+These v2 APIs have no direct replacement in v3:
+
+| v2 API                              | Status                                                       |
+| ----------------------------------- | ------------------------------------------------------------ |
+| `postal.noConflict()`               | Removed — ESM modules don't have global conflicts            |
+| `postal.getSubscribersFor(options)` | Removed — no subscriber introspection API                    |
+| `postal.unsubscribeFor(options)`    | Removed — track your own unsubscribe functions               |
+| `postal.configuration.resolver`     | Removed — internal resolver is not configurable              |
+| `postal.SubscriptionDefinition`     | Removed — subscriptions are not objects                      |
+| `postal.ChannelDefinition`          | Removed — channels are opaque objects                        |
+| System channel events               | Removed — no `subscription.created` / `subscription.removed` |
+
+## TypeScript types (new)
+
+v2 had no TypeScript types (community `@types/postal` existed but was limited). v3 ships full types with inference:
+
+```ts
+import type { Envelope, Channel, ChannelRegistry } from "postal";
+
+// Module augmentation for compile-time inference
+declare module "postal" {
+    interface ChannelRegistry {
+        orders: {
+            "item.placed": { sku: string; qty: number };
+            "item.cancelled": { sku: string; reason: string };
+            "pricing.quote": {
+                request: { sku: string; qty: number };
+                response: { total: number; currency: string };
+            };
+        };
+    }
+}
+```
+
+See [Getting Started — Typed channels](/guide/getting-started/#typed-channels) for details.
+
+## Migration checklist
+
+<Steps>
+1. **Update the install** — `npm install postal` (remove `lodash` if it was only a postal dependency)
+2. **Replace imports** — `require("postal")` → `import { getChannel, ... } from "postal"`
+3. **Replace `postal.channel(name)`** → `getChannel(name)`
+4. **Update subscriber callbacks** — `(data, envelope)` → `(envelope)`, then `data.x` → `envelope.payload.x`
+5. **Replace `envelope.data`** → `envelope.payload` everywhere
+6. **Replace `envelope.timeStamp`** → `envelope.timestamp` (lowercase `s`) — it's now `Date.now()` (a number), not a `Date` object
+7. **Replace subscription chaining** — see [Removed subscription methods](#removed-subscription-methods)
+8. **Replace `.unsubscribe()`** with the returned function
+9. **Update wire taps** — `addWireTap` → `addWiretap`, update callback signature
+10. **Migrate federation** to [transports](/guide/transports/) if applicable
+11. **Replace `postal.reset()`** → `resetChannels()` in tests
+12. **Run your tests** — most remaining issues will be `envelope.data` → `envelope.payload` misses
+</Steps>

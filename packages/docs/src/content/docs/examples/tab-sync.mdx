@@ -1,0 +1,101 @@
+---
+title: Tab Sync Dashboard
+description: A cross-tab state sync demo that demonstrates postal's BroadcastChannel transport, the localStorage + BroadcastChannel production pattern, echo prevention in postal core, and wiretap observability.
+---
+
+import { LinkCard, CardGrid, Card } from "@astrojs/starlight/components";
+
+**Tab Sync Dashboard** shows how postal's BroadcastChannel transport turns cross-tab state synchronization into a straightforward pub/sub problem.
+Open it in two browser tabs side by side and watch state changes propagate in real time — login, theme, and preferences all stay in sync.
+
+---
+
+## What it demonstrates
+
+<CardGrid>
+    <Card title="BroadcastChannel transport" icon="puzzle">
+        Two lines of setup: `createBroadcastChannelTransport("tab-sync-demo")` and
+        `addTransport(transport)`. No handshake, no connection management — any tab that opens the
+        same-named channel is immediately in the mesh.
+    </Card>
+    <Card title="The production pattern" icon="rocket">
+        localStorage holds the authoritative state. A new tab hydrates from storage via
+        `loadState()` and renders immediately. Live changes flow through postal so every open tab
+        stays consistent without polling or manual coordination.
+    </Card>
+    <Card title="Echo prevention in postal core" icon="right-arrow">
+        Outbound envelopes are stamped with `source: instanceId` in `transport.ts`. Inbound
+        envelopes matching the local instance are silently dropped. User actions just publish —
+        subscribers handle all state mutation regardless of whether the message was local or remote.
+    </Card>
+    <Card title="Wiretap observability" icon="laptop">
+        `addWiretap()` sees every message on the bus — both local publishes and messages arriving
+        from other tabs via the transport. The activity log in the demo is 100% wiretap with no
+        duplication from the subscribers.
+    </Card>
+</CardGrid>
+
+---
+
+## Architecture
+
+```
+Tab A                                 Tab B
+─────────────────────                 ─────────────────────
+getChannel("sync")                    getChannel("sync")
+addTransport(bc)                      addTransport(bc)
+      │                                       │
+      │  channel.publish("theme.changed") ──► │  subscriber fires
+      │                                       │    → saveState()
+      │                                       │    → applyState()
+      │  ◄── wiretap sees it                  │  ◄── wiretap sees it
+      │                                       │
+
+Tab C (newly opened)
+─────────────────────
+loadState()       ← localStorage (state persisted by A or B)
+applyState()      ← renders immediately from persisted state
+addTransport(bc)  ← joins the mesh, future changes arrive live
+```
+
+---
+
+## Running locally
+
+```bash
+# From the repo root
+pnpm install
+pnpm --filter @postal-examples/tab-sync dev
+```
+
+Open [http://localhost:5173](http://localhost:5173) in two or more tabs.
+
+Try:
+
+1. Log in as "Alice" in tab A — tab B shows Alice logged in
+2. Toggle theme in tab B — tab A transitions smoothly
+3. Toggle a preference — all tabs update
+4. Open a third tab — it hydrates from localStorage with the current state
+5. Log out in any tab — all tabs show logged-out state
+
+---
+
+## Live demo
+
+<LinkCard
+    title="Open Tab Sync Dashboard"
+    description="Live demo — open in two tabs to see cross-tab state sync in action."
+    href="/demos/tab-sync/"
+/>
+
+---
+
+## Source code
+
+The full source is in [`examples/tab-sync/`](https://github.com/postaljs/postal.js/tree/v3-postal/examples/tab-sync) in the postal.js repository.
+
+Key files:
+
+- `src/main.ts` — all postal wiring: transport, channel, subscribers, user action publishes, wiretap
+- `src/state.ts` — `AppState` type and localStorage helpers (`loadState`, `saveState`)
+- `src/ui.ts` — DOM layer with no postal imports; all state changes flow through callbacks
