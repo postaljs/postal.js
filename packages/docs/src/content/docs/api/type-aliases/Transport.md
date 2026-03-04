@@ -7,7 +7,7 @@ title: "Transport"
 
 > **Transport** = `object`
 
-Defined in: [packages/postal/src/transport.ts:45](https://github.com/postaljs/postal.js/blob/a09296b72122873f0a52c46759caad32c92c0ffd/packages/postal/src/transport.ts#L45)
+Defined in: [packages/postal/src/transport.ts:45](https://github.com/postaljs/postal.js/blob/19edc49e4ba8a564da1542c0e95eaed0c9393e86/packages/postal/src/transport.ts#L45)
 
 A transport bridges postal across execution boundaries (iframes, workers, tabs).
 
@@ -21,7 +21,7 @@ prevention, filtering, and local dispatch are managed internally.
 
 > `optional` **dispose**: () => `void`
 
-Defined in: [packages/postal/src/transport.ts:51](https://github.com/postaljs/postal.js/blob/a09296b72122873f0a52c46759caad32c92c0ffd/packages/postal/src/transport.ts#L51)
+Defined in: [packages/postal/src/transport.ts:51](https://github.com/postaljs/postal.js/blob/19edc49e4ba8a564da1542c0e95eaed0c9393e86/packages/postal/src/transport.ts#L51)
 
 Optional cleanup when the transport is removed or reset.
 
@@ -35,7 +35,7 @@ Optional cleanup when the transport is removed or reset.
 
 > **send**: (`envelope`, `meta?`) => `void`
 
-Defined in: [packages/postal/src/transport.ts:47](https://github.com/postaljs/postal.js/blob/a09296b72122873f0a52c46759caad32c92c0ffd/packages/postal/src/transport.ts#L47)
+Defined in: [packages/postal/src/transport.ts:47](https://github.com/postaljs/postal.js/blob/19edc49e4ba8a564da1542c0e95eaed0c9393e86/packages/postal/src/transport.ts#L47)
 
 Send an envelope to the remote side.
 
@@ -59,7 +59,7 @@ Send an envelope to the remote side.
 
 > **subscribe**: (`callback`) => () => `void`
 
-Defined in: [packages/postal/src/transport.ts:49](https://github.com/postaljs/postal.js/blob/a09296b72122873f0a52c46759caad32c92c0ffd/packages/postal/src/transport.ts#L49)
+Defined in: [packages/postal/src/transport.ts:49](https://github.com/postaljs/postal.js/blob/19edc49e4ba8a564da1542c0e95eaed0c9393e86/packages/postal/src/transport.ts#L49)
 
 Listen for envelopes arriving from the remote side. Returns an unsubscribe function.
 
