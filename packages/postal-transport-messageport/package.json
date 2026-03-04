@@ -1,6 +1,6 @@
 {
     "name": "postal-transport-messageport",
-    "version": "3.0.0",
+    "version": "0.0.0",
     "description": "MessagePort transport for postal — bridges pub/sub across iframes and web workers.",
     "author": "Jim Cowart (http://ifandelse.com)",
     "license": "MIT",

@@ -33,4 +33,15 @@ DEST="$REPO_ROOT/packages/docs/dist/demos/gif-stitch"
 mkdir -p "$DEST"
 cp -r "$REPO_ROOT/examples/gif-stitch/dist/"* "$DEST/"
 
+echo "Building postal-transport-broadcastchannel..."
+pnpm --filter postal-transport-broadcastchannel build
+
+echo "Building tab-sync example..."
+VITE_BASE_PATH="/demos/tab-sync/" pnpm --filter @postal-examples/tab-sync build
+
+echo "Copying tab-sync demo to docs dist..."
+DEST="$REPO_ROOT/packages/docs/dist/demos/tab-sync"
+mkdir -p "$DEST"
+cp -r "$REPO_ROOT/examples/tab-sync/dist/"* "$DEST/"
+
 echo "Demos copied successfully."

@@ -1,6 +1,6 @@
 {
     "name": "postal-transport-broadcastchannel",
-    "version": "3.0.0",
+    "version": "0.0.0",
     "description": "BroadcastChannel transport for postal — bridges pub/sub across same-origin tabs and windows.",
     "author": "Jim Cowart (http://ifandelse.com)",
     "license": "MIT",

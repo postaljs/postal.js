@@ -5,7 +5,7 @@ prev: false
 title: "PostalTimeoutError"
 ---
 
-Defined in: [packages/postal/src/channel.ts:105](https://github.com/postaljs/postal.js/blob/19edc49e4ba8a564da1542c0e95eaed0c9393e86/packages/postal/src/channel.ts#L105)
+Defined in: [packages/postal/src/channel.ts:105](https://github.com/postaljs/postal.js/blob/706d026313975f926db4b6950f51ce13b27ac9c0/packages/postal/src/channel.ts#L105)
 
 Thrown when a `request()` call exceeds its timeout without receiving a response.
 
@@ -21,7 +21,7 @@ Exposes `channel`, `topic`, and `timeout` so callers can inspect what timed out.
 
 > **new PostalTimeoutError**(`channel`, `topic`, `timeout`): `PostalTimeoutError`
 
-Defined in: [packages/postal/src/channel.ts:110](https://github.com/postaljs/postal.js/blob/19edc49e4ba8a564da1542c0e95eaed0c9393e86/packages/postal/src/channel.ts#L110)
+Defined in: [packages/postal/src/channel.ts:110](https://github.com/postaljs/postal.js/blob/706d026313975f926db4b6950f51ce13b27ac9c0/packages/postal/src/channel.ts#L110)
 
 #### Parameters
 
@@ -63,7 +63,7 @@ Defined in: node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/lib.
 
 > `readonly` **channel**: `string`
 
-Defined in: [packages/postal/src/channel.ts:106](https://github.com/postaljs/postal.js/blob/19edc49e4ba8a564da1542c0e95eaed0c9393e86/packages/postal/src/channel.ts#L106)
+Defined in: [packages/postal/src/channel.ts:106](https://github.com/postaljs/postal.js/blob/706d026313975f926db4b6950f51ce13b27ac9c0/packages/postal/src/channel.ts#L106)
 
 ---
 
@@ -107,7 +107,7 @@ Defined in: node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/lib.
 
 > `readonly` **timeout**: `number`
 
-Defined in: [packages/postal/src/channel.ts:108](https://github.com/postaljs/postal.js/blob/19edc49e4ba8a564da1542c0e95eaed0c9393e86/packages/postal/src/channel.ts#L108)
+Defined in: [packages/postal/src/channel.ts:108](https://github.com/postaljs/postal.js/blob/706d026313975f926db4b6950f51ce13b27ac9c0/packages/postal/src/channel.ts#L108)
 
 ---
 
@@ -115,7 +115,7 @@ Defined in: [packages/postal/src/channel.ts:108](https://github.com/postaljs/pos
 
 > `readonly` **topic**: `string`
 
-Defined in: [packages/postal/src/channel.ts:107](https://github.com/postaljs/postal.js/blob/19edc49e4ba8a564da1542c0e95eaed0c9393e86/packages/postal/src/channel.ts#L107)
+Defined in: [packages/postal/src/channel.ts:107](https://github.com/postaljs/postal.js/blob/706d026313975f926db4b6950f51ce13b27ac9c0/packages/postal/src/channel.ts#L107)
 
 ---
 

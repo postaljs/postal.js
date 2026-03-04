@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Tab Sync — postal BroadcastChannel transport demo</title>
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔄</text></svg>" />
+    </head>
+    <body class="min-h-screen">
+        <div id="app">
+            <!-- Header -->
+            <header class="border-b theme-panel border px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">🔄</span>
+                    <div>
+                        <h1 class="text-lg font-bold theme-text leading-tight">Tab Sync Dashboard</h1>
+                        <p class="text-xs theme-text-muted">postal BroadcastChannel transport demo</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <!-- Sync indicator — green pulse when a remote message arrives -->
+                    <div class="flex items-center gap-2">
+                        <div id="sync-dot" class="sync-dot"></div>
+                        <span class="text-xs theme-text-faint font-mono">synced</span>
+                    </div>
+                    <!-- Tab ID — random 4-char hex assigned at runtime -->
+                    <div class="flex items-center gap-1.5 rounded-lg border theme-border px-3 py-1.5 theme-card">
+                        <span class="text-xs theme-text-muted">Tab:</span>
+                        <span id="tab-id" class="text-xs font-mono font-bold theme-text">—</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main layout: controls column + activity log column -->
+            <main class="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4 p-4 lg:p-6">
+
+                <!-- Left column: controls -->
+                <div class="flex flex-col gap-4">
+
+                    <!-- Auth panel -->
+                    <section class="rounded-xl theme-panel border overflow-hidden">
+                        <div class="px-4 py-3 border-b theme-border">
+                            <h2 class="text-sm font-semibold theme-text">Auth</h2>
+                            <p class="text-xs theme-text-muted mt-0.5">Login syncs across all open tabs</p>
+                        </div>
+                        <div class="p-4">
+                            <!-- Logged out state -->
+                            <div id="auth-logged-out" class="flex flex-col gap-3">
+                                <div class="flex gap-2">
+                                    <input
+                                        id="username-input"
+                                        type="text"
+                                        placeholder="Username"
+                                        maxlength="32"
+                                        class="theme-input flex-1 rounded-lg border px-3 py-2 text-sm outline-none focus:border-blue-500"
+                                    />
+                                    <button
+                                        id="login-btn"
+                                        class="rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 transition-all px-4 py-2 text-sm font-semibold text-white cursor-pointer"
+                                    >
+                                        Login
+                                    </button>
+                                </div>
+                                <p class="text-xs theme-text-faint">Open another tab and log in — both tabs will update.</p>
+                            </div>
+                            <!-- Logged in state (hidden until auth.login fires) -->
+                            <div id="auth-logged-in" class="flex flex-col gap-3" style="display:none">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-green-400 flex-shrink-0"></span>
+                                        <span class="text-sm font-semibold theme-text">
+                                            Logged in as <span id="auth-username" class="text-blue-400">—</span>
+                                        </span>
+                                    </div>
+                                    <button
+                                        id="logout-btn"
+                                        class="rounded-lg border theme-border hover:border-red-500/60 hover:text-red-400 active:scale-95 transition-all px-3 py-1.5 text-xs theme-text-muted cursor-pointer"
+                                    >
+                                        Logout
+                                    </button>
+                                </div>
+                                <p class="text-xs theme-text-faint">Log out in any tab — all tabs will update.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Theme panel -->
+                    <section class="rounded-xl theme-panel border overflow-hidden">
+                        <div class="px-4 py-3 border-b theme-border">
+                            <h2 class="text-sm font-semibold theme-text">Theme</h2>
+                            <p class="text-xs theme-text-muted mt-0.5">Toggle syncs instantly across all tabs</p>
+                        </div>
+                        <div class="p-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span id="theme-icon" class="text-lg">🌙</span>
+                                    <span id="theme-label" class="text-sm theme-text">Dark mode</span>
+                                </div>
+                                <!-- Toggle switch — aria-checked driven by JS -->
+                                <button
+                                    id="theme-toggle"
+                                    class="toggle-switch"
+                                    role="switch"
+                                    aria-checked="true"
+                                    aria-label="Toggle theme"
+                                >
+                                    <div class="toggle-switch-track"></div>
+                                    <div class="toggle-switch-knob"></div>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Preferences panel -->
+                    <section class="rounded-xl theme-panel border overflow-hidden">
+                        <div class="px-4 py-3 border-b theme-border">
+                            <h2 class="text-sm font-semibold theme-text">Preferences</h2>
+                            <p class="text-xs theme-text-muted mt-0.5">Changes sync across all tabs and persist on reload</p>
+                        </div>
+                        <div class="p-4 flex flex-col gap-4">
+                            <!-- Sounds toggle -->
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-sm theme-text font-medium">Notification sounds</div>
+                                    <div class="text-xs theme-text-faint mt-0.5">Play a sound on new notifications</div>
+                                </div>
+                                <button
+                                    id="pref-sounds-toggle"
+                                    class="toggle-switch"
+                                    role="switch"
+                                    aria-checked="true"
+                                    aria-label="Toggle notification sounds"
+                                >
+                                    <div class="toggle-switch-track"></div>
+                                    <div class="toggle-switch-knob"></div>
+                                </button>
+                            </div>
+                            <!-- Compact view toggle -->
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-sm theme-text font-medium">Compact view</div>
+                                    <div class="text-xs theme-text-faint mt-0.5">Reduce spacing for denser layout</div>
+                                </div>
+                                <button
+                                    id="pref-compact-toggle"
+                                    class="toggle-switch"
+                                    role="switch"
+                                    aria-checked="false"
+                                    aria-label="Toggle compact view"
+                                >
+                                    <div class="toggle-switch-track"></div>
+                                    <div class="toggle-switch-knob"></div>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Right column: activity log -->
+                <section class="rounded-xl theme-panel border overflow-hidden flex flex-col min-h-[500px] lg:min-h-0 lg:max-h-[calc(100vh-9rem)]">
+                    <div class="px-4 py-3 border-b theme-border flex items-center justify-between flex-shrink-0">
+                        <div>
+                            <h2 class="text-sm font-semibold theme-text">Activity Log</h2>
+                            <p class="text-xs theme-text-muted mt-0.5">All messages — powered by wiretap</p>
+                        </div>
+                        <span id="activity-count" class="text-xs theme-text-faint font-mono tabular-nums">0</span>
+                    </div>
+                    <div id="activity-feed" class="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
+                        <!-- Empty state -->
+                        <div id="activity-empty" class="flex flex-col items-center justify-center h-full gap-2 text-center py-8">
+                            <span class="text-2xl opacity-30">📡</span>
+                            <p class="text-xs theme-text-faint">Interact with the controls<br />or open another tab</p>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Educational: "How postal makes this work" -->
+            <section class="px-4 lg:px-6 pb-12 mt-2">
+                <div class="rounded-2xl theme-panel border p-6 md:p-8">
+                    <h2 class="text-lg font-bold theme-text mb-1">How postal makes this work</h2>
+                    <p class="text-sm theme-text-muted mb-6">
+                        Cross-tab state sync with
+                        <strong class="theme-text">localStorage for persistence</strong> and
+                        <strong class="theme-text">BroadcastChannel for real-time notification</strong>.
+                        Two APIs, two lines of postal setup.
+                    </p>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Card 1: BroadcastChannel transport -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0"></span>
+                                <span class="text-sm font-semibold text-emerald-400">BroadcastChannel transport</span>
+                            </div>
+                            <p class="text-xs theme-text-muted leading-relaxed">
+                                Two lines of setup:
+                                <code class="theme-text theme-card px-1 rounded">createBroadcastChannelTransport("tab-sync-demo")</code>
+                                and
+                                <code class="theme-text theme-card px-1 rounded">addTransport(transport)</code>.
+                                No handshake, no connection management — any tab that opens the same-named channel
+                                is immediately in the mesh.
+                            </p>
+                        </div>
+
+                        <!-- Card 2: The production pattern -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2 h-2 rounded-full bg-cyan-400 flex-shrink-0"></span>
+                                <span class="text-sm font-semibold text-cyan-400">The production pattern</span>
+                            </div>
+                            <p class="text-xs theme-text-muted leading-relaxed">
+                                localStorage holds the authoritative state — a new tab that loads while others are open
+                                hydrates from storage via
+                                <code class="theme-text theme-card px-1 rounded">loadState()</code>
+                                and renders immediately. Live changes sync via postal so every open tab stays
+                                consistent without polling.
+                            </p>
+                        </div>
+
+                        <!-- Card 3: Echo prevention -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0"></span>
+                                <span class="text-sm font-semibold text-amber-400">Echo prevention in postal core</span>
+                            </div>
+                            <p class="text-xs theme-text-muted leading-relaxed">
+                                Outbound envelopes are stamped with
+                                <code class="theme-text theme-card px-1 rounded">source: instanceId</code>.
+                                Inbound envelopes matching the local instance are dropped in
+                                <code class="theme-text theme-card px-1 rounded">transport.ts</code>
+                                before subscribers fire. User actions just publish — subscribers handle all state
+                                mutation regardless of origin.
+                            </p>
+                        </div>
+
+                        <!-- Card 4: Wiretap observability -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2 h-2 rounded-full bg-violet-400 flex-shrink-0"></span>
+                                <span class="text-sm font-semibold text-violet-400">Wiretap observability</span>
+                            </div>
+                            <p class="text-xs theme-text-muted leading-relaxed">
+                                <code class="theme-text theme-card px-1 rounded">addWiretap(callback)</code>
+                                registers a global observer that sees every message on the bus — both local publishes
+                                and messages arriving from other tabs via the transport. The activity log above is
+                                100% wiretap.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-6 border-t theme-border flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                        <a
+                            href="https://github.com/postaljs/postal.js/tree/v3-postal/examples/tab-sync"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="inline-flex items-center gap-2 text-xs theme-text-muted hover:theme-text transition-colors"
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+                            </svg>
+                            View source on GitHub
+                        </a>
+                        <span class="hidden sm:block theme-text-faint">·</span>
+                        <a
+                            href="https://postal-js.org/guide/getting-started/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-xs theme-text-muted hover:theme-text transition-colors"
+                        >
+                            postal docs →
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <script type="module" src="/src/main.ts"></script>
+    </body>
+</html>

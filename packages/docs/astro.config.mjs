@@ -43,6 +43,14 @@ export default defineConfig({
                         type: "image/png",
                     },
                 },
+                {
+                    tag: "script",
+                    attrs: {
+                        defer: true,
+                        src: "https://cloud.umami.is/script.js",
+                        "data-website-id": "ecd17c1f-502f-4708-bd0e-5e479c1d9189",
+                    },
+                },
             ],
             customCss: ["./src/styles/custom.css"],
             plugins: [
@@ -83,6 +91,7 @@ export default defineConfig({
                         { slug: "examples/overview" },
                         { slug: "examples/notification-dashboard" },
                         { slug: "examples/gif-stitch" },
+                        { slug: "examples/tab-sync" },
                     ],
                 },
                 {
