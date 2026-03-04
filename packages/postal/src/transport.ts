@@ -75,6 +75,43 @@ type RegisteredTransport = {
 
 const transports: RegisteredTransport[] = [];
 
+// --- Inbound deduplication (ring buffer) ---
+
+const SEEN_CAPACITY = 500;
+let seenIds: string[] = [];
+let seenSet = new Set<string>();
+let seenPtr = 0;
+
+/**
+ * Returns `true` if this envelope ID was already seen (duplicate).
+ * Tracks IDs in a fixed-size ring buffer — oldest entries are evicted
+ * when the buffer is full, so they can be accepted again if they
+ * somehow reappear (they won't — UUIDs don't repeat).
+ */
+const markSeen = (id: string): boolean => {
+    if (seenSet.has(id)) {
+        return true;
+    }
+
+    if (seenIds.length < SEEN_CAPACITY) {
+        seenIds.push(id);
+    } else {
+        seenSet.delete(seenIds[seenPtr]!);
+        seenIds[seenPtr] = id;
+    }
+
+    seenSet.add(id);
+    seenPtr = (seenPtr + 1) % SEEN_CAPACITY;
+
+    return false;
+};
+
+const resetSeen = (): void => {
+    seenIds = [];
+    seenSet = new Set<string>();
+    seenPtr = 0;
+};
+
 // --- Filter ---
 
 /**
@@ -141,6 +178,10 @@ const createInboundHandler =
     () =>
     (envelope: Envelope): void => {
         if (envelope.source === getInstanceId()) {
+            return;
+        }
+
+        if (markSeen(envelope.id)) {
             return;
         }
 
@@ -215,6 +256,7 @@ export const resetTransports = (): void => {
         entry.transport.dispose?.();
     }
 
+    resetSeen();
     syncOutboundHook();
 };
 

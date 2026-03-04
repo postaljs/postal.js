@@ -655,6 +655,178 @@ describe("transport", () => {
         });
     });
 
+    describe("inbound deduplication", () => {
+        describe("when the same envelope ID arrives twice on the same transport", () => {
+            let callback: jest.Mock;
+
+            beforeEach(() => {
+                const mock = createMockTransport();
+                addTransport(mock.transport);
+                callback = jest.fn();
+                const channel = getChannel(CHANNEL_NAME);
+                channel.subscribe("item.placed", callback);
+
+                const envelope = createEnvelope({
+                    type: "publish",
+                    channel: CHANNEL_NAME,
+                    topic: "item.placed",
+                    payload: { sku: "DEJA-VU" },
+                    source: "remote-id",
+                });
+
+                mock.simulateInbound(envelope);
+                mock.simulateInbound(envelope);
+            });
+
+            it("should only dispatch the first copy", () => {
+                expect(callback).toHaveBeenCalledTimes(1);
+            });
+        });
+
+        describe("when the same envelope ID arrives on two different transports", () => {
+            let callback: jest.Mock;
+
+            beforeEach(() => {
+                const mockA = createMockTransport();
+                const mockB = createMockTransport();
+                addTransport(mockA.transport);
+                addTransport(mockB.transport);
+                callback = jest.fn();
+                const channel = getChannel(CHANNEL_NAME);
+                channel.subscribe("item.placed", callback);
+
+                const envelope = createEnvelope({
+                    type: "publish",
+                    channel: CHANNEL_NAME,
+                    topic: "item.placed",
+                    payload: { sku: "MULTI-PATH" },
+                    source: "remote-id",
+                });
+
+                mockA.simulateInbound(envelope);
+                mockB.simulateInbound(envelope);
+            });
+
+            it("should only dispatch once", () => {
+                expect(callback).toHaveBeenCalledTimes(1);
+            });
+        });
+
+        describe("when different envelope IDs arrive", () => {
+            let callback: jest.Mock;
+
+            beforeEach(() => {
+                const mock = createMockTransport();
+                addTransport(mock.transport);
+                callback = jest.fn();
+                const channel = getChannel(CHANNEL_NAME);
+                channel.subscribe("item.placed", callback);
+
+                mock.simulateInbound(
+                    createEnvelope({
+                        type: "publish",
+                        channel: CHANNEL_NAME,
+                        topic: "item.placed",
+                        payload: { sku: "FIRST" },
+                        source: "remote-id",
+                    })
+                );
+
+                mock.simulateInbound(
+                    createEnvelope({
+                        type: "publish",
+                        channel: CHANNEL_NAME,
+                        topic: "item.placed",
+                        payload: { sku: "SECOND" },
+                        source: "remote-id",
+                    })
+                );
+            });
+
+            it("should dispatch both", () => {
+                expect(callback).toHaveBeenCalledTimes(2);
+            });
+        });
+
+        describe("when resetTransports is called", () => {
+            let callback: jest.Mock;
+
+            beforeEach(() => {
+                const mock = createMockTransport();
+                addTransport(mock.transport);
+                callback = jest.fn();
+                const channel = getChannel(CHANNEL_NAME);
+                channel.subscribe("item.placed", callback);
+
+                const envelope = createEnvelope({
+                    type: "publish",
+                    channel: CHANNEL_NAME,
+                    topic: "item.placed",
+                    payload: { sku: "RESET-ME" },
+                    source: "remote-id",
+                });
+
+                mock.simulateInbound(envelope);
+                expect(callback).toHaveBeenCalledTimes(1);
+
+                // Reset clears the seen-set, so re-registering and
+                // replaying the same envelope should dispatch again.
+                resetTransports();
+                const fresh = createMockTransport();
+                addTransport(fresh.transport);
+                fresh.simulateInbound(envelope);
+            });
+
+            it("should accept previously-seen IDs again", () => {
+                expect(callback).toHaveBeenCalledTimes(2);
+            });
+        });
+
+        describe("when the ring buffer exceeds capacity", () => {
+            let callback: jest.Mock;
+
+            beforeEach(() => {
+                const mock = createMockTransport();
+                addTransport(mock.transport);
+                callback = jest.fn();
+                const channel = getChannel(CHANNEL_NAME);
+                channel.subscribe("item.placed", callback);
+
+                // The first envelope — this will be evicted after 500 more.
+                const ancient = createEnvelope({
+                    type: "publish",
+                    channel: CHANNEL_NAME,
+                    topic: "item.placed",
+                    payload: { sku: "ANCIENT" },
+                    source: "remote-id",
+                });
+
+                mock.simulateInbound(ancient);
+
+                // Push 500 more unique envelopes to fill and wrap the buffer.
+                for (let i = 0; i < 500; i++) {
+                    mock.simulateInbound(
+                        createEnvelope({
+                            type: "publish",
+                            channel: CHANNEL_NAME,
+                            topic: "item.placed",
+                            payload: { index: i },
+                            source: "remote-id",
+                        })
+                    );
+                }
+
+                // Replay the ancient envelope — its slot was evicted.
+                mock.simulateInbound(ancient);
+            });
+
+            it("should accept the evicted ID again", () => {
+                // 1 (ancient) + 500 (filler) + 1 (ancient replayed) = 502
+                expect(callback).toHaveBeenCalledTimes(502);
+            });
+        });
+    });
+
     describe("outbound hook lifecycle", () => {
         describe("when the last transport is removed", () => {
             it("should not call send on subsequent publishes", () => {
