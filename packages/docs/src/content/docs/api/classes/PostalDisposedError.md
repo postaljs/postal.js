@@ -5,7 +5,7 @@ prev: false
 title: "PostalDisposedError"
 ---
 
-Defined in: [packages/postal/src/channel.ts:143](https://github.com/postaljs/postal.js/blob/ce385092ed93b7b9761ddacc65bbc4af0423befa/packages/postal/src/channel.ts#L143)
+Defined in: [packages/postal/src/channel.ts:143](https://github.com/postaljs/postal.js/blob/a09296b72122873f0a52c46759caad32c92c0ffd/packages/postal/src/channel.ts#L143)
 
 Thrown when calling any method on a channel that has been disposed.
 
@@ -22,7 +22,7 @@ channel they're holding a stale reference to.
 
 > **new PostalDisposedError**(`channel`): `PostalDisposedError`
 
-Defined in: [packages/postal/src/channel.ts:146](https://github.com/postaljs/postal.js/blob/ce385092ed93b7b9761ddacc65bbc4af0423befa/packages/postal/src/channel.ts#L146)
+Defined in: [packages/postal/src/channel.ts:146](https://github.com/postaljs/postal.js/blob/a09296b72122873f0a52c46759caad32c92c0ffd/packages/postal/src/channel.ts#L146)
 
 #### Parameters
 
@@ -56,7 +56,7 @@ Defined in: node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/lib.
 
 > `readonly` **channel**: `string`
 
-Defined in: [packages/postal/src/channel.ts:144](https://github.com/postaljs/postal.js/blob/ce385092ed93b7b9761ddacc65bbc4af0423befa/packages/postal/src/channel.ts#L144)
+Defined in: [packages/postal/src/channel.ts:144](https://github.com/postaljs/postal.js/blob/a09296b72122873f0a52c46759caad32c92c0ffd/packages/postal/src/channel.ts#L144)
 
 ---
 

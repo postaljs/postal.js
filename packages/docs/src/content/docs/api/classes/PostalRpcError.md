@@ -5,7 +5,7 @@ prev: false
 title: "PostalRpcError"
 ---
 
-Defined in: [packages/postal/src/channel.ts:125](https://github.com/postaljs/postal.js/blob/ce385092ed93b7b9761ddacc65bbc4af0423befa/packages/postal/src/channel.ts#L125)
+Defined in: [packages/postal/src/channel.ts:125](https://github.com/postaljs/postal.js/blob/a09296b72122873f0a52c46759caad32c92c0ffd/packages/postal/src/channel.ts#L125)
 
 Thrown when an RPC handler throws and the error is relayed back to the requester.
 
@@ -22,7 +22,7 @@ machine-readable error classification for both in-memory and remote handlers.
 
 > **new PostalRpcError**(`message`, `code?`): `PostalRpcError`
 
-Defined in: [packages/postal/src/channel.ts:128](https://github.com/postaljs/postal.js/blob/ce385092ed93b7b9761ddacc65bbc4af0423befa/packages/postal/src/channel.ts#L128)
+Defined in: [packages/postal/src/channel.ts:128](https://github.com/postaljs/postal.js/blob/a09296b72122873f0a52c46759caad32c92c0ffd/packages/postal/src/channel.ts#L128)
 
 #### Parameters
 
@@ -60,7 +60,7 @@ Defined in: node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/lib.
 
 > `readonly` `optional` **code**: `string`
 
-Defined in: [packages/postal/src/channel.ts:126](https://github.com/postaljs/postal.js/blob/ce385092ed93b7b9761ddacc65bbc4af0423befa/packages/postal/src/channel.ts#L126)
+Defined in: [packages/postal/src/channel.ts:126](https://github.com/postaljs/postal.js/blob/a09296b72122873f0a52c46759caad32c92c0ffd/packages/postal/src/channel.ts#L126)
 
 ---
 
