@@ -717,11 +717,11 @@ const channels = new Map<string, Channel>();
  * return the same instance. The `TMap` generic is compile-time only —
  * all call sites referencing the same channel name should use the same TMap.
  *
- * @param name - The channel name
+ * @param name - The channel name (defaults to `"__default__"`)
  * @returns The singleton channel instance
  */
-export const getChannel = <TName extends string>(
-    name: TName
+export const getChannel = <TName extends string = "__default__">(
+    name: TName = "__default__" as TName
 ): Channel<ResolveChannelMap<TName>> => {
     let channel = channels.get(name);
     if (!channel) {

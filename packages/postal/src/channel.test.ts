@@ -996,6 +996,19 @@ describe("channel", () => {
             });
         });
 
+        describe("when called without a name", () => {
+            it("should default to the '__default__' channel", () => {
+                const channel = getChannel();
+                expect(channel.name).toBe("__default__");
+            });
+
+            it("should return the same instance as getChannel('__default__')", () => {
+                const implicit = getChannel();
+                const explicit = getChannel("__default__");
+                expect(implicit).toBe(explicit);
+            });
+        });
+
         describe("when getting channels with different names", () => {
             let orders: Channel, shipping: Channel;
 

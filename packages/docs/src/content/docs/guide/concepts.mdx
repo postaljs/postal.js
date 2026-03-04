@@ -20,10 +20,10 @@ Channels are singletons. `getChannel("orders")` always returns the same instance
 
 ### Default channel
 
-If you don't need multiple channels, the default channel name is `"/"`:
+If you don't need multiple channels, call `getChannel()` with no arguments:
 
 ```ts
-const bus = getChannel("/");
+const bus = getChannel();
 ```
 
 ### Dispose
