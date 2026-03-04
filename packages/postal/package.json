@@ -1,6 +1,6 @@
 {
     "name": "postal",
-    "version": "2.0.6",
+    "version": "3.0.0",
     "description": "Pub/Sub library providing wildcard subscriptions, complex message handling, etc. Works server and client-side.",
     "author": "Jim Cowart (http://ifandelse.com)",
     "license": "MIT",
@@ -32,7 +32,21 @@
     "engines": {
         "node": ">=22.22"
     },
+    "type": "module",
     "sideEffects": false,
+    "keywords": [
+        "pub/sub",
+        "pubsub",
+        "messaging",
+        "message bus",
+        "event",
+        "channel",
+        "wildcard",
+        "amqp",
+        "mediator",
+        "broker",
+        "envelope"
+    ],
     "scripts": {
         "dev": "tsdown --watch",
         "build": "tsdown",

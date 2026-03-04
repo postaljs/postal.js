@@ -1,6 +1,6 @@
 {
     "name": "postal-transport-messageport",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "description": "MessagePort transport for postal — bridges pub/sub across iframes and web workers.",
     "author": "Jim Cowart (http://ifandelse.com)",
     "license": "MIT",
@@ -35,7 +35,18 @@
     "engines": {
         "node": ">=22.22"
     },
+    "type": "module",
     "sideEffects": false,
+    "keywords": [
+        "postal",
+        "transport",
+        "messageport",
+        "iframe",
+        "web worker",
+        "cross-origin",
+        "pub/sub",
+        "messaging"
+    ],
     "scripts": {
         "dev": "tsdown --watch",
         "build": "tsdown",

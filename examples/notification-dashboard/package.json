@@ -1,6 +1,6 @@
 {
     "name": "@postal-examples/notification-dashboard",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "private": true,
     "description": "Notification Dashboard — an interactive postal pub/sub, wildcard, and wiretap demo",
     "scripts": {

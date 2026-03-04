@@ -95,10 +95,6 @@ export default defineConfig({
                     ],
                 },
                 {
-                    label: "Tools",
-                    items: [{ slug: "tools/overview" }],
-                },
-                {
                     label: "Migration",
                     items: [{ slug: "migration/v2-to-v3" }],
                 },
