@@ -542,10 +542,11 @@ See [Getting Started — Typed channels](/guide/getting-started/#typed-channels)
 3. **Replace `postal.channel(name)`** → `getChannel(name)`
 4. **Update subscriber callbacks** — `(data, envelope)` → `(envelope)`, then `data.x` → `envelope.payload.x`
 5. **Replace `envelope.data`** → `envelope.payload` everywhere
-6. **Replace subscription chaining** — see [Removed subscription methods](#removed-subscription-methods)
-7. **Replace `.unsubscribe()`** with the returned function
-8. **Update wire taps** — `addWireTap` → `addWiretap`, update callback signature
-9. **Migrate federation** to [transports](/guide/transports/) if applicable
-10. **Replace `postal.reset()`** → `resetChannels()` in tests
-11. **Run your tests** — most remaining issues will be `envelope.data` → `envelope.payload` misses
+6. **Replace `envelope.timeStamp`** → `envelope.timestamp` (lowercase `s`) — it's now `Date.now()` (a number), not a `Date` object
+7. **Replace subscription chaining** — see [Removed subscription methods](#removed-subscription-methods)
+8. **Replace `.unsubscribe()`** with the returned function
+9. **Update wire taps** — `addWireTap` → `addWiretap`, update callback signature
+10. **Migrate federation** to [transports](/guide/transports/) if applicable
+11. **Replace `postal.reset()`** → `resetChannels()` in tests
+12. **Run your tests** — most remaining issues will be `envelope.data` → `envelope.payload` misses
 </Steps>
