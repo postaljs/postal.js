@@ -5,9 +5,9 @@ prev: false
 title: "getChannel"
 ---
 
-> **getChannel**\<`TName`\>(`name`): [`Channel`](/api/type-aliases/channel/)\<`ResolveChannelMap`\<`TName`\>\>
+> **getChannel**\<`TName`\>(`name?`): [`Channel`](/api/type-aliases/channel/)\<`ResolveChannelMap`\<`TName`\>\>
 
-Defined in: [packages/postal/src/channel.ts:723](https://github.com/postaljs/postal.js/blob/950dbca686679a87f67cbbb2727e6040e9fe2ed0/packages/postal/src/channel.ts#L723)
+Defined in: [packages/postal/src/channel.ts:723](https://github.com/postaljs/postal.js/blob/fe7a9189226397166332b0092d47ce426ac8daa9/packages/postal/src/channel.ts#L723)
 
 Gets or creates a singleton channel by name.
 
@@ -19,15 +19,15 @@ all call sites referencing the same channel name should use the same TMap.
 
 ### TName
 
-`TName` _extends_ `string`
+`TName` _extends_ `string` = `"__default__"`
 
 ## Parameters
 
-### name
+### name?
 
-`TName`
+`TName` = `...`
 
-The channel name
+The channel name (defaults to `"__default__"`)
 
 ## Returns
 

@@ -36,6 +36,8 @@ orders.publish("order.created", { orderId: "abc-123" });
 
 For the full API — wildcards, RPC, wire taps, transports — see the [docs](https://postal-js.org).
 
+> **Upgrading from v2?** postal v3 is a ground-up rewrite with breaking changes to the module system, subscriber callbacks, envelope shape, and more. See the [v2 → v3 migration guide](https://postal-js.org/migration/v2-to-v3/) before upgrading.
+
 ## Packages
 
 | Package                                                                          | npm                                 | Description                                        |
