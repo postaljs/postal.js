@@ -7,7 +7,7 @@ title: "resetTransports"
 
 > **resetTransports**(): `void`
 
-Defined in: [packages/postal/src/transport.ts:209](https://github.com/postaljs/postal.js/blob/706d026313975f926db4b6950f51ce13b27ac9c0/packages/postal/src/transport.ts#L209)
+Defined in: [packages/postal/src/transport.ts:250](https://github.com/postaljs/postal.js/blob/950dbca686679a87f67cbbb2727e6040e9fe2ed0/packages/postal/src/transport.ts#L250)
 
 Removes all registered transports and cleans up.
 Called automatically during `resetChannels()` via the `onReset` hook.
