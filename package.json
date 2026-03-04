@@ -51,7 +51,7 @@
         "*.json": "prettier --write"
     },
     "devDependencies": {
-        "@apogeelabs/the-agency": "0.5.0",
+        "@apogeelabs/the-agency": "0.6.0",
         "@changesets/cli": "^2.29.8",
         "@eslint/js": "^9.39.2",
         "@types/jest": "^30.0.0",

@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@apogeelabs/the-agency':
-        specifier: 0.5.0
-        version: 0.5.0
+        specifier: 0.6.0
+        version: 0.6.0
       '@changesets/cli':
         specifier: ^2.29.8
         version: 2.29.8(@types/node@22.19.13)
@@ -218,8 +218,8 @@ importers:
 
 packages:
 
-  '@apogeelabs/the-agency@0.5.0':
-    resolution: {integrity: sha512-WYGUaiqYUdOEeOuXzMzTetbwB0VbejhC7GrWB9uDm4PWnZqsUoQ0yMZz/Bn/PdzLHbf19ANOvdEOih31dCvGXQ==}
+  '@apogeelabs/the-agency@0.6.0':
+    resolution: {integrity: sha512-UrF+Fx9nqmjs1CMn/9EuYTknsFKhwrI1w+++4bzoA7dC3ydnFQk5yHrdmprs/s8xkaoX+dRR+NhL+U+vGcskbg==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -4936,7 +4936,7 @@ packages:
 
 snapshots:
 
-  '@apogeelabs/the-agency@0.5.0':
+  '@apogeelabs/the-agency@0.6.0':
     dependencies:
       prompts: 2.4.2
 
