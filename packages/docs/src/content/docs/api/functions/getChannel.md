@@ -9,7 +9,7 @@ title: "getChannel"
 
 > **getChannel**\<`TMap`\>(`name`): [`Channel`](/api/type-aliases/channel/)\<`TMap`\>
 
-Defined in: [packages/postal/src/channel.ts:738](https://github.com/postaljs/postal.js/blob/00b79d0443d2e7a1569b3f81cfb235a0e565115e/packages/postal/src/channel.ts#L738)
+Defined in: [packages/postal/src/channel.ts:738](https://github.com/postaljs/postal.js/blob/02349324ca9380251033ae2985f56a03db2db674/packages/postal/src/channel.ts#L738)
 
 Gets or creates a singleton channel by name.
 
@@ -56,7 +56,7 @@ The singleton channel instance
 
 > **getChannel**\<`TName`\>(`name?`): [`Channel`](/api/type-aliases/channel/)\<`ResolveChannelMap`\<`TName`\>\>
 
-Defined in: [packages/postal/src/channel.ts:739](https://github.com/postaljs/postal.js/blob/00b79d0443d2e7a1569b3f81cfb235a0e565115e/packages/postal/src/channel.ts#L739)
+Defined in: [packages/postal/src/channel.ts:739](https://github.com/postaljs/postal.js/blob/02349324ca9380251033ae2985f56a03db2db674/packages/postal/src/channel.ts#L739)
 
 Gets or creates a singleton channel by name.
 
