@@ -1,0 +1,23 @@
+{
+    "name": "@postal-examples/train-dispatch",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "description": "Split-flap departure board — postal pub/sub across Node.js worker threads",
+    "scripts": {
+        "start": "tsx src/main.ts",
+        "dev": "tsx watch src/main.ts",
+        "test": "jest --passWithNoTests",
+        "test:watch": "jest --watch"
+    },
+    "dependencies": {
+        "postal": "workspace:*",
+        "postal-transport-messageport": "workspace:*"
+    },
+    "devDependencies": {
+        "jest": "^30.2.0",
+        "ts-jest": "^29.4.6",
+        "tsx": "^4.19.4",
+        "typescript": "^5.9.3"
+    }
+}
