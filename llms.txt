@@ -14,8 +14,11 @@ postal (npm: "postal")
   packages/postal/
 
 postal-transport-messageport (npm: "postal-transport-messageport")
-  Bridges postal across iframes and web workers via MessagePort + handshake.
+  Bridges postal across iframes, web workers, and Node.js worker threads via MessagePort + handshake.
   packages/postal-transport-messageport/
+  Two entry points:
+    "postal-transport-messageport"      — browser APIs (iframes, web workers)
+    "postal-transport-messageport/node" — Node.js worker_threads helpers + shared core
 
 postal-transport-broadcastchannel (npm: "postal-transport-broadcastchannel")
   Bridges postal across same-origin tabs/windows via BroadcastChannel.
@@ -65,7 +68,15 @@ Error classes:
 
 CHANNEL TYPE SYSTEM
 
-ChannelRegistry augmentation — declare typed channel maps once:
+Two ways to type a channel:
+
+1. Explicit type map — pass TMap to getChannel:
+
+  type OrderMap = { 'item.placed': { sku: string; qty: number } };
+  const orders = getChannel<OrderMap>('orders');
+  // publish / subscribe / request / handle are all typed
+
+2. ChannelRegistry augmentation — declare once, infer everywhere:
 
   declare module 'postal' {
     interface ChannelRegistry {
@@ -76,8 +87,7 @@ ChannelRegistry augmentation — declare typed channel maps once:
     }
   }
 
-  const orders = getChannel('orders');
-  // orders.publish / subscribe / request / handle are all typed
+  const orders = getChannel('orders'); // OrderMap inferred from registry
 
 RPC topic shape — use { request, response } to mark a topic as RPC-only:
 
@@ -115,20 +125,32 @@ resetChannels() automatically calls resetTransports() via internal onReset hook.
 
 MESSAGEPORT TRANSPORT — package: postal-transport-messageport
 
-Exports:
+Default entry point exports (browser):
   createMessagePortTransport(port)           Low-level: wraps a connected MessagePort
   connectToIframe(iframe, options?)          Parent side of iframe handshake → Promise<Transport>
   connectToParent(options?)                  Iframe side of iframe handshake → Promise<Transport>
   connectToWorker(worker, options?)          Main thread side of worker handshake → Promise<Transport>
   connectToHost(options?)                    Worker side of worker handshake → Promise<Transport>
+  markTransferable(payload, transferables)   Mark payload for zero-copy transfer
   PostalHandshakeTimeoutError                Handshake timed out
   ConnectOptions                             { timeout?, targetOrigin?, allowedOrigin? }
   PROTOCOL_VERSION                           Number (currently 1)
+
+Node.js entry point exports (postal-transport-messageport/node):
+  connectToWorkerThread(worker, options?)    Main thread side of worker_threads handshake → Promise<Transport>
+  connectFromWorkerThread(options?)          Worker thread side of handshake → Promise<Transport>
+  createMessagePortTransport(port)           Same as default entry point
+  markTransferable(payload, transferables)   Same as default entry point
+  PostalHandshakeTimeoutError                Same as default entry point
+  PROTOCOL_VERSION                           Same as default entry point
 
 Handshake sequence:
   1. Initiator creates MessageChannel, sends { type:"postal:syn" } via postMessage, transfers port2
   2. Receiver gets port2, sends { type:"postal:ack" } through it
   3. Initiator receives ack on port1, both sides wrap ports in createMessagePortTransport()
+
+Node.js worker_threads use the same handshake, but connectToWorkerThread sends through
+worker.postMessage() and connectFromWorkerThread listens on parentPort.
 
 ---
 

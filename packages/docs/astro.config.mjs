@@ -92,6 +92,8 @@ export default defineConfig({
                         { slug: "examples/notification-dashboard" },
                         { slug: "examples/gif-stitch" },
                         { slug: "examples/tab-sync" },
+                        { slug: "examples/train-dispatch" },
+                        { slug: "examples/ascii-camera" },
                     ],
                 },
                 {

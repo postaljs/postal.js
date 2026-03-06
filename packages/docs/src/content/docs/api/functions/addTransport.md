@@ -7,7 +7,7 @@ title: "addTransport"
 
 > **addTransport**(`transport`, `options?`): () => `void`
 
-Defined in: [packages/postal/src/transport.ts:214](https://github.com/postaljs/postal.js/blob/fe7a9189226397166332b0092d47ce426ac8daa9/packages/postal/src/transport.ts#L214)
+Defined in: [packages/postal/src/transport.ts:214](https://github.com/postaljs/postal.js/blob/02349324ca9380251033ae2985f56a03db2db674/packages/postal/src/transport.ts#L214)
 
 Registers a transport with postal.
 

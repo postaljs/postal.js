@@ -50,15 +50,18 @@ Transports are always installed alongside `postal`. They import types and intern
 
 ### postal-transport-messageport/src/
 
-| File                      | Purpose                                                           |
-| ------------------------- | ----------------------------------------------------------------- |
-| `index.ts`                | Public exports only                                               |
-| `messagePortTransport.ts` | `createMessagePortTransport(port)` — low-level wrapper            |
-| `iframe.ts`               | `connectToIframe()` / `connectToParent()` — handshake for iframes |
-| `worker.ts`               | `connectToWorker()` / `connectToHost()` — handshake for workers   |
-| `protocol.ts`             | Message shapes, type guards, factories. SYN/ACK/Envelope types    |
-| `types.ts`                | `ConnectOptions` type                                             |
-| `errors.ts`               | `PostalHandshakeTimeoutError`                                     |
+| File                      | Purpose                                                                          |
+| ------------------------- | -------------------------------------------------------------------------------- |
+| `index.ts`                | Public exports (browser entry point)                                             |
+| `node.ts`                 | Public exports (Node.js entry point — `postal-transport-messageport/node`)       |
+| `messagePortTransport.ts` | `createMessagePortTransport(port)` — low-level wrapper                           |
+| `iframe.ts`               | `connectToIframe()` / `connectToParent()` — handshake for iframes                |
+| `worker.ts`               | `connectToWorker()` / `connectToHost()` — handshake for browser workers          |
+| `worker-thread.ts`        | `connectToWorkerThread()` / `connectFromWorkerThread()` — Node.js worker_threads |
+| `transferables.ts`        | `markTransferable()` — zero-copy ArrayBuffer transfer support                    |
+| `protocol.ts`             | Message shapes, type guards, factories. SYN/ACK/Envelope types                   |
+| `types.ts`                | `ConnectOptions` type                                                            |
+| `errors.ts`               | `PostalHandshakeTimeoutError`                                                    |
 
 ### postal-transport-broadcastchannel/src/
 
@@ -75,10 +78,16 @@ Transports are always installed alongside `postal`. They import types and intern
 ### getChannel
 
 ```ts
-getChannel(name: string): Channel<TMap>
+getChannel<TMap>(name: string): Channel<TMap>           // explicit type map
+getChannel<TName>(name?: TName): Channel<ResolveChannelMap<TName>>  // registry-resolved
 ```
 
-Singleton registry — same name always returns the same instance. If a `ChannelRegistry` augmentation exists for the name, `TMap` is resolved automatically. Otherwise falls back to `Record<string, unknown>`.
+Singleton registry — same name always returns the same instance. Two ways to type a channel:
+
+1. **Explicit type map** — `getChannel<MyTopicMap>("orders")` passes the map directly.
+2. **Registry augmentation** — declare a `ChannelRegistry` entry and `getChannel("orders")` resolves `TMap` automatically.
+
+Channels without either fall back to `Record<string, unknown>`.
 
 ### Channel methods
 
@@ -148,9 +157,23 @@ resetWiretaps(): void
 
 ## Type System Patterns
 
+### Explicit type map
+
+Pass the topic map as a generic — no module augmentation needed:
+
+```ts
+type OrderTopicMap = {
+    "item.placed": { sku: string; qty: number };
+    "item.cancelled": { sku: string; reason: string };
+};
+
+const orders = getChannel<OrderTopicMap>("orders");
+// publish, subscribe, request, handle are all typed
+```
+
 ### ChannelRegistry augmentation
 
-Declare once in a `.d.ts` or source file — works project-wide:
+For channels shared across many files, declare the map once via module augmentation:
 
 ```ts
 declare module "postal" {
@@ -168,7 +191,7 @@ declare module "postal" {
 
 After augmentation:
 
-- `getChannel('orders')` returns `Channel<{ 'item.placed': ..., 'item.cancelled': ... }>`
+- `getChannel('orders')` returns `Channel<{ 'item.placed': ..., 'item.cancelled': ... }>` — no generic needed
 - `getChannel('pricing')` returns a channel where `publish('quote.calculate', ...)` is a compile error (RPC topic) and `request('quote.calculate', ...)` is required
 - Unknown channel names fall back to `Channel<Record<string, unknown>>`
 
@@ -308,7 +331,7 @@ const transport = await connectToParent({ allowedOrigin: "https://parent.com" })
 addTransport(transport);
 ```
 
-### Bridge to a worker
+### Bridge to a worker (browser)
 
 ```ts
 // Main thread:
@@ -323,6 +346,25 @@ import { connectToHost } from "postal-transport-messageport";
 import { addTransport } from "postal";
 
 const transport = await connectToHost();
+addTransport(transport);
+```
+
+### Bridge to a worker thread (Node.js)
+
+```ts
+// Main thread:
+import { Worker } from "node:worker_threads";
+import { connectToWorkerThread } from "postal-transport-messageport/node";
+import { addTransport } from "postal";
+
+const transport = await connectToWorkerThread(new Worker("./worker.js"));
+addTransport(transport);
+
+// Inside worker thread:
+import { connectFromWorkerThread } from "postal-transport-messageport/node";
+import { addTransport } from "postal";
+
+const transport = await connectFromWorkerThread();
 addTransport(transport);
 ```
 

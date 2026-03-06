@@ -1,0 +1,85 @@
+---
+title: ASCII Camera
+description: A terminal app that captures your webcam feed via ffmpeg and renders it as live ASCII art, demonstrating postal's MessagePort transport for streaming frame data between a worker thread and the main thread.
+---
+
+import { LinkCard, CardGrid, Card } from "@astrojs/starlight/components";
+
+**ASCII Camera** captures a live camera feed in a worker thread, converts each frame to ASCII art, and streams it to the main thread for rendering — all over postal's MessagePort transport. Toggle between monochrome and 24-bit ANSI color modes with a keystroke.
+
+:::note
+This is a **terminal-only** example — it requires Node.js worker threads and writes directly to stdout with ANSI escape sequences. There is no browser demo for this one. It also requires **ffmpeg** and a connected webcam.
+:::
+
+---
+
+## What it demonstrates
+
+<CardGrid>
+    <Card title="Streaming over MessagePort" icon="puzzle">
+        The worker captures camera frames via ffmpeg and publishes them as `camera.frame` messages.
+        The main thread subscribes and renders. The transport handles the heavy lifting — frames
+        flow as regular postal envelopes across the thread boundary.
+    </Card>
+    <Card title="Bidirectional control" icon="right-arrow">
+        The main thread publishes `camera.control` messages to change FPS, toggle color mode, or
+        signal quit. The worker subscribes and reacts mid-stream. Same transport, both directions —
+        postal transports are full-duplex by default.
+    </Card>
+    <Card title="Wiretap FPS counter" icon="open-book">
+        A wiretap on the main thread counts `camera.frame` envelopes per second to compute an
+        independent FPS measurement for the HUD — without subscribing to the topic or modifying the
+        publisher. Observability without coupling.
+    </Card>
+    <Card title="Backpressure by design" icon="warning">
+        If the worker produces frames faster than the main thread can render, it drops the frame
+        rather than queuing. Latest-wins is the right semantics for live video — and postal's
+        fire-and-forget publish makes this trivial.
+    </Card>
+</CardGrid>
+
+---
+
+## Architecture
+
+```
+Main thread (renderer + HUD)              Worker thread (capture + conversion)
+────────────────────────────              ──────────────────────────────────────
+getChannel("camera")                      getChannel("camera")
+addTransport(transport)                   addTransport(transport)
+      │                                          │
+      │  ◄── camera.frame ─────────────────────  │  ffmpeg → RGB24 → ASCII string
+      │  ◄── camera.status ────────────────────  │  starting / streaming / error
+      │                                          │
+      │  ── camera.control ───────────────────►  │  set-fps / set-color-mode / quit
+      │                                          │
+      │  addWiretap() ──► FPS counter            │
+      │  keyboard input ──► control publish      │
+      │  render loop ──► stdout (alt screen)     │
+```
+
+---
+
+## Running locally
+
+```bash
+# From the repo root — requires ffmpeg and a webcam
+pnpm install
+pnpm --filter @postal-examples/ascii-camera start
+```
+
+Requires **Node.js 22+** and **ffmpeg** installed. Press **c** for color, **+/-** for fps, **q** to quit.
+
+---
+
+## Source code
+
+The full source is in [`examples/ascii-camera/`](https://github.com/postaljs/postal.js/tree/master/examples/ascii-camera) in the postal.js repository.
+
+Key files:
+
+- `src/main.ts` — worker spawning, transport setup, frame rendering, keyboard input, HUD
+- `src/camera-worker.ts` — ffmpeg capture, RGB24 frame buffering, ASCII conversion, publish loop
+- `src/ascii.ts` — luminance calculation, character ramp mapping, mono/color frame builders with quantization
+- `src/ansi.ts` — ANSI escape sequences for terminal rendering (alt screen, cursor, 24-bit color)
+- `src/types.ts` — shared payload types for frame, control, and status messages

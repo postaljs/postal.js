@@ -7,7 +7,7 @@ import { Aside } from "@astrojs/starlight/components";
 
 ## What is a transport?
 
-A transport is how postal crosses an execution boundary — same-origin tabs via `BroadcastChannel`, iframes and workers via `MessagePort`. Without a transport, a postal bus is local to its JavaScript context. With one, publishes on one side automatically appear on the other.
+A transport is how postal crosses an execution boundary — same-origin tabs via `BroadcastChannel`, iframes and workers via `MessagePort`, Node.js worker threads via `MessagePort`. Without a transport, a postal bus is local to its JavaScript context. With one, publishes on one side automatically appear on the other.
 
 Transports are symmetric: each side registers its own transport, and postal handles the rest — echo prevention, filtering, and local dispatch.
 
@@ -69,7 +69,7 @@ You don't need to do anything — it's automatic. It's documented here so you kn
 
 ### `postal-transport-messageport`
 
-Point-to-point transport for iframes and dedicated workers. Uses a `MessageChannel` with a handshake (SYN/ACK) to ensure both sides are ready before messages flow.
+Point-to-point transport for iframes, dedicated workers, and Node.js worker threads. Uses a `MessageChannel` with a handshake (SYN/ACK) to ensure both sides are ready before messages flow.
 
 ```bash
 npm install postal-transport-messageport
@@ -127,10 +127,40 @@ const transport = await connectToHost();
 addTransport(transport);
 ```
 
+**Node.js worker thread — main thread:**
+
+```ts
+import { Worker } from "node:worker_threads";
+import { addTransport } from "postal";
+import { connectToWorkerThread } from "postal-transport-messageport/node";
+
+const worker = new Worker(new URL("./my-worker.js", import.meta.url));
+const transport = await connectToWorkerThread(worker);
+
+addTransport(transport);
+```
+
+**Node.js worker thread — inside the worker:**
+
+```ts
+import { addTransport } from "postal";
+import { connectFromWorkerThread } from "postal-transport-messageport/node";
+
+const transport = await connectFromWorkerThread();
+addTransport(transport);
+```
+
 <Aside type="note">
-    `connectToIframe` / `connectToWorker` throw `PostalHandshakeTimeoutError` if the other side
-    doesn't complete the handshake within the timeout (default 5 seconds). Make sure the iframe or
-    worker calls its corresponding connect function.
+    Node.js helpers are imported from `postal-transport-messageport/node` — a separate entry point
+    that avoids pulling in browser globals. The handshake protocol is identical; only the plumbing
+    differs (`parentPort` instead of `globalThis` message events).
+</Aside>
+
+<Aside type="note">
+    `connectToIframe` / `connectToWorker` / `connectToWorkerThread` throw
+    `PostalHandshakeTimeoutError` if the other side doesn't complete the handshake within the
+    timeout (default 5 seconds). Make sure the iframe or worker calls its corresponding connect
+    function.
 </Aside>
 
 ### `postal-transport-broadcastchannel`

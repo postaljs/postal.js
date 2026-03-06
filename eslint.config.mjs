@@ -35,6 +35,7 @@ export default [
             "no-undef": "off",
             "@typescript-eslint/explicit-module-boundary-types": "off",
             "@typescript-eslint/no-explicit-any": "warn",
+            "no-redeclare": "off",
             "no-duplicate-imports": 1,
             "@typescript-eslint/no-unused-vars": [
                 "warn",

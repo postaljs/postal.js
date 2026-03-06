@@ -1,7 +1,7 @@
 {
     "name": "postal-transport-messageport",
     "version": "0.1.0",
-    "description": "MessagePort transport for postal — bridges pub/sub across iframes and web workers.",
+    "description": "MessagePort transport for postal — bridges pub/sub across iframes, web workers, and Node.js worker_threads.",
     "author": "Jim Cowart (http://ifandelse.com)",
     "license": "MIT",
     "homepage": "https://github.com/postaljs/postal.js",
@@ -26,6 +26,16 @@
                 "types": "./dist/index.d.cts",
                 "default": "./dist/index.cjs"
             }
+        },
+        "./node": {
+            "import": {
+                "types": "./dist/node.d.mts",
+                "default": "./dist/node.mjs"
+            },
+            "require": {
+                "types": "./dist/node.d.cts",
+                "default": "./dist/node.cjs"
+            }
         }
     },
     "files": [
@@ -45,7 +55,9 @@
         "web worker",
         "cross-origin",
         "pub/sub",
-        "messaging"
+        "messaging",
+        "worker_threads",
+        "node"
     ],
     "scripts": {
         "dev": "tsdown --watch",

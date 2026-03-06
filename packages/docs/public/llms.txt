@@ -79,6 +79,6 @@ postal-transport-broadcastchannel
 
 TYPESCRIPT
 
-ChannelRegistry augmentation provides typed channels, topics, and payloads project-wide.
+Two ways to type channels: explicit type map via getChannel<TMap>(name), or ChannelRegistry augmentation for project-wide inference.
 RPC topics use { request: X; response: Y } shape in the channel map.
 PayloadFor<TMap, Pattern> resolves wildcard subscription payload unions at compile time.
