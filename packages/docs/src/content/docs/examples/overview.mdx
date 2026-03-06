@@ -5,8 +5,8 @@ description: Example applications demonstrating postal v3 in action.
 
 import { LinkCard } from "@astrojs/starlight/components";
 
-These example apps show postal in the context of real browser features.
-Each one demonstrates a specific combination of postal patterns — check the individual pages for architecture breakdowns and live demos.
+These example apps show postal in action across different runtime environments.
+Each one demonstrates a specific combination of postal patterns — check the individual pages for architecture breakdowns and demos.
 
 <LinkCard
     title="Notification Dashboard"
@@ -24,4 +24,16 @@ Each one demonstrates a specific combination of postal patterns — check the in
     title="Tab Sync Dashboard"
     description="Cross-tab state sync using postal's BroadcastChannel transport. Shows the localStorage + BroadcastChannel production pattern, echo prevention in postal core, and wiretap observability."
     href="/examples/tab-sync/"
+/>
+
+<LinkCard
+    title="Train Dispatch Board"
+    description="Terminal-based departure board using Node.js worker threads. Shows the MessagePort transport across worker_threads, bidirectional messaging, wildcard subscriptions, wiretap observability, and split-flap animation."
+    href="/examples/train-dispatch/"
+/>
+
+<LinkCard
+    title="ASCII Camera"
+    description="Live webcam-to-ASCII renderer using a worker thread. Shows the MessagePort transport streaming frame data, bidirectional control messages, wiretap-based FPS measurement, and frame-drop backpressure."
+    href="/examples/ascii-camera/"
 />

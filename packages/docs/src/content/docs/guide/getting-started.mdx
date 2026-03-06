@@ -66,7 +66,28 @@ See [Concepts](/guide/concepts/) for the full wildcard matching rules.
 
 ## Typed channels
 
-postal supports compile-time payload inference via module augmentation. Declare your channel's topic-to-payload map once in a `.d.ts` or any TypeScript file, and every `getChannel` call site picks it up automatically — no generics required:
+postal supports compile-time payload inference so `publish`, `subscribe`, and `request` know your payload types. There are two approaches — pick whichever fits your project.
+
+### Explicit type map
+
+Pass your topic map as a generic to `getChannel`:
+
+```ts
+type OrderTopicMap = {
+    "item.placed": { sku: string; qty: number };
+    "item.cancelled": { sku: string; reason: string };
+};
+
+const orders = getChannel<OrderTopicMap>("orders");
+orders.publish("item.placed", { sku: "WIDGET-42", qty: 3 }); // ✅ Typed
+orders.publish("item.placed", { sku: 42 }); // ❌ Type error
+```
+
+This is the simplest approach — define a type, pass it where you need it.
+
+### Registry augmentation
+
+If the same channel is used across many files, you can register the type map globally via module augmentation. Every `getChannel("orders")` call infers the map automatically — no generic required:
 
 ```ts
 declare module "postal" {
@@ -78,10 +99,13 @@ declare module "postal" {
     }
 }
 
-// getChannel("orders") now infers the full topic map automatically
-const orders = getChannel("orders");
-orders.publish("item.placed", { sku: "WIDGET-42", qty: 3 }); // Typed!
+const orders = getChannel("orders"); // OrderTopicMap inferred
+orders.publish("item.placed", { sku: "WIDGET-42", qty: 3 }); // ✅ Typed
 ```
+
+<Aside type="tip">
+    Both approaches produce the same `Channel<TMap>` at compile time. The explicit generic is convenient for small projects or single-file usage. Module augmentation shines when many modules share the same channel.
+</Aside>
 
 ## Request / Handle
 

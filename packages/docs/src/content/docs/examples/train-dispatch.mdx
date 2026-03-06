@@ -1,0 +1,93 @@
+---
+title: Train Dispatch Board
+description: A terminal-based departure board that demonstrates postal's MessagePort transport across Node.js worker threads, with split-flap animation and reactive dispatch logic.
+---
+
+import { LinkCard, CardGrid, Card } from "@astrojs/starlight/components";
+
+**Train Dispatch Board** is a terminal app that renders a UK railway station departure board.
+Each train is a worker thread running its own journey state machine. The main thread is the dispatch controller and renderer.
+It exists to show how postal's MessagePort transport makes cross-thread Node.js communication feel like normal pub/sub.
+
+:::note
+This is a **terminal-only** example — it requires Node.js worker threads and writes directly to stdout with ANSI escape sequences. There is no browser demo for this one.
+:::
+
+---
+
+## What it demonstrates
+
+<CardGrid>
+    <Card title="Worker thread transport" icon="puzzle">
+        The main thread calls `connectToWorkerThread(worker)` and each worker calls `connectFromWorkerThread()`.
+        After the handshake, `addTransport()` wires postal's message bus across the thread boundary.
+        Eight workers publish independently — the main thread sees all of it through a single wildcard subscription.
+    </Card>
+    <Card title="Wildcard subscriptions" icon="magnifier">
+        The main thread subscribes to `train.#` to capture status and position messages from every train.
+        The dispatch controller subscribes per-train to `dispatch.<id>.*` for hold, clear, and platform commands.
+        AMQP-style topic matching routes messages without any coupling between producers and consumers.
+    </Card>
+    <Card title="Bidirectional messaging" icon="right-arrow">
+        Workers publish status updates. The main thread publishes dispatch commands back — hold, platform reassign, clear.
+        Both directions flow over the same MessagePort transport. Workers react to commands mid-journey,
+        demonstrating that postal transports are full-duplex by default.
+    </Card>
+    <Card title="Wiretap observability" icon="open-book">
+        A wiretap on the main thread captures every envelope that flows through the bus and feeds the dispatch log.
+        Nothing is filtered — the log shows the raw pub/sub traffic as it happens, demonstrating
+        how wiretaps provide observability without modifying publishers or subscribers.
+    </Card>
+</CardGrid>
+
+---
+
+## Architecture
+
+```
+Main thread (dispatch + renderer)          Worker threads (one per train)
+─────────────────────────────────          ────────────────────────────────
+getChannel("train-dispatch")               getChannel("train-dispatch")
+addTransport(transport)                    addTransport(transport)
+      │                                           │
+      │  ◄── train.<id>.status ──────────────────  │  publish status updates
+      │  ◄── train.<id>.position ────────────────  │  publish position updates
+      │                                           │
+      │  ── dispatch.<id>.hold ─────────────────► │  hold train at platform
+      │  ── dispatch.<id>.platform ─────────────► │  reassign platform
+      │  ── dispatch.<id>.clear ────────────────► │  release hold
+      │                                           │
+      │  addWiretap() ──► dispatch log            │
+      │  render loop @ 30fps ──► stdout           │
+```
+
+When a train departs, the main thread recycles the board row: it pulls the next destination from a shuffled pool of 24 UK cities, spawns a fresh worker, and the split-flap animation cascades the new departure into the vacated slot.
+
+---
+
+## Running locally
+
+```bash
+# From the repo root
+pnpm install
+pnpm --filter @postal-examples/train-dispatch start
+```
+
+Requires **Node.js 22+** (uses `worker_threads`). Press **q** to quit.
+
+---
+
+## Source code
+
+The full source is in [`examples/train-dispatch/`](https://github.com/postaljs/postal.js/tree/master/examples/train-dispatch) in the postal.js repository.
+
+Key files:
+
+- `src/main.ts` — worker spawning, transport setup, render loop, departure recycling
+- `src/train-worker.ts` — per-train journey state machine (SCHEDULED → ON TIME → BOARDING → DEPARTED)
+- `src/dispatch.ts` — platform conflict detection and hold/clear/reassign logic
+- `src/display.ts` — terminal renderer with split-flap animated cells
+- `src/split-flap.ts` — per-character cycling animation engine (forward-only ratchet, like the real thing)
+- `src/schedule.ts` — initial timetable and recycled departure queue with 24 UK destinations
+- `src/ansi.ts` — ANSI escape sequences, truecolor SGR, box-drawing characters
+- `src/types.ts` — shared types (safe to import in both main thread and workers)

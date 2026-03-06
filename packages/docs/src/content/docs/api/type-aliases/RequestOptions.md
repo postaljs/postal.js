@@ -7,7 +7,7 @@ title: "RequestOptions"
 
 > **RequestOptions** = `object`
 
-Defined in: [packages/postal/src/channel.ts:154](https://github.com/postaljs/postal.js/blob/fe7a9189226397166332b0092d47ce426ac8daa9/packages/postal/src/channel.ts#L154)
+Defined in: [packages/postal/src/channel.ts:154](https://github.com/postaljs/postal.js/blob/00b79d0443d2e7a1569b3f81cfb235a0e565115e/packages/postal/src/channel.ts#L154)
 
 Options for `channel.request()`.
 
@@ -17,6 +17,6 @@ Options for `channel.request()`.
 
 > `optional` **timeout**: `number`
 
-Defined in: [packages/postal/src/channel.ts:156](https://github.com/postaljs/postal.js/blob/fe7a9189226397166332b0092d47ce426ac8daa9/packages/postal/src/channel.ts#L156)
+Defined in: [packages/postal/src/channel.ts:156](https://github.com/postaljs/postal.js/blob/00b79d0443d2e7a1569b3f81cfb235a0e565115e/packages/postal/src/channel.ts#L156)
 
 Timeout in milliseconds. Defaults to 5000.
