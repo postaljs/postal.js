@@ -57,7 +57,32 @@ events.publish("order.item.placed", { sku: "DeLorean" });
 
 ## Typed Channels
 
-Declare your channel shapes once via module augmentation and get full type inference everywhere — no generics needed at the call site.
+Two ways to get full payload type inference on your channels.
+
+### Explicit type map
+
+Pass your topic map as a generic to `getChannel`:
+
+```ts
+type OrderTopicMap = {
+    "item.placed": { sku: string; qty: number };
+    "item.cancelled": { sku: string; reason: string };
+};
+
+const orders = getChannel<OrderTopicMap>("orders");
+
+// payload is typed as { sku: string; qty: number }
+orders.subscribe("item.placed", envelope => {
+    console.log(envelope.payload.sku);
+});
+
+// TypeScript error — "item.shipped" isn't in the topic map
+orders.publish("item.shipped", { sku: "X" });
+```
+
+### Registry augmentation
+
+If many files share the same channel, declare the map once via module augmentation and skip the generic at every call site:
 
 ```ts
 // types/postal.d.ts (or anywhere in your project)
@@ -76,18 +101,14 @@ declare module "postal" {
 ```ts
 import { getChannel } from "postal";
 
-const orders = getChannel("orders");
+const orders = getChannel("orders"); // topic map inferred from registry
 
-// payload is typed as { sku: string; qty: number }
 orders.subscribe("item.placed", envelope => {
-    console.log(envelope.payload.sku);
+    console.log(envelope.payload.sku); // typed!
 });
-
-// TypeScript error — "item.shipped" isn't in the registry
-orders.publish("item.shipped", { sku: "X" });
 ```
 
-Channels not in the registry fall back to `Record<string, unknown>` — no augmentation required to get started.
+Both approaches produce the same typed `Channel`. Channels not in the registry (and without an explicit type map) fall back to `Record<string, unknown>` — no typing required to get started.
 
 ## Request / Handle (RPC)
 

@@ -714,25 +714,39 @@ const channels = new Map<string, Channel>();
  * Gets or creates a singleton channel by name.
  *
  * The first call with a given name creates the channel. Subsequent calls
- * return the same instance. The `TMap` generic is compile-time only —
- * all call sites referencing the same channel name should use the same TMap.
+ * return the same instance. The type map generic is compile-time only —
+ * all call sites referencing the same channel name should use the same map.
+ *
+ * Two ways to type a channel:
+ *
+ * 1. **Explicit type map** — pass `TMap` directly:
+ *    ```ts
+ *    const ch = getChannel<MyTopicMap>("orders");
+ *    ```
+ *
+ * 2. **Registry augmentation** — declare once, infer everywhere:
+ *    ```ts
+ *    declare module "postal" {
+ *      interface ChannelRegistry { orders: MyTopicMap }
+ *    }
+ *    const ch = getChannel("orders"); // MyTopicMap inferred
+ *    ```
  *
  * @param name - The channel name (defaults to `"__default__"`)
  * @returns The singleton channel instance
  */
-export const getChannel = <TName extends string = "__default__">(
-    name: TName = "__default__" as TName
-): Channel<ResolveChannelMap<TName>> => {
+export function getChannel<TMap extends Record<string, unknown>>(name: string): Channel<TMap>;
+export function getChannel<TName extends string = "__default__">(
+    name?: TName
+): Channel<ResolveChannelMap<TName>>;
+export function getChannel(name: string = "__default__"): Channel {
     let channel = channels.get(name);
     if (!channel) {
         channel = createChannel(name);
         channels.set(name, channel);
     }
-    // Double cast required because TS can't narrow the unresolved conditional
-    // type ResolveChannelMap<TName>. This is purely compile-time — at runtime
-    // it's the same channel object regardless of TMap.
-    return channel as unknown as Channel<ResolveChannelMap<TName>>;
-};
+    return channel;
+}
 
 /**
  * Dispatches an externally-received envelope into the local bus.
