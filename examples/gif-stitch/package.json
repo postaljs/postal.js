@@ -1,6 +1,6 @@
 {
     "name": "@postal-examples/gif-stitch",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "private": true,
     "description": "Gif Stitch Reborn — webcam-to-animated-GIF recorder powered by postal's MessagePort transport",
     "scripts": {

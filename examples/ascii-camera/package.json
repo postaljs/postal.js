@@ -1,6 +1,6 @@
 {
     "name": "@postal-examples/ascii-camera",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "private": true,
     "type": "module",
     "description": "Live camera → ASCII art via postal worker thread transport",

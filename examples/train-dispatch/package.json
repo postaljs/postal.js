@@ -1,6 +1,6 @@
 {
     "name": "@postal-examples/train-dispatch",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "private": true,
     "type": "module",
     "description": "Split-flap departure board — postal pub/sub across Node.js worker threads",

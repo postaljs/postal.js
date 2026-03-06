@@ -1,5 +1,11 @@
 # postal
 
+## 3.1.0
+
+### Minor Changes
+
+- 0234932: node worker support added for messageport + typed channel support TMap generic overload
+
 ## 3.0.0
 
 ### Major Changes

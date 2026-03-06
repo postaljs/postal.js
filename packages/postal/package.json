@@ -1,6 +1,6 @@
 {
     "name": "postal",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "description": "Pub/Sub library providing wildcard subscriptions, complex message handling, etc. Works server and client-side.",
     "author": "Jim Cowart (http://ifandelse.com)",
     "license": "MIT",

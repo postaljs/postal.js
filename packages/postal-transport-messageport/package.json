@@ -1,6 +1,6 @@
 {
     "name": "postal-transport-messageport",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "description": "MessagePort transport for postal — bridges pub/sub across iframes, web workers, and Node.js worker_threads.",
     "author": "Jim Cowart (http://ifandelse.com)",
     "license": "MIT",
@@ -67,7 +67,7 @@
         "lint": "eslint 'src/**/*.{ts,tsx}'"
     },
     "peerDependencies": {
-        "postal": "^3.0.0"
+        "postal": "^3.1.0"
     },
     "devDependencies": {
         "postal": "workspace:*",
