@@ -6,36 +6,47 @@ npm: `postal-transport-messageport` | peer dep: `postal ^3.0.0`
 
 ## What This Package Does
 
-Bridges postal pub/sub across execution boundaries that communicate via `MessagePort`. The primary use cases are iframes and dedicated Web Workers. Each pair of connected postal instances exchanges envelopes through a dedicated `MessagePort`.
+Bridges postal pub/sub across execution boundaries that communicate via `MessagePort`. The primary use cases are iframes, dedicated Web Workers, and Node.js worker threads. Each pair of connected postal instances exchanges envelopes through a dedicated `MessagePort`.
 
 A handshake (SYN/ACK over `postMessage`) establishes the port connection before any envelopes flow. This avoids the race condition where one side starts listening after the other has already sent.
+
+The package has two entry points:
+
+- `postal-transport-messageport` — browser APIs (iframes, web workers)
+- `postal-transport-messageport/node` — Node.js `worker_threads` helpers + shared core
 
 ---
 
 ## When to Use This vs BroadcastChannel Transport
 
-| Scenario                       | Use                                                                    |
-| ------------------------------ | ---------------------------------------------------------------------- |
-| iframe ↔ parent window         | `postal-transport-messageport`                                         |
-| Dedicated Worker ↔ main thread | `postal-transport-messageport`                                         |
-| Same-origin tabs / windows     | `postal-transport-broadcastchannel`                                    |
-| Cross-origin communication     | `postal-transport-messageport` (with `targetOrigin` / `allowedOrigin`) |
+| Scenario                                 | Use                                                                    |
+| ---------------------------------------- | ---------------------------------------------------------------------- |
+| iframe ↔ parent window                   | `postal-transport-messageport`                                         |
+| Dedicated Worker ↔ main thread (browser) | `postal-transport-messageport`                                         |
+| Node.js worker_threads ↔ main thread     | `postal-transport-messageport/node`                                    |
+| Same-origin tabs / windows               | `postal-transport-broadcastchannel`                                    |
+| Cross-origin communication               | `postal-transport-messageport` (with `targetOrigin` / `allowedOrigin`) |
 
 ---
 
 ## All Exports
+
+### Default entry point (`postal-transport-messageport`)
 
 ```ts
 // High-level: iframes
 connectToIframe(iframe: HTMLIFrameElement, options?: ConnectOptions): Promise<Transport>
 connectToParent(options?: ConnectOptions): Promise<Transport>
 
-// High-level: dedicated workers
+// High-level: dedicated workers (browser)
 connectToWorker(worker: Worker, options?: Pick<ConnectOptions, 'timeout'>): Promise<Transport>
 connectToHost(options?: Pick<ConnectOptions, 'timeout'>): Promise<Transport>
 
 // Low-level: raw MessagePort
 createMessagePortTransport(port: MessagePort): Transport
+
+// Transferables
+markTransferable<T extends object>(payload: T, transferables: Transferable[]): T
 
 // Error
 PostalHandshakeTimeoutError  // Props: timeout (number)
@@ -46,6 +57,23 @@ ConnectOptions               // { timeout?, targetOrigin?, allowedOrigin? }
 // Protocol constant
 PROTOCOL_VERSION             // number, currently 1
 ```
+
+### Node.js entry point (`postal-transport-messageport/node`)
+
+```ts
+// High-level: Node.js worker_threads
+connectToWorkerThread(worker: Worker, options?: Pick<ConnectOptions, 'timeout'>): Promise<Transport>
+connectFromWorkerThread(options?: Pick<ConnectOptions, 'timeout'>): Promise<Transport>
+
+// Shared core (also available from default entry point)
+createMessagePortTransport(port: MessagePort): Transport
+markTransferable<T extends object>(payload: T, transferables: Transferable[]): T
+PostalHandshakeTimeoutError
+PROTOCOL_VERSION
+ConnectOptions
+```
+
+The Node entry point deliberately excludes browser helpers (`connectToIframe`, `connectToParent`, `connectToWorker`, `connectToHost`) so Node-only codebases avoid importing browser globals.
 
 ---
 
@@ -142,6 +170,32 @@ addTransport(transport);
 getChannel('tasks').subscribe('task.#', (envelope) => { ... });
 ```
 
+### Node.js worker thread bridge
+
+```ts
+// Main thread:
+import { Worker } from "node:worker_threads";
+import { connectToWorkerThread } from "postal-transport-messageport/node";
+import { addTransport } from "postal";
+
+const worker = new Worker(new URL("./my-worker.js", import.meta.url));
+const transport = await connectToWorkerThread(worker, { timeout: 5000 });
+addTransport(transport);
+```
+
+```ts
+// my-worker.js:
+import { connectFromWorkerThread } from "postal-transport-messageport/node";
+import { addTransport, getChannel } from "postal";
+
+const transport = await connectFromWorkerThread({ timeout: 5000 });
+addTransport(transport);
+
+getChannel("compute").subscribe("task.#", (envelope) => { ... });
+```
+
+`connectFromWorkerThread()` listens on `parentPort` (from `node:worker_threads`). It rejects immediately if called outside a worker thread.
+
 ### Low-level: raw MessagePort
 
 If you're managing `MessageChannel` / `MessagePort` yourself (e.g., for SharedWorker, custom protocol, or testing):
@@ -216,3 +270,7 @@ The transport's `dispose()` is called automatically when:
 **The port is not started until `createMessagePortTransport()` is called.** The handshake functions use `port1.start()` during the ACK phase, but the transferred `port2` is started inside the transport factory.
 
 **Protocol messages are wrapped in `{ type: "postal:envelope", envelope: ... }`.** Raw envelopes are never sent directly — they're always wrapped so postal messages can coexist with other postMessage traffic on the same port or window.
+
+**`connectFromWorkerThread` uses `parentPort`, not `globalThis`.** In Node.js worker threads, the SYN arrives via the `parentPort` message channel (from `node:worker_threads`), not a `globalThis` message event. The handshake protocol is identical — only the plumbing differs.
+
+**Node.js `MessagePort` is type-cast to DOM `MessagePort`.** Node's `MessagePort` has narrower TypeScript types (`onmessage`/`onmessageerror` are absent), but the runtime contract is identical. The implementation casts to DOM `MessagePort` for compatibility with `createMessagePortTransport()`.

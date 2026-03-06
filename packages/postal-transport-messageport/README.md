@@ -1,8 +1,8 @@
 # postal-transport-messageport
 
-MessagePort transport for [postal](https://github.com/postaljs/postal.js) — bridges pub/sub messaging across iframes and web workers using the [Channel Messaging API](https://developer.mozilla.org/en-US/docs/Web/API/Channel_Messaging_API).
+MessagePort transport for [postal](https://github.com/postaljs/postal.js) — bridges pub/sub messaging across iframes, web workers, and Node.js worker threads using the [Channel Messaging API](https://developer.mozilla.org/en-US/docs/Web/API/Channel_Messaging_API).
 
-Each transport wraps a dedicated `MessagePort`, giving you a private communication pipe that doesn't interfere with other `postMessage` traffic on the window.
+Each transport wraps a dedicated `MessagePort`, giving you a private communication pipe that doesn't interfere with other `postMessage` traffic on the window or worker.
 
 ## Install
 
@@ -68,6 +68,36 @@ getChannel("compute").handle("crunch.numbers", ({ n }) => {
 });
 ```
 
+### Node.js Worker Thread
+
+Node.js helpers are a separate import to avoid pulling in browser globals:
+
+```ts
+// --- Main thread ---
+import { Worker } from "node:worker_threads";
+import { getChannel, addTransport } from "postal";
+import { connectToWorkerThread } from "postal-transport-messageport/node";
+
+const worker = new Worker("./worker.js");
+const transport = await connectToWorkerThread(worker);
+addTransport(transport);
+
+const result = await getChannel("compute").request("crunch.numbers", { n: 1000 });
+```
+
+```ts
+// --- worker.js ---
+import { getChannel, addTransport } from "postal";
+import { connectFromWorkerThread } from "postal-transport-messageport/node";
+
+const transport = await connectFromWorkerThread();
+addTransport(transport);
+
+getChannel("compute").handle("crunch.numbers", ({ n }) => {
+    return { result: fibonacci(n) };
+});
+```
+
 ## API
 
 ### `createMessagePortTransport(port: MessagePort): Transport`
@@ -103,6 +133,18 @@ Called from the **main thread**. Same handshake pattern as iframes, but targets 
 
 Called from **inside the worker**. Listens for the handshake from the main thread, acknowledges it, and resolves with a transport.
 
+### `connectToWorkerThread(worker, options?): Promise<Transport>`
+
+> Import from `postal-transport-messageport/node`
+
+Called from the **main thread** to connect to a postal instance in a Node.js `worker_threads` Worker. Creates a `MessageChannel`, transfers one port to the worker, and waits for an acknowledgment. The worker must call `connectFromWorkerThread()`.
+
+### `connectFromWorkerThread(options?): Promise<Transport>`
+
+> Import from `postal-transport-messageport/node`
+
+Called from **inside a worker thread**. Listens on `parentPort` for the handshake initiated by the main thread, acknowledges it, and resolves with a transport. Rejects immediately if called outside a worker thread (i.e. `parentPort` is `null`).
+
 ### Options
 
 ```ts
@@ -113,14 +155,14 @@ type ConnectOptions = {
 };
 ```
 
-`connectToWorker` and `connectToHost` only accept `timeout` (workers have no origin concept).
+`connectToWorker`, `connectToHost`, `connectToWorkerThread`, and `connectFromWorkerThread` only accept `timeout` (workers have no origin concept).
 
 ## How It Works
 
-1. The initiator (`connectToIframe` / `connectToWorker`) creates a `MessageChannel` and sends a `postal:syn` message to the target, transferring `port2`.
-2. The receiver (`connectToParent` / `connectToHost`) picks up the SYN and the transferred port, then sends a `postal:ack` back through the port.
+1. The initiator (`connectToIframe` / `connectToWorker` / `connectToWorkerThread`) creates a `MessageChannel` and sends a `postal:syn` message to the target, transferring `port2`.
+2. The receiver (`connectToParent` / `connectToHost` / `connectFromWorkerThread`) picks up the SYN and the transferred port, then sends a `postal:ack` back through the port.
 3. The initiator receives the ACK and both sides wrap their port in `createMessagePortTransport()`.
-4. From here, envelopes flow as `postal:envelope` messages on the private port. No more traffic on the shared `window.message` event.
+4. From here, envelopes flow as `postal:envelope` messages on the private port. No more traffic on the shared `window.message` event or `parentPort`.
 
 All protocol messages are namespaced with `postal:` to avoid collisions with other `postMessage` users.
 
@@ -143,6 +185,21 @@ addTransport(t4);
 ```
 
 Messages between iframe1 and iframe2 hop through the parent's bus — the parent is the hub.
+
+Same pattern works in Node.js with worker threads:
+
+```ts
+import { Worker } from "node:worker_threads";
+import { connectToWorkerThread } from "postal-transport-messageport/node";
+
+const [t1, t2] = await Promise.all([
+    connectToWorkerThread(new Worker("./compute.js")),
+    connectToWorkerThread(new Worker("./io.js")),
+]);
+
+addTransport(t1, { filter: { channels: ["compute"] } });
+addTransport(t2, { filter: { channels: ["io"] } });
+```
 
 ## Security
 
