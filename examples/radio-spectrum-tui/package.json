@@ -1,0 +1,28 @@
+{
+    "name": "@postal-examples/radio-spectrum-tui",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "description": "Internet radio spectrum analyzer — Ink/React TUI version of radio-spectrum",
+    "scripts": {
+        "start": "tsx src/main.tsx",
+        "dev": "tsx watch src/main.tsx",
+        "test": "jest --passWithNoTests",
+        "test:watch": "jest --watch"
+    },
+    "dependencies": {
+        "chalk": "^5.4.1",
+        "ink": "^5.2.1",
+        "postal": "workspace:*",
+        "postal-transport-childprocess": "workspace:*",
+        "react": "^18.3.1"
+    },
+    "devDependencies": {
+        "@types/react": "^18.3.23",
+        "ink-testing-library": "^4.0.0",
+        "jest": "^30.2.0",
+        "ts-jest": "^29.4.6",
+        "tsx": "^4.19.4",
+        "typescript": "^5.9.3"
+    }
+}
