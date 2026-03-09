@@ -18,16 +18,32 @@ const PACKAGE_SOURCES: Record<string, string> = {
         PACKAGES_DIR,
         "postal-transport-broadcastchannel/src/index.ts"
     ),
+    "postal-transport-serviceworker": resolve(
+        PACKAGES_DIR,
+        "postal-transport-serviceworker/src/index.ts"
+    ),
+    // Subpath export — needs its own entry so Vite resolves the /sw entrypoint
+    // to source without requiring a pre-built dist/sw.mjs.
+    "postal-transport-serviceworker/sw": resolve(
+        PACKAGES_DIR,
+        "postal-transport-serviceworker/src/sw.ts"
+    ),
 };
 
 export const workspaceSource = (...packages: string[]): Plugin => {
     const targets = packages.length > 0 ? packages : Object.keys(PACKAGE_SOURCES);
-    const alias: Record<string, string> = {};
-    for (const name of targets) {
-        if (PACKAGE_SOURCES[name]) {
-            alias[name] = PACKAGE_SOURCES[name];
-        }
-    }
+
+    // Build alias list as an array so order is guaranteed. More-specific subpath
+    // entries (e.g. "postal-transport-serviceworker/sw") must come before their
+    // parent package entry ("postal-transport-serviceworker") — Vite/Rollup tests
+    // aliases in order and the first match wins. A plain object doesn't guarantee
+    // insertion order for the match loop, and on some Vite versions the parent
+    // entry is tested first, causing "path/sw" to be resolved as
+    // "dist/index.ts/sw" (ENOTDIR).
+    const alias = targets
+        .filter(name => Boolean(PACKAGE_SOURCES[name]))
+        .sort((a, b) => b.length - a.length) // longer (more specific) keys first
+        .map(name => ({ find: name, replacement: PACKAGE_SOURCES[name] }));
 
     return {
         name: "workspace-source",
