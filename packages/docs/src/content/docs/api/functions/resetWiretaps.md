@@ -7,7 +7,7 @@ title: "resetWiretaps"
 
 > **resetWiretaps**(): `void`
 
-Defined in: [packages/postal/src/channel.ts:374](https://github.com/postaljs/postal.js/blob/02349324ca9380251033ae2985f56a03db2db674/packages/postal/src/channel.ts#L374)
+Defined in: [packages/postal/src/channel.ts:374](https://github.com/postaljs/postal.js/blob/f7f08d2ed5f3d1a11bc1606b041acfcc8cde5e03/packages/postal/src/channel.ts#L374)
 
 Removes all registered wiretaps.
 Also called automatically during `resetChannels()`.
