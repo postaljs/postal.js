@@ -88,7 +88,9 @@ const buildTopicBadge = (topic: string): string => {
               ? "topic-badge-theme"
               : ns === "prefs"
                 ? "topic-badge-prefs"
-                : "topic-badge-unknown";
+                : ns === "sync"
+                  ? "topic-badge-sync"
+                  : "topic-badge-unknown";
     return `<span class="topic-badge ${cls}">${escapeHtml(topic)}</span>`;
 };
 
@@ -227,6 +229,24 @@ export const addActivityEntry = (entry: ActivityEntry): void => {
 
     // Use live DOM count so the badge reflects evictions accurately.
     getEl("activity-count").textContent = String(feed.children.length);
+};
+
+/**
+ * Show the connected-tab count and make the indicator visible.
+ * Called by main.ts from the sync.clients.changed subscriber.
+ * The container starts hidden so it only appears once the SW has connected.
+ */
+export const setConnectedTabCount = (count: number): void => {
+    getEl("connected-tabs").textContent = String(count);
+    getEl("connected-tabs-container").style.display = "";
+};
+
+/**
+ * Hide the connected-tab count indicator.
+ * Called when the SW disconnects so a stale count isn't shown.
+ */
+export const hideConnectedTabCount = (): void => {
+    getEl("connected-tabs-container").style.display = "none";
 };
 
 /**
