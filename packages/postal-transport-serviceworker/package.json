@@ -62,6 +62,9 @@
         "test:watch": "jest --watch",
         "lint": "eslint 'src/**/*.{ts,tsx}'"
     },
+    "dependencies": {
+        "postal-transport-messageport": "workspace:*"
+    },
     "peerDependencies": {
         "postal": "^3.1.0"
     },

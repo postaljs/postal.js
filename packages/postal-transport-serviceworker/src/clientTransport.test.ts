@@ -1,654 +1,458 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export default {};
 
-import type { Envelope, Transport } from "postal";
-import { createClientTransport } from "./clientTransport";
-import { PostalServiceWorkerError } from "./errors";
+import { PostalSwHandshakeTimeoutError, PostalSwNotActiveError } from "./errors";
+import { createSwAck } from "./protocol";
 
-// --- Mock setup ---
-// We assign mocks to globalThis.navigator before each test.
-// The transport reads navigator.serviceWorker at call time (not module load time),
-// so assigning before the factory call is sufficient.
+// --- Module-level mock declarations ---
 
-const mockControllerPostMessage = jest.fn();
-const mockSwAddEventListener = jest.fn();
-const mockSwRemoveEventListener = jest.fn();
+const mockAddTransport = jest.fn();
+const mockCreateMessagePortTransport = jest.fn();
+
+jest.mock("postal", () => ({
+    addTransport: mockAddTransport,
+}));
+
+jest.mock("postal-transport-messageport", () => ({
+    createMessagePortTransport: mockCreateMessagePortTransport,
+}));
 
 // --- Helpers ---
 
-const makeEnvelope = (overrides: Partial<Envelope> = {}): Envelope => ({
-    id: "env-42",
-    type: "publish",
-    channel: "deep-space-9",
-    topic: "runabout.departed",
-    payload: { destination: "gamma-quadrant" },
-    timestamp: 2369000000000,
-    ...overrides,
-});
-
 /**
- * Retrieves the "message" event listener registered by the transport on
- * navigator.serviceWorker and invokes it with the given data.
+ * Builds a mock ServiceWorkerRegistration with a controllable active worker.
  */
-const fireInboundMessage = (data: unknown): void => {
-    const calls = mockSwAddEventListener.mock.calls;
-    const messageCall = calls.find(([event]: [string, any]) => event === "message");
-    if (!messageCall) {
-        throw new Error("No 'message' event listener was registered on navigator.serviceWorker");
-    }
-    const handler = messageCall[1] as (event: MessageEvent) => void;
-    handler({ data } as MessageEvent);
+const makeMockRegistration = (
+    activeOverride?: Partial<ServiceWorker> | null
+): ServiceWorkerRegistration => {
+    const active =
+        activeOverride === null
+            ? null
+            : ({ postMessage: jest.fn(), ...activeOverride } as unknown as ServiceWorker);
+
+    return { active } as unknown as ServiceWorkerRegistration;
 };
 
 /**
- * Installs a mock navigator.serviceWorker with the given controller value.
+ * Creates a fake MessagePort pair backed by EventTargets so messages actually
+ * flow between port1 and port2. Used to simulate the real MessageChannel behavior.
  */
-const installMockNavigator = (controller: ServiceWorker | null): void => {
-    (global as any).navigator = {
-        serviceWorker: {
-            controller,
-            addEventListener: mockSwAddEventListener,
-            removeEventListener: mockSwRemoveEventListener,
-        },
+const createFakeMessageChannel = () => {
+    const port1EventTarget = new EventTarget();
+    const port2EventTarget = new EventTarget();
+
+    const makePort = (localTarget: EventTarget, remoteTarget: EventTarget): MessagePort => {
+        return {
+            addEventListener: localTarget.addEventListener.bind(localTarget),
+            removeEventListener: localTarget.removeEventListener.bind(localTarget),
+            dispatchEvent: localTarget.dispatchEvent.bind(localTarget),
+            postMessage: jest.fn((data: unknown) => {
+                remoteTarget.dispatchEvent(new MessageEvent("message", { data }));
+            }),
+            start: jest.fn(),
+            close: jest.fn(),
+        } as unknown as MessagePort;
     };
+
+    const port1 = makePort(port1EventTarget, port2EventTarget);
+    const port2 = makePort(port2EventTarget, port1EventTarget);
+
+    return { port1, port2 };
 };
 
-describe("createClientTransport", () => {
+describe("connectToServiceWorker", () => {
+    let connectToServiceWorker: typeof import("./clientTransport").connectToServiceWorker;
+    let mockRemoveTransport: jest.Mock;
+    let mockTransport: { send: jest.Mock; subscribe: jest.Mock; dispose: jest.Mock };
+
     beforeEach(() => {
         jest.clearAllMocks();
-        // Reset implementations so no stale mockImplementation leaks between tests.
-        // clearAllMocks() does not reset implementations — only resetAllMocks() does,
-        // but that's prohibited by the style guide for the outer beforeEach.
-        mockSwAddEventListener.mockReset();
+        jest.resetModules();
+
+        mockRemoveTransport = jest.fn();
+        mockTransport = {
+            send: jest.fn(),
+            subscribe: jest.fn(),
+            dispose: jest.fn(),
+        };
     });
 
-    afterEach(() => {
-        delete (global as any).navigator;
-    });
-
-    describe("when navigator.serviceWorker is not available", () => {
+    describe("when registration.active is null", () => {
         let rejectedError: unknown;
 
         beforeEach(async () => {
-            delete (global as any).navigator;
+            ({ connectToServiceWorker } = await import("./clientTransport"));
+            const registration = makeMockRegistration(null);
+
             try {
-                await createClientTransport();
+                await connectToServiceWorker(registration);
             } catch (err) {
                 rejectedError = err;
             }
         });
 
-        it("should reject with PostalServiceWorkerError", () => {
-            expect(rejectedError).toBeInstanceOf(PostalServiceWorkerError);
+        it("should reject with PostalSwNotActiveError", () => {
+            expect(rejectedError).toBeInstanceOf(Error);
+            expect((rejectedError as Error).name).toBe("PostalSwNotActiveError");
         });
 
-        it("should include a descriptive message about availability", () => {
-            expect((rejectedError as PostalServiceWorkerError).message).toMatch(/not available/i);
-        });
-    });
-
-    describe("when a controller is immediately available", () => {
-        let transport: Transport;
-
-        beforeEach(async () => {
-            installMockNavigator({ postMessage: mockControllerPostMessage } as any);
-            transport = await createClientTransport();
-        });
-
-        afterEach(() => {
-            transport.dispose?.();
-        });
-
-        it("should resolve with a transport object", () => {
-            expect(transport).toBeDefined();
-            expect(typeof transport.send).toBe("function");
-            expect(typeof transport.subscribe).toBe("function");
-        });
-
-        it("should register a message listener on navigator.serviceWorker", () => {
-            expect(mockSwAddEventListener).toHaveBeenCalledWith("message", expect.any(Function));
+        it("should include a message about registration.active", () => {
+            expect((rejectedError as Error).message).toMatch(/active/i);
         });
     });
 
-    describe("when the controller is initially null and controllerchange fires", () => {
-        let transport: Transport;
+    describe("when the SW acknowledges the handshake", () => {
+        let result: () => void;
+        let capturedPort2: MessagePort;
+        let registration: ServiceWorkerRegistration;
 
         beforeEach(async () => {
-            installMockNavigator(null);
+            ({ connectToServiceWorker } = await import("./clientTransport"));
 
-            // When addEventListener is called for "controllerchange", install a controller
-            // and immediately fire the event to simulate the SW claiming the client.
-            mockSwAddEventListener.mockImplementation((event: string, handler: () => void) => {
-                if (event === "controllerchange") {
-                    (global as any).navigator.serviceWorker.controller = {
-                        postMessage: mockControllerPostMessage,
-                    };
-                    handler();
+            mockCreateMessagePortTransport.mockReturnValue(mockTransport);
+            mockAddTransport.mockReturnValue(mockRemoveTransport);
+
+            registration = makeMockRegistration();
+            const { port1, port2 } = createFakeMessageChannel();
+
+            // Intercept MessageChannel construction so we control the ports
+            jest.spyOn(globalThis, "MessageChannel" as any).mockImplementation(() => ({
+                port1,
+                port2,
+            }));
+
+            // Capture port2 that the SW would receive so we can send the ack back
+            (registration.active!.postMessage as jest.Mock).mockImplementation(
+                (_data: unknown, transfer: MessagePort[]) => {
+                    capturedPort2 = transfer[0];
+                    // SW sends ack back through port2 (which flows to port1 via the fake channel)
+                    capturedPort2.postMessage(createSwAck());
                 }
-            });
+            );
 
-            transport = await createClientTransport({ timeout: 1000 });
+            result = await connectToServiceWorker(registration, { timeout: 1000 });
         });
 
         afterEach(() => {
-            transport.dispose?.();
+            jest.restoreAllMocks();
         });
 
-        it("should resolve with a transport", () => {
-            expect(transport).toBeDefined();
+        it("should resolve with the removeTransport function", () => {
+            expect(result).toBe(mockRemoveTransport);
+        });
+
+        it("should call createMessagePortTransport with the port", () => {
+            expect(mockCreateMessagePortTransport).toHaveBeenCalledTimes(1);
+            expect(mockCreateMessagePortTransport).toHaveBeenCalledWith(
+                expect.objectContaining({ postMessage: expect.any(Function) })
+            );
+        });
+
+        it("should call addTransport with the created transport", () => {
+            expect(mockAddTransport).toHaveBeenCalledTimes(1);
+            expect(mockAddTransport).toHaveBeenCalledWith(mockTransport);
+        });
+
+        it("should send a sw-syn to registration.active with port2 transferred", () => {
+            expect(registration.active!.postMessage).toHaveBeenCalledTimes(1);
+            const [data, transfer] = (registration.active!.postMessage as jest.Mock).mock.calls[0];
+            expect(data).toEqual(expect.objectContaining({ type: "postal:sw-syn" }));
+            expect(transfer).toHaveLength(1);
         });
     });
 
-    describe("when no controller appears before the timeout", () => {
+    describe("when the SW does not respond within the timeout", () => {
         let rejectedError: unknown;
 
         beforeEach(async () => {
             jest.useFakeTimers();
-            installMockNavigator(null);
+            ({ connectToServiceWorker } = await import("./clientTransport"));
 
-            // Don't fire controllerchange — let the timeout expire
-            mockSwAddEventListener.mockImplementation(() => {});
+            const registration = makeMockRegistration();
+            // postMessage is a no-op — SW never sends ack
+            (registration.active!.postMessage as jest.Mock).mockImplementation(() => {});
 
-            const transportPromise = createClientTransport({ timeout: 2000 }).catch(err => {
+            const promise = connectToServiceWorker(registration, { timeout: 500 }).catch(err => {
                 rejectedError = err;
             });
 
-            jest.advanceTimersByTime(2001);
-            await transportPromise;
+            jest.advanceTimersByTime(501);
+            await promise;
         });
 
         afterEach(() => {
             jest.useRealTimers();
         });
 
-        it("should reject with PostalServiceWorkerError", () => {
-            expect(rejectedError).toBeInstanceOf(PostalServiceWorkerError);
+        it("should reject with PostalSwHandshakeTimeoutError", () => {
+            expect(rejectedError).toBeInstanceOf(Error);
+            expect((rejectedError as Error).name).toBe("PostalSwHandshakeTimeoutError");
         });
 
-        it("should include a message about the timeout duration", () => {
-            expect((rejectedError as PostalServiceWorkerError).message).toMatch(/2000ms/);
-        });
-
-        it("should include a mention of clients.claim()", () => {
-            expect((rejectedError as PostalServiceWorkerError).message).toMatch(/clients\.claim/);
+        it("should include the timeout value on the error", () => {
+            expect((rejectedError as PostalSwHandshakeTimeoutError).timeout).toBe(500);
         });
     });
 
-    describe("when send is called on an active transport", () => {
-        let transport: Transport;
-        let envelope: Envelope;
+    describe("when non-ack messages arrive on the port before the real ack", () => {
+        let result: () => void;
 
         beforeEach(async () => {
-            installMockNavigator({ postMessage: mockControllerPostMessage } as any);
-            transport = await createClientTransport();
-            envelope = makeEnvelope({ topic: "photon.torpedo.launch" });
-            transport.send(envelope);
-        });
+            ({ connectToServiceWorker } = await import("./clientTransport"));
 
-        afterEach(() => {
-            transport.dispose?.();
-        });
+            mockCreateMessagePortTransport.mockReturnValue(mockTransport);
+            mockAddTransport.mockReturnValue(mockRemoveTransport);
 
-        it("should call postMessage on the controller once", () => {
-            expect(mockControllerPostMessage).toHaveBeenCalledTimes(1);
-        });
+            const registration = makeMockRegistration();
+            const { port1, port2 } = createFakeMessageChannel();
 
-        it("should wrap the envelope in the postal:envelope protocol shape", () => {
-            expect(mockControllerPostMessage).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    type: "postal:envelope",
-                    envelope,
-                })
+            jest.spyOn(globalThis, "MessageChannel" as any).mockImplementation(() => ({
+                port1,
+                port2,
+            }));
+
+            (registration.active!.postMessage as jest.Mock).mockImplementation(
+                (_data: unknown, transfer: MessagePort[]) => {
+                    const receivedPort = transfer[0];
+                    // First send noise, then the real ack
+                    receivedPort.postMessage({ type: "random:noise" });
+                    receivedPort.postMessage({ type: "postal:envelope", envelope: {} });
+                    receivedPort.postMessage(createSwAck());
+                }
             );
-        });
-    });
 
-    describe("when send is called but the controller is null", () => {
-        let transport: Transport;
-
-        beforeEach(async () => {
-            installMockNavigator({ postMessage: mockControllerPostMessage } as any);
-            transport = await createClientTransport();
-            (global as any).navigator.serviceWorker.controller = null;
-            transport.send(makeEnvelope());
+            result = await connectToServiceWorker(registration, { timeout: 1000 });
         });
 
         afterEach(() => {
-            transport.dispose?.();
+            jest.restoreAllMocks();
         });
 
-        it("should not call postMessage", () => {
-            expect(mockControllerPostMessage).not.toHaveBeenCalled();
-        });
-    });
-
-    describe("when send is called after dispose", () => {
-        let transport: Transport;
-
-        beforeEach(async () => {
-            installMockNavigator({ postMessage: mockControllerPostMessage } as any);
-            transport = await createClientTransport();
-            transport.dispose?.();
-            transport.send(makeEnvelope());
-        });
-
-        it("should not call postMessage", () => {
-            expect(mockControllerPostMessage).not.toHaveBeenCalled();
+        it("should ignore non-ack messages and resolve on the real ack", () => {
+            expect(result).toBe(mockRemoveTransport);
         });
     });
 
-    describe("when an inbound postal:envelope message arrives", () => {
-        let transport: Transport;
-        let receivedEnvelope: Envelope;
+    describe("when onDisconnect is provided and controllerchange fires", () => {
+        let onDisconnect: jest.Mock;
+        let controllerChangeHandler: EventListener;
 
         beforeEach(async () => {
-            installMockNavigator({ postMessage: mockControllerPostMessage } as any);
-            transport = await createClientTransport();
-            transport.subscribe(env => {
-                receivedEnvelope = env;
-            });
-            const envelope = makeEnvelope({ topic: "shields.raised" });
-            fireInboundMessage({ type: "postal:envelope", version: 1, envelope });
-        });
+            ({ connectToServiceWorker } = await import("./clientTransport"));
 
-        afterEach(() => {
-            transport.dispose?.();
-        });
+            onDisconnect = jest.fn();
+            mockCreateMessagePortTransport.mockReturnValue(mockTransport);
+            mockAddTransport.mockReturnValue(mockRemoveTransport);
 
-        it("should deliver the envelope to the subscriber", () => {
-            expect(receivedEnvelope).toEqual(expect.objectContaining({ topic: "shields.raised" }));
-        });
-    });
+            const mockSwAddEventListener = jest.fn();
+            const mockSwRemoveEventListener = jest.fn();
 
-    describe("when a non-postal message arrives", () => {
-        let transport: Transport;
-        let callback: jest.Mock;
-
-        beforeEach(async () => {
-            installMockNavigator({ postMessage: mockControllerPostMessage } as any);
-            transport = await createClientTransport();
-            callback = jest.fn();
-            transport.subscribe(callback);
-            fireInboundMessage({ random: "noise" });
-        });
-
-        afterEach(() => {
-            transport.dispose?.();
-        });
-
-        it("should not call the subscriber", () => {
-            expect(callback).not.toHaveBeenCalled();
-        });
-    });
-
-    describe("when a message arrives after dispose", () => {
-        let transport: Transport;
-        let callback: jest.Mock;
-
-        beforeEach(async () => {
-            installMockNavigator({ postMessage: mockControllerPostMessage } as any);
-            transport = await createClientTransport();
-            callback = jest.fn();
-            transport.subscribe(callback);
-            transport.dispose?.();
-            // removeEventListener is a no-op on the mock, so the listener still fires
-            fireInboundMessage({ type: "postal:envelope", version: 1, envelope: makeEnvelope() });
-        });
-
-        it("should not call the subscriber", () => {
-            expect(callback).not.toHaveBeenCalled();
-        });
-    });
-
-    describe("when a subscriber unsubscribes", () => {
-        let transport: Transport;
-        let callback: jest.Mock;
-
-        beforeEach(async () => {
-            installMockNavigator({ postMessage: mockControllerPostMessage } as any);
-            transport = await createClientTransport();
-            callback = jest.fn();
-            const unsub = transport.subscribe(callback);
-            unsub();
-            fireInboundMessage({ type: "postal:envelope", version: 1, envelope: makeEnvelope() });
-        });
-
-        afterEach(() => {
-            transport.dispose?.();
-        });
-
-        it("should not receive further messages", () => {
-            expect(callback).not.toHaveBeenCalled();
-        });
-    });
-
-    describe("when unsubscribe is called twice", () => {
-        let transport: Transport;
-        let unsub: () => void;
-
-        beforeEach(async () => {
-            installMockNavigator({ postMessage: mockControllerPostMessage } as any);
-            transport = await createClientTransport();
-            unsub = transport.subscribe(jest.fn());
-            unsub();
-        });
-
-        afterEach(() => {
-            transport.dispose?.();
-        });
-
-        it("should not throw", () => {
-            expect(() => unsub()).not.toThrow();
-        });
-    });
-
-    describe("when dispose is called", () => {
-        let transport: Transport;
-
-        beforeEach(async () => {
-            installMockNavigator({ postMessage: mockControllerPostMessage } as any);
-            transport = await createClientTransport();
-            transport.dispose?.();
-        });
-
-        it("should remove the message listener from navigator.serviceWorker", () => {
-            expect(mockSwRemoveEventListener).toHaveBeenCalledWith("message", expect.any(Function));
-        });
-
-        describe("when subscribe is called after dispose", () => {
-            let callback: jest.Mock;
-            let returnedUnsub: () => void;
-
-            beforeEach(() => {
-                callback = jest.fn();
-                returnedUnsub = transport.subscribe(callback);
-                fireInboundMessage({
-                    type: "postal:envelope",
-                    version: 1,
-                    envelope: makeEnvelope(),
-                });
+            // Capture the controllerchange listener
+            mockSwAddEventListener.mockImplementation((event: string, handler: EventListener) => {
+                if (event === "controllerchange") {
+                    controllerChangeHandler = handler;
+                }
             });
 
-            it("should return a callable no-op", () => {
-                expect(() => returnedUnsub()).not.toThrow();
-            });
-
-            it("should not invoke the callback", () => {
-                expect(callback).not.toHaveBeenCalled();
-            });
-        });
-    });
-
-    describe("when dispose is called twice", () => {
-        let transport: Transport;
-
-        beforeEach(async () => {
-            installMockNavigator({ postMessage: mockControllerPostMessage } as any);
-            transport = await createClientTransport();
-            transport.dispose?.();
-            transport.dispose?.();
-        });
-
-        it("should remove the listener only once", () => {
-            expect(mockSwRemoveEventListener).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    describe("when one listener throws during message delivery", () => {
-        let transport: Transport;
-        let queueMicrotaskSpy: jest.SpyInstance;
-        let callbackA: jest.Mock, callbackB: jest.Mock, callbackC: jest.Mock;
-        let thrownError: Error;
-
-        beforeEach(async () => {
-            thrownError = new Error("E_WARP_CORE_BREACH");
-            queueMicrotaskSpy = jest
-                .spyOn(globalThis, "queueMicrotask")
-                .mockImplementation(() => {});
-
-            installMockNavigator({ postMessage: mockControllerPostMessage } as any);
-            transport = await createClientTransport();
-
-            callbackA = jest.fn();
-            callbackB = jest.fn().mockImplementation(() => {
-                throw thrownError;
-            });
-            callbackC = jest.fn();
-            transport.subscribe(callbackA);
-            transport.subscribe(callbackB);
-            transport.subscribe(callbackC);
-
-            fireInboundMessage({
-                type: "postal:envelope",
-                version: 1,
-                envelope: makeEnvelope({ topic: "red.alert" }),
-            });
-        });
-
-        afterEach(() => {
-            queueMicrotaskSpy.mockRestore();
-            transport.dispose?.();
-        });
-
-        it("should still call the listeners before and after the throwing one", () => {
-            expect(callbackA).toHaveBeenCalledTimes(1);
-            expect(callbackC).toHaveBeenCalledTimes(1);
-        });
-
-        it("should re-throw the error via queueMicrotask", () => {
-            expect(queueMicrotaskSpy).toHaveBeenCalledTimes(1);
-            const fn = queueMicrotaskSpy.mock.calls[0][0] as () => void;
-            expect(() => fn()).toThrow(thrownError);
-        });
-    });
-
-    describe("when a listener unsubscribes during iteration (snapshot safety)", () => {
-        let transport: Transport;
-        let callOrder: string[];
-
-        beforeEach(async () => {
-            installMockNavigator({ postMessage: mockControllerPostMessage } as any);
-            transport = await createClientTransport();
-            callOrder = [];
-
-            let unsubB: (() => void) | undefined;
-
-            transport.subscribe(() => {
-                callOrder.push("A");
-                unsubB?.();
-            });
-
-            unsubB = transport.subscribe(() => {
-                callOrder.push("B");
-            });
-
-            fireInboundMessage({
-                type: "postal:envelope",
-                version: 1,
-                envelope: makeEnvelope(),
-            });
-        });
-
-        afterEach(() => {
-            transport.dispose?.();
-        });
-
-        it("should still call B because the snapshot was taken before iteration", () => {
-            expect(callOrder).toEqual(["A", "B"]);
-        });
-    });
-
-    describe("when the controller is updated after transport creation (SW update)", () => {
-        let transport: Transport;
-        let newControllerPostMessage: jest.Mock;
-
-        beforeEach(async () => {
-            installMockNavigator({ postMessage: mockControllerPostMessage } as any);
-            transport = await createClientTransport();
-
-            newControllerPostMessage = jest.fn();
-            // Simulate SW update: navigator.serviceWorker.controller now points to a new SW
-            (global as any).navigator.serviceWorker.controller = {
-                postMessage: newControllerPostMessage,
+            (global as any).navigator = {
+                serviceWorker: {
+                    addEventListener: mockSwAddEventListener,
+                    removeEventListener: mockSwRemoveEventListener,
+                },
             };
 
-            transport.send(makeEnvelope({ topic: "app.updated" }));
+            const registration = makeMockRegistration();
+            const { port1, port2 } = createFakeMessageChannel();
+
+            jest.spyOn(globalThis, "MessageChannel" as any).mockImplementation(() => ({
+                port1,
+                port2,
+            }));
+
+            (registration.active!.postMessage as jest.Mock).mockImplementation(
+                (_data: unknown, transfer: MessagePort[]) => {
+                    transfer[0].postMessage(createSwAck());
+                }
+            );
+
+            await connectToServiceWorker(registration, { timeout: 1000, onDisconnect });
+
+            // Fire the controllerchange event
+            controllerChangeHandler!(new Event("controllerchange"));
         });
 
         afterEach(() => {
-            transport.dispose?.();
+            jest.restoreAllMocks();
+            delete (global as any).navigator;
         });
 
-        it("should use the new controller for sending", () => {
-            expect(newControllerPostMessage).toHaveBeenCalledTimes(1);
-        });
-
-        it("should not use the old controller", () => {
-            expect(mockControllerPostMessage).not.toHaveBeenCalled();
+        it("should call onDisconnect when controllerchange fires", () => {
+            expect(onDisconnect).toHaveBeenCalledTimes(1);
         });
     });
 
-    describe("when navigator exists but navigator.serviceWorker is null", () => {
-        let rejectedError: unknown;
+    describe("when onDisconnect is not provided", () => {
+        let result: () => void;
 
         beforeEach(async () => {
-            (global as any).navigator = { serviceWorker: null };
-            try {
-                await createClientTransport();
-            } catch (err) {
-                rejectedError = err;
-            }
+            ({ connectToServiceWorker } = await import("./clientTransport"));
+
+            mockCreateMessagePortTransport.mockReturnValue(mockTransport);
+            mockAddTransport.mockReturnValue(mockRemoveTransport);
+
+            const registration = makeMockRegistration();
+            const { port1, port2 } = createFakeMessageChannel();
+
+            jest.spyOn(globalThis, "MessageChannel" as any).mockImplementation(() => ({
+                port1,
+                port2,
+            }));
+
+            (registration.active!.postMessage as jest.Mock).mockImplementation(
+                (_data: unknown, transfer: MessagePort[]) => {
+                    transfer[0].postMessage(createSwAck());
+                }
+            );
+
+            result = await connectToServiceWorker(registration, { timeout: 1000 });
         });
 
-        it("should reject with PostalServiceWorkerError", () => {
-            expect(rejectedError).toBeInstanceOf(PostalServiceWorkerError);
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it("should resolve with the removeTransport function", () => {
+            expect(result).toBe(mockRemoveTransport);
         });
     });
 
-    describe("PostalServiceWorkerError identity", () => {
-        let error: PostalServiceWorkerError;
+    describe("when the returned removeTransport is called", () => {
+        beforeEach(async () => {
+            ({ connectToServiceWorker } = await import("./clientTransport"));
 
-        beforeEach(() => {
-            error = new PostalServiceWorkerError("boom");
+            mockCreateMessagePortTransport.mockReturnValue(mockTransport);
+            mockAddTransport.mockReturnValue(mockRemoveTransport);
+
+            const registration = makeMockRegistration();
+            const { port1, port2 } = createFakeMessageChannel();
+
+            jest.spyOn(globalThis, "MessageChannel" as any).mockImplementation(() => ({
+                port1,
+                port2,
+            }));
+
+            (registration.active!.postMessage as jest.Mock).mockImplementation(
+                (_data: unknown, transfer: MessagePort[]) => {
+                    transfer[0].postMessage(createSwAck());
+                }
+            );
+
+            const removeTransport = await connectToServiceWorker(registration, { timeout: 1000 });
+            removeTransport();
         });
 
-        it("should have name PostalServiceWorkerError", () => {
-            expect(error.name).toBe("PostalServiceWorkerError");
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it("should call the removeTransport from addTransport", () => {
+            expect(mockRemoveTransport).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe("when the returned removeTransport is called before controllerchange fires", () => {
+        let mockSwRemoveEventListener: jest.Mock;
+
+        beforeEach(async () => {
+            ({ connectToServiceWorker } = await import("./clientTransport"));
+
+            mockCreateMessagePortTransport.mockReturnValue(mockTransport);
+            mockAddTransport.mockReturnValue(mockRemoveTransport);
+
+            const mockSwAddEventListener = jest.fn();
+            mockSwRemoveEventListener = jest.fn();
+
+            (global as any).navigator = {
+                serviceWorker: {
+                    addEventListener: mockSwAddEventListener,
+                    removeEventListener: mockSwRemoveEventListener,
+                },
+            };
+
+            const registration = makeMockRegistration();
+            const { port1, port2 } = createFakeMessageChannel();
+
+            jest.spyOn(globalThis, "MessageChannel" as any).mockImplementation(() => ({
+                port1,
+                port2,
+            }));
+
+            (registration.active!.postMessage as jest.Mock).mockImplementation(
+                (_data: unknown, transfer: MessagePort[]) => {
+                    transfer[0].postMessage(createSwAck());
+                }
+            );
+
+            // Connect with onDisconnect — this registers the controllerchange listener
+            const removeTransport = await connectToServiceWorker(registration, {
+                timeout: 1000,
+                onDisconnect: jest.fn(),
+            });
+
+            // Call removeTransport before controllerchange ever fires
+            removeTransport();
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+            delete (global as any).navigator;
+        });
+
+        it("should remove the controllerchange listener from navigator.serviceWorker", () => {
+            expect(mockSwRemoveEventListener).toHaveBeenCalledWith(
+                "controllerchange",
+                expect.any(Function)
+            );
+        });
+
+        it("should also call the removeTransport from addTransport", () => {
+            expect(mockRemoveTransport).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe("PostalSwHandshakeTimeoutError identity", () => {
+        let error: PostalSwHandshakeTimeoutError;
+
+        beforeEach(() => {
+            error = new PostalSwHandshakeTimeoutError(3000);
+        });
+
+        it("should have name PostalSwHandshakeTimeoutError", () => {
+            expect(error.name).toBe("PostalSwHandshakeTimeoutError");
         });
 
         it("should be an instance of Error", () => {
             expect(error).toBeInstanceOf(Error);
         });
-    });
 
-    describe("when controllerchange fires after the timeout has already settled", () => {
-        let rejectedError: unknown;
-        let lateControllerChangeHandler: (() => void) | null;
-
-        beforeEach(async () => {
-            jest.useFakeTimers();
-            installMockNavigator(null);
-            lateControllerChangeHandler = null;
-
-            // Capture the controllerchange listener but do not fire it yet
-            mockSwAddEventListener.mockImplementation((event: string, handler: () => void) => {
-                if (event === "controllerchange") {
-                    lateControllerChangeHandler = handler;
-                }
-            });
-
-            const transportPromise = createClientTransport({ timeout: 500 }).catch(err => {
-                rejectedError = err;
-            });
-
-            // Let the timeout fire first
-            jest.advanceTimersByTime(501);
-            await transportPromise;
-
-            // Now fire the late controllerchange — should be a no-op (settled=true)
-            if (lateControllerChangeHandler !== null) {
-                (lateControllerChangeHandler as () => void)();
-            }
-        });
-
-        afterEach(() => {
-            jest.useRealTimers();
-        });
-
-        it("should reject exactly once via the timeout", () => {
-            expect(rejectedError).toBeInstanceOf(PostalServiceWorkerError);
+        it("should expose the timeout value", () => {
+            expect(error.timeout).toBe(3000);
         });
     });
 
-    describe("when two listeners both throw during message delivery", () => {
-        let transport: Transport;
-        let queueMicrotaskSpy: jest.SpyInstance;
+    describe("PostalSwNotActiveError identity", () => {
+        let error: PostalSwNotActiveError;
 
-        beforeEach(async () => {
-            queueMicrotaskSpy = jest
-                .spyOn(globalThis, "queueMicrotask")
-                .mockImplementation(() => {});
-
-            installMockNavigator({ postMessage: mockControllerPostMessage } as any);
-            transport = await createClientTransport();
-
-            transport.subscribe(
-                jest.fn().mockImplementation(() => {
-                    throw new Error("first");
-                })
-            );
-            transport.subscribe(
-                jest.fn().mockImplementation(() => {
-                    throw new Error("second");
-                })
-            );
-
-            fireInboundMessage({ type: "postal:envelope", version: 1, envelope: makeEnvelope() });
+        beforeEach(() => {
+            error = new PostalSwNotActiveError();
         });
 
-        afterEach(() => {
-            queueMicrotaskSpy.mockRestore();
-            transport.dispose?.();
+        it("should have name PostalSwNotActiveError", () => {
+            expect(error.name).toBe("PostalSwNotActiveError");
         });
 
-        it("should schedule one deferred re-throw per throwing listener", () => {
-            expect(queueMicrotaskSpy).toHaveBeenCalledTimes(2);
-        });
-    });
-
-    describe("when an inbound message arrives with a non-Error thrown by the listener", () => {
-        let transport: Transport;
-        let queueMicrotaskSpy: jest.SpyInstance;
-        let scheduledFn: () => void;
-
-        beforeEach(async () => {
-            queueMicrotaskSpy = jest.spyOn(globalThis, "queueMicrotask").mockImplementation(fn => {
-                scheduledFn = fn;
-            });
-
-            installMockNavigator({ postMessage: mockControllerPostMessage } as any);
-            transport = await createClientTransport();
-
-            transport.subscribe(
-                jest.fn().mockImplementation(() => {
-                    throw "string-error";
-                })
-            );
-
-            fireInboundMessage({ type: "postal:envelope", version: 1, envelope: makeEnvelope() });
-        });
-
-        afterEach(() => {
-            queueMicrotaskSpy.mockRestore();
-            transport.dispose?.();
-        });
-
-        it("should still schedule the deferred re-throw", () => {
-            expect(queueMicrotaskSpy).toHaveBeenCalledTimes(1);
-        });
-
-        it("should re-throw the non-Error value as-is", () => {
-            expect(() => scheduledFn()).toThrow("string-error");
+        it("should be an instance of Error", () => {
+            expect(error).toBeInstanceOf(Error);
         });
     });
 });

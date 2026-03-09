@@ -1,156 +1,98 @@
 /**
- * Client-side (page/tab) transport for the ServiceWorker postal bridge.
+ * Client-side (tab) transport for the ServiceWorker postal bridge.
+ *
+ * Establishes a dedicated MessagePort to the active ServiceWorker via a
+ * syn/ack handshake. The resulting transport is point-to-point between
+ * this tab and the SW — no fan-out, no echo problem.
  *
  * @module
  */
 
-import type { Transport, Envelope } from "postal";
-import { isEnvelopeMessage, createEnvelopeMessage } from "./protocol";
-import { PostalServiceWorkerError } from "./errors";
-import type { ClientTransportOptions } from "./types";
-
-const DEFAULT_TIMEOUT_MS = 5000;
-
-/**
- * Returns navigator.serviceWorker, or throws PostalServiceWorkerError if unavailable.
- */
-const getContainer = (): ServiceWorkerContainer => {
-    if (typeof navigator === "undefined" || !navigator.serviceWorker) {
-        throw new PostalServiceWorkerError(
-            "navigator.serviceWorker is not available. Ensure the page is served over HTTPS."
-        );
-    }
-
-    return navigator.serviceWorker;
-};
+import { addTransport } from "postal";
+import { createMessagePortTransport } from "postal-transport-messageport";
+import { DEFAULT_TIMEOUT, createSwSyn, isSwAck } from "./protocol";
+import { PostalSwHandshakeTimeoutError, PostalSwNotActiveError } from "./errors";
+import type { ClientConnectOptions } from "./types";
 
 /**
- * Waits for navigator.serviceWorker.controller to be available, then returns
- * a postal Transport that routes messages through the Service Worker.
+ * Connects the local postal instance to the active ServiceWorker.
  *
- * Returns a Promise because navigator.serviceWorker.controller may be null on
- * first page load before the SW calls clients.claim(). If no controller appears
- * within the timeout, rejects with PostalServiceWorkerError.
+ * Creates a MessageChannel, sends a syn to the SW with port2 transferred,
+ * awaits the ack on port1, then wraps port1 in a MessagePort transport
+ * and registers it with postal via addTransport().
+ *
+ * @param registration - The ServiceWorkerRegistration to connect to
+ * @param options - Timeout and lifecycle options
+ * @returns Promise resolving with the remove function from addTransport()
+ * @throws PostalSwNotActiveError if registration.active is null
+ * @throws PostalSwHandshakeTimeoutError if the SW doesn't ack in time
  */
-export const createClientTransport = (options: ClientTransportOptions = {}): Promise<Transport> => {
-    const { timeout = DEFAULT_TIMEOUT_MS } = options;
+export const connectToServiceWorker = (
+    registration: ServiceWorkerRegistration,
+    options: ClientConnectOptions = {}
+): Promise<() => void> => {
+    const { timeout = DEFAULT_TIMEOUT, onDisconnect } = options;
 
-    let container: ServiceWorkerContainer;
-    try {
-        container = getContainer();
-    } catch (err) {
-        return Promise.reject(err);
+    if (!registration.active) {
+        return Promise.reject(new PostalSwNotActiveError());
     }
 
-    const waitForController = (): Promise<void> => {
-        if (container.controller) {
-            return Promise.resolve();
-        }
+    return new Promise<() => void>((resolve, reject) => {
+        const channel = new MessageChannel();
+        const { port1, port2 } = channel;
 
-        return new Promise<void>((resolve, reject) => {
-            // Guard against the race where both the timer and controllerchange
-            // fire in the same turn of the event loop (e.g., in tests with fake
-            // timers, or on a heavily loaded page). First one to run wins.
-            let settled = false;
+        const timer = setTimeout(() => {
+            port1.removeEventListener("message", onAck);
+            port1.close();
+            reject(new PostalSwHandshakeTimeoutError(timeout));
+        }, timeout);
 
-            const timer = setTimeout(() => {
-                if (settled) {
-                    return;
-                }
-                settled = true;
-                container.removeEventListener("controllerchange", onControllerChange);
-                reject(
-                    new PostalServiceWorkerError(
-                        `No ServiceWorker controller appeared within ${timeout}ms. ` +
-                            "Ensure the SW calls self.clients.claim() in its activate handler."
-                    )
-                );
-            }, timeout);
-
-            const onControllerChange = (): void => {
-                if (settled) {
-                    return;
-                }
-                settled = true;
+        const onAck = (event: MessageEvent): void => {
+            if (isSwAck(event.data)) {
                 clearTimeout(timer);
-                container.removeEventListener("controllerchange", onControllerChange);
-                resolve();
-            };
+                port1.removeEventListener("message", onAck);
 
-            container.addEventListener("controllerchange", onControllerChange);
-        });
-    };
+                const transport = createMessagePortTransport(port1);
+                const removeTransport = addTransport(transport);
 
-    return waitForController().then((): Transport => {
-        let disposed = false;
-        const listeners: ((envelope: Envelope) => void)[] = [];
+                // When the SW is replaced (update/restart), notify the consumer
+                // so they can decide whether to reconnect. The old MessagePort is
+                // dead at this point — sending on it silently drops messages.
+                if (onDisconnect && typeof navigator !== "undefined" && navigator.serviceWorker) {
+                    const onControllerChange = (): void => {
+                        navigator.serviceWorker.removeEventListener(
+                            "controllerchange",
+                            onControllerChange
+                        );
+                        onDisconnect();
+                    };
+                    navigator.serviceWorker.addEventListener(
+                        "controllerchange",
+                        onControllerChange
+                    );
 
-        const onMessage = (event: MessageEvent): void => {
-            if (disposed) {
-                return;
-            }
-            if (isEnvelopeMessage(event.data)) {
-                const { envelope } = event.data;
-                // Snapshot — safe if a listener unsubscribes during iteration
-                for (const listener of [...listeners]) {
-                    try {
-                        listener(envelope);
-                    } catch (err) {
-                        // Re-throw asynchronously so a single bad listener doesn't
-                        // kill delivery to the rest.
-                        queueMicrotask(() => {
-                            throw err;
-                        });
-                    }
+                    // Wrap removeTransport so that an early consumer-side disconnect
+                    // also removes the controllerchange listener. Without this, a
+                    // connect/disconnect cycle in a long-lived SPA accumulates listeners
+                    // that never fire and are never collected.
+                    resolve(() => {
+                        navigator.serviceWorker.removeEventListener(
+                            "controllerchange",
+                            onControllerChange
+                        );
+                        removeTransport();
+                    });
+                } else {
+                    resolve(removeTransport);
                 }
             }
         };
 
-        container.addEventListener("message", onMessage);
+        port1.addEventListener("message", onAck);
+        port1.start();
 
-        const send = (envelope: Envelope): void => {
-            if (disposed) {
-                return;
-            }
-            // Read controller at send time so we pick up any SW updates transparently.
-            // Controller can be null between an update and the new SW claiming clients —
-            // silently drop in that gap.
-            const ctrl = container.controller;
-            if (!ctrl) {
-                return;
-            }
-            ctrl.postMessage(createEnvelopeMessage(envelope));
-        };
-
-        const subscribe = (callback: (envelope: Envelope) => void): (() => void) => {
-            if (disposed) {
-                return () => {};
-            }
-
-            listeners.push(callback);
-
-            let removed = false;
-            return () => {
-                if (removed) {
-                    return;
-                }
-                removed = true;
-                const index = listeners.indexOf(callback);
-                if (index !== -1) {
-                    listeners.splice(index, 1);
-                }
-            };
-        };
-
-        const dispose = (): void => {
-            if (disposed) {
-                return;
-            }
-            disposed = true;
-            container.removeEventListener("message", onMessage);
-            listeners.splice(0, listeners.length);
-        };
-
-        return { send, subscribe, dispose };
+        // non-null assertion is safe — we checked above and the function is synchronous
+        // to this point (no awaits between the null check and the postMessage call)
+        registration.active!.postMessage(createSwSyn(), [port2]);
     });
 };

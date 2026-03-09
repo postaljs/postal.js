@@ -1,19 +1,27 @@
-/** Options for createClientTransport(). */
-export type ClientTransportOptions = {
+import type { TransportFilter } from "postal";
+
+/** Options for connectToServiceWorker(). */
+export type ClientConnectOptions = {
     /**
-     * Timeout in milliseconds to wait for a SW controller to become available.
-     * Rejects with PostalServiceWorkerError if exceeded.
+     * Timeout in milliseconds for the handshake to complete.
+     * Rejects with PostalSwHandshakeTimeoutError if exceeded.
      * @default 5000
      */
     timeout?: number;
+
+    /**
+     * Called when the ServiceWorker is replaced (controllerchange event).
+     * The existing MessagePort transport is dead at this point — reconnect
+     * manually or call connectToServiceWorker() again.
+     */
+    onDisconnect?: () => void;
 };
 
-/** Options for createServiceWorkerTransport(). */
-export type ServiceWorkerTransportOptions = {
+/** Options for listenForClients(). */
+export type SwListenOptions = {
     /**
-     * Controls which clients receive fan-out messages.
-     * Maps to clients.matchAll() options.
-     * @default { type: "window", includeUncontrolled: false }
+     * Optional filter applied to each client transport as it connects.
+     * Restricts which envelopes are forwarded to/from connected clients.
      */
-    clientMatchOptions?: ClientQueryOptions;
+    filter?: TransportFilter;
 };
