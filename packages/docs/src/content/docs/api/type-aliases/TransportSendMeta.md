@@ -7,7 +7,7 @@ title: "TransportSendMeta"
 
 > **TransportSendMeta** = `object`
 
-Defined in: [packages/postal/src/transport.ts:27](https://github.com/postaljs/postal.js/blob/f7f08d2ed5f3d1a11bc1606b041acfcc8cde5e03/packages/postal/src/transport.ts#L27)
+Defined in: [packages/postal/src/transport.ts:27](https://github.com/postaljs/postal.js/blob/23f5a4460a742864a63b4a3c2c70dc5b7e8925ef/packages/postal/src/transport.ts#L27)
 
 Metadata passed to `Transport.send()` by the core.
 
@@ -23,7 +23,7 @@ Transports that don't need this can safely ignore it — the parameter is option
 
 > **peerCount**: `number`
 
-Defined in: [packages/postal/src/transport.ts:35](https://github.com/postaljs/postal.js/blob/f7f08d2ed5f3d1a11bc1606b041acfcc8cde5e03/packages/postal/src/transport.ts#L35)
+Defined in: [packages/postal/src/transport.ts:35](https://github.com/postaljs/postal.js/blob/23f5a4460a742864a63b4a3c2c70dc5b7e8925ef/packages/postal/src/transport.ts#L35)
 
 Number of transports that passed the filter for this envelope
 (including the current transport).
