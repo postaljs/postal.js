@@ -6,7 +6,7 @@ A terminal internet radio visualizer built with [Ink](https://github.com/vadimde
 
 ## What it looks like
 
-![](./radio-spectrum-tui.png)
+![](./radio-spectrum-tui.jpg)
 
 ## Requirements
 

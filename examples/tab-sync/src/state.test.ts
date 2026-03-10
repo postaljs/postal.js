@@ -219,14 +219,22 @@ describe("state", () => {
         });
 
         describe("when localStorage setItem throws", () => {
+            let threw: boolean;
+
             beforeEach(() => {
                 mockSetItem.mockImplementation(() => {
                     throw new DOMException("QuotaExceededError", "QuotaExceededError");
                 });
+                threw = false;
+                try {
+                    saveState(STORED_FULL_STATE);
+                } catch {
+                    threw = true;
+                }
             });
 
             it("should not throw", () => {
-                expect(() => saveState(STORED_FULL_STATE)).not.toThrow();
+                expect(threw).toBe(false);
             });
         });
     });

@@ -180,15 +180,19 @@ describe("createIPCTransport", () => {
 
         describe("when a listener throws during delivery", () => {
             let queueMicrotaskSpy: jest.SpyInstance,
+                capturedMicrotaskFn: (() => void) | undefined,
                 callbackA: jest.Mock,
                 callbackC: jest.Mock,
                 thrownError: Error;
 
             beforeEach(() => {
                 thrownError = new Error("E_WARP_CORE_BREACH");
+                capturedMicrotaskFn = undefined;
                 queueMicrotaskSpy = jest
                     .spyOn(globalThis, "queueMicrotask")
-                    .mockImplementation(() => {});
+                    .mockImplementation((fn: () => void) => {
+                        capturedMicrotaskFn = fn;
+                    });
 
                 const { endpoint, receive } = createMockEndpoint();
                 const transport = createIPCTransport(endpoint);
@@ -220,8 +224,7 @@ describe("createIPCTransport", () => {
             });
 
             it("should queue a function that re-throws the original error", () => {
-                const microtaskFn = queueMicrotaskSpy.mock.calls[0][0] as () => void;
-                expect(() => microtaskFn()).toThrow(thrownError);
+                expect(() => capturedMicrotaskFn!()).toThrow(thrownError);
             });
         });
 
