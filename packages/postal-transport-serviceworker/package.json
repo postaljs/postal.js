@@ -1,6 +1,6 @@
 {
     "name": "postal-transport-serviceworker",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "ServiceWorker transport for postal — bridges pub/sub between tabs and a Service Worker",
     "author": "Jim Cowart (http://ifandelse.com)",
     "license": "MIT",
