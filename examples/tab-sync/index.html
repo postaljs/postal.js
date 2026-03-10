@@ -23,6 +23,11 @@
                         <div id="sync-dot" class="sync-dot"></div>
                         <span class="text-xs theme-text-faint font-mono">synced</span>
                     </div>
+                    <!-- Connected-tab count — only visible after the SW connects -->
+                    <div id="connected-tabs-container" class="flex items-center gap-1.5 rounded-lg border theme-border px-3 py-1.5 theme-card" style="display:none">
+                        <span class="text-xs theme-text-muted">Tabs:</span>
+                        <span id="connected-tabs" class="text-xs font-mono font-bold" style="color:#38bdf8">—</span>
+                    </div>
                     <!-- Tab ID — random 4-char hex assigned at runtime -->
                     <div class="flex items-center gap-1.5 rounded-lg border theme-border px-3 py-1.5 theme-card">
                         <span class="text-xs theme-text-muted">Tab:</span>
@@ -181,12 +186,13 @@
                     <h2 class="text-lg font-bold theme-text mb-1">How postal makes this work</h2>
                     <p class="text-sm theme-text-muted mb-6">
                         Cross-tab state sync with
-                        <strong class="theme-text">localStorage for persistence</strong> and
-                        <strong class="theme-text">BroadcastChannel for real-time notification</strong>.
-                        Two APIs, two lines of postal setup.
+                        <strong class="theme-text">localStorage for persistence</strong>,
+                        <strong class="theme-text">BroadcastChannel for real-time notification</strong>, and
+                        <strong class="theme-text">ServiceWorker MessagePort for presence coordination</strong>.
+                        Two transports, one postal instance.
                     </p>
 
-                    <div class="grid md:grid-cols-2 gap-6">
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <!-- Card 1: BroadcastChannel transport -->
                         <div class="flex flex-col gap-2">
                             <div class="flex items-center gap-2 mb-1">
@@ -245,6 +251,27 @@
                                 registers a global observer that sees every message on the bus — both local publishes
                                 and messages arriving from other tabs via the transport. The activity log above is
                                 100% wiretap.
+                            </p>
+                        </div>
+
+                        <!-- Card 5: Dual-transport and ServiceWorker presence -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2 h-2 rounded-full bg-sky-400 flex-shrink-0"></span>
+                                <span class="text-sm font-semibold text-sky-400">Dual transports, one instance</span>
+                            </div>
+                            <p class="text-xs theme-text-muted leading-relaxed">
+                                The same postal instance runs two transports simultaneously:
+                                <strong class="theme-text">BroadcastChannel</strong> for fast tab-to-tab fan-out (no SW roundtrip) and a
+                                <strong class="theme-text">MessagePort</strong> for point-to-point tab-to-SW communication.
+                                The SW is a separate JS context with its own postal instance —
+                                <code class="theme-text theme-card px-1 rounded">connectToServiceWorker()</code>
+                                does a <code class="theme-text theme-card px-1 rounded">MessageChannel</code> handshake, not a broadcast.
+                                The "Tabs:" count in the header comes from the SW publishing
+                                <code class="theme-text theme-card px-1 rounded">sync.clients.changed</code>
+                                whenever a tab connects or disconnects.
+                                Note: <code class="theme-text theme-card px-1 rounded">port close</code> can be delayed on tab unload in
+                                older browsers — production apps should add a heartbeat for reliability.
                             </p>
                         </div>
                     </div>

@@ -40,11 +40,13 @@ For the full API — wildcards, RPC, wire taps, transports — see the [docs](ht
 
 ## Packages
 
-| Package                                                                          | npm                                 | Description                                        |
-| -------------------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------- |
-| [postal](packages/postal/)                                                       | `postal`                            | Core message bus                                   |
-| [postal-transport-messageport](packages/postal-transport-messageport/)           | `postal-transport-messageport`      | MessagePort transport for iframes and workers      |
-| [postal-transport-broadcastchannel](packages/postal-transport-broadcastchannel/) | `postal-transport-broadcastchannel` | BroadcastChannel transport for cross-tab messaging |
+| Package                                                                          | npm                                 | Description                                                                                       |
+| -------------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------- |
+| [postal](packages/postal/)                                                       | `postal`                            | Core message bus                                                                                  |
+| [postal-transport-messageport](packages/postal-transport-messageport/)           | `postal-transport-messageport`      | MessagePort transport for iframes and workers                                                     |
+| [postal-transport-broadcastchannel](packages/postal-transport-broadcastchannel/) | `postal-transport-broadcastchannel` | BroadcastChannel transport for cross-tab messaging                                                |
+| [postal-transport-serviceworker](packages/postal-transport-serviceworker/)       | `postal-transport-serviceworker`    | ServiceWorker transport — dedicated MessagePort per tab, presence tracking, SW restart resilience |
+| [postal-transport-childprocess](packages/postal-transport-childprocess/)         | `postal-transport-childprocess`     | child_process/cluster IPC transport for Node.js                                                   |
 
 ## Development
 

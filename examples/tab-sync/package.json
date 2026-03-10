@@ -12,7 +12,8 @@
     },
     "dependencies": {
         "postal": "workspace:*",
-        "postal-transport-broadcastchannel": "workspace:*"
+        "postal-transport-broadcastchannel": "workspace:*",
+        "postal-transport-serviceworker": "workspace:*"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.1.3",

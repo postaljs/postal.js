@@ -12,6 +12,8 @@ postal/
     postal/                            # Core library. npm: "postal"
     postal-transport-messageport/      # MessagePort transport. npm: "postal-transport-messageport"
     postal-transport-broadcastchannel/ # BroadcastChannel transport. npm: "postal-transport-broadcastchannel"
+    postal-transport-serviceworker/    # ServiceWorker transport. npm: "postal-transport-serviceworker"
+    postal-transport-childprocess/     # child_process/cluster IPC transport. npm: "postal-transport-childprocess"
     docs/                              # Starlight docs site. private, not published.
   archive/                             # Legacy v2.x code. Read-only reference.
   pnpm-workspace.yaml                  # Workspace config
@@ -25,9 +27,13 @@ Each package has its own `tsconfig.json`, `jest.config.js`, `tsdown.config.ts`, 
 ## Package Relationships
 
 ```
-postal-transport-messageport  ──┐
-                                ├──▶  postal (peer dep)
-postal-transport-broadcastchannel ─┘
+postal-transport-messageport      ──┐
+                                    │
+postal-transport-broadcastchannel ──┤
+                                    ├──▶  postal (peer dep)
+postal-transport-serviceworker    ──┤
+                                    │
+postal-transport-childprocess     ──┘
 
 @postal/docs ──▶ (standalone Astro/Starlight site, no runtime dep on postal)
 ```
@@ -70,6 +76,31 @@ Transports are always installed alongside `postal`. They import types and intern
 | `index.ts`                     | Public exports only                                                  |
 | `broadcastChannelTransport.ts` | `createBroadcastChannelTransport(name?)`                             |
 | `protocol.ts`                  | `EnvelopeMessage` type, `isEnvelopeMessage`, `createEnvelopeMessage` |
+
+### postal-transport-serviceworker/src/
+
+| File                 | Purpose                                                                                  |
+| -------------------- | ---------------------------------------------------------------------------------------- |
+| `index.ts`           | Client-side public exports (`connectToServiceWorker`, errors, types, `PROTOCOL_VERSION`) |
+| `sw.ts`              | SW-side public exports (`listenForClients`, errors, types, `PROTOCOL_VERSION`)           |
+| `clientTransport.ts` | `connectToServiceWorker(registration, options?)` — tab-side handshake + transport wiring |
+| `swTransport.ts`     | `listenForClients(options?)` — SW-side listener, one transport per connected client      |
+| `protocol.ts`        | Message shapes, type guards, factories. SW-namespaced SYN/ACK types                      |
+| `errors.ts`          | `PostalSwHandshakeTimeoutError`, `PostalSwNotActiveError`                                |
+| `types.ts`           | `ClientConnectOptions`, `SwListenOptions`                                                |
+
+### postal-transport-childprocess/src/
+
+| File                | Purpose                                                                            |
+| ------------------- | ---------------------------------------------------------------------------------- |
+| `index.ts`          | Public exports — `connectToChild`, `connectToParent`, `createIPCTransport`, errors |
+| `cluster.ts`        | Cluster entry point — `connectToClusterWorker`, `connectToClusterPrimary`          |
+| `child.ts`          | `connectToChild(child, options?)` / `connectToParent(options?)` — fork IPC helpers |
+| `clusterHelpers.ts` | `connectToClusterWorker(worker, options?)` / `connectToClusterPrimary(options?)`   |
+| `ipcTransport.ts`   | `createIPCTransport(endpoint)` — low-level transport for any IPC-compatible object |
+| `protocol.ts`       | Message shapes, type guards, factories. SYN/ACK types for IPC handshake            |
+| `errors.ts`         | `PostalHandshakeTimeoutError`                                                      |
+| `types.ts`          | `ConnectOptions`                                                                   |
 
 ---
 
@@ -365,6 +396,68 @@ import { connectFromWorkerThread } from "postal-transport-messageport/node";
 import { addTransport } from "postal";
 
 const transport = await connectFromWorkerThread();
+addTransport(transport);
+```
+
+### Bridge to a ServiceWorker
+
+```ts
+// Tab side:
+import { getChannel, addTransport } from "postal";
+import { connectToServiceWorker } from "postal-transport-serviceworker";
+
+const registration = await navigator.serviceWorker.ready;
+const removeTransport = await connectToServiceWorker(registration, {
+    timeout: 5000,
+    onDisconnect: () => reconnect(),
+});
+
+// SW side (sw.js):
+import { addTransport, getChannel } from "postal";
+import { listenForClients } from "postal-transport-serviceworker/sw";
+
+const { dispose } = listenForClients({ filter: { channels: ["notifications"] } });
+```
+
+### Bridge to a child_process
+
+```ts
+// Parent:
+import { fork } from "child_process";
+import { addTransport } from "postal";
+import { connectToChild } from "postal-transport-childprocess";
+
+const child = fork("./worker.js");
+const transport = await connectToChild(child);
+const remove = addTransport(transport);
+child.on("exit", () => remove());
+
+// Child (worker.js):
+import { addTransport } from "postal";
+import { connectToParent } from "postal-transport-childprocess";
+
+const transport = await connectToParent();
+addTransport(transport);
+```
+
+### Bridge to a cluster worker
+
+```ts
+// Primary:
+import cluster from "cluster";
+import { addTransport } from "postal";
+import { connectToClusterWorker } from "postal-transport-childprocess/cluster";
+
+const worker = cluster.fork();
+const transport = await connectToClusterWorker(worker);
+const remove = addTransport(transport);
+worker.on("exit", () => remove());
+
+// Worker:
+import { addTransport } from "postal";
+import { connectToClusterPrimary } from "postal-transport-childprocess/cluster";
+
+const transport = await connectToClusterPrimary();
 addTransport(transport);
 ```
 

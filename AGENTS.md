@@ -18,6 +18,8 @@ packages/
       *.test.ts                           # Tests live alongside source
   postal-transport-messageport/       # MessagePort transport (npm: "postal-transport-messageport")
   postal-transport-broadcastchannel/  # BroadcastChannel transport (npm: "postal-transport-broadcastchannel")
+  postal-transport-serviceworker/     # ServiceWorker transport (npm: "postal-transport-serviceworker")
+  postal-transport-childprocess/      # child_process/cluster IPC transport (npm: "postal-transport-childprocess")
   docs/                               # Starlight documentation site (private, @postal/docs)
 archive/                              # Legacy v2.x codebase (preserved for reference)
 ```
@@ -37,6 +39,8 @@ pnpm --filter postal build                            # Build core lib only (tsd
 pnpm --filter postal test -- --watch                  # Watch mode
 pnpm --filter postal-transport-messageport test       # Run MessagePort transport tests
 pnpm --filter postal-transport-broadcastchannel test  # Run BroadcastChannel transport tests
+pnpm --filter postal-transport-serviceworker test     # Run ServiceWorker transport tests
+pnpm --filter postal-transport-childprocess test      # Run child_process transport tests
 ```
 
 Build tooling: **tsdown** (bundles to CJS + ESM + .d.ts), **Jest** with ts-jest, **ESLint 9**, **Prettier**, **Husky** pre-commit hooks with lint-staged.

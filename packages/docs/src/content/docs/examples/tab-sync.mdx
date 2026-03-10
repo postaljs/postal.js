@@ -1,12 +1,12 @@
 ---
 title: Tab Sync Dashboard
-description: A cross-tab state sync demo that demonstrates postal's BroadcastChannel transport, the localStorage + BroadcastChannel production pattern, echo prevention in postal core, and wiretap observability.
+description: A cross-tab state sync demo that demonstrates postal's BroadcastChannel and ServiceWorker transports running simultaneously, the localStorage + BroadcastChannel production pattern, echo prevention in postal core, and wiretap observability.
 ---
 
 import { LinkCard, CardGrid, Card } from "@astrojs/starlight/components";
 
-**Tab Sync Dashboard** shows how postal's BroadcastChannel transport turns cross-tab state synchronization into a straightforward pub/sub problem.
-Open it in two browser tabs side by side and watch state changes propagate in real time — login, theme, and preferences all stay in sync.
+**Tab Sync Dashboard** shows how postal's BroadcastChannel and ServiceWorker transports can run side-by-side on the same postal instance — each handling a different messaging boundary.
+Open it in two browser tabs side by side and watch state changes propagate in real time — login, theme, and preferences all stay in sync, while the ServiceWorker tracks exactly how many tabs are connected.
 
 ---
 
@@ -17,6 +17,12 @@ Open it in two browser tabs side by side and watch state changes propagate in re
         Two lines of setup: `createBroadcastChannelTransport("tab-sync-demo")` and
         `addTransport(transport)`. No handshake, no connection management — any tab that opens the
         same-named channel is immediately in the mesh.
+    </Card>
+    <Card title="ServiceWorker transport" icon="puzzle">
+        Each tab opens a dedicated MessagePort to the ServiceWorker via `connectToServiceWorker`.
+        The SW uses this to track connected tab count and publish `presence.updated` events. This is
+        the key teaching point: **two transports, one postal instance** — BroadcastChannel for
+        tab-to-tab state, MessagePort for tab-to-SW presence tracking.
     </Card>
     <Card title="The production pattern" icon="rocket">
         localStorage holds the authoritative state. A new tab hydrates from storage via
@@ -30,7 +36,7 @@ Open it in two browser tabs side by side and watch state changes propagate in re
     </Card>
     <Card title="Wiretap observability" icon="laptop">
         `addWiretap()` sees every message on the bus — both local publishes and messages arriving
-        from other tabs via the transport. The activity log in the demo is 100% wiretap with no
+        from other tabs via either transport. The activity log in the demo is 100% wiretap with no
         duplication from the subscribers.
     </Card>
 </CardGrid>
@@ -43,19 +49,27 @@ Open it in two browser tabs side by side and watch state changes propagate in re
 Tab A                                 Tab B
 ─────────────────────                 ─────────────────────
 getChannel("sync")                    getChannel("sync")
-addTransport(bc)                      addTransport(bc)
+addTransport(bc)    ← BroadcastChannel mesh (tab-to-tab)
+addTransport(sw)    ← dedicated MessagePort to SW
       │                                       │
       │  channel.publish("theme.changed") ──► │  subscriber fires
       │                                       │    → saveState()
       │                                       │    → applyState()
       │  ◄── wiretap sees it                  │  ◄── wiretap sees it
       │                                       │
+      └────── MessagePort ──► SW ◄── MessagePort ───┘
+                                │
+                         tracks connected tabs
+                         publishes presence.updated
+                         → both tabs update tab count
 
 Tab C (newly opened)
 ─────────────────────
-loadState()       ← localStorage (state persisted by A or B)
-applyState()      ← renders immediately from persisted state
-addTransport(bc)  ← joins the mesh, future changes arrive live
+loadState()              ← localStorage (state persisted by A or B)
+applyState()             ← renders immediately from persisted state
+addTransport(bc)         ← joins the BroadcastChannel mesh
+const removeSw =
+  await connectToServiceWorker(reg)  ← SW increments tab count
 ```
 
 ---

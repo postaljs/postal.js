@@ -238,6 +238,11 @@ body {
     color: #a78bfa; /* violet-400 */
 }
 
+.topic-badge-sync {
+    background-color: rgb(56 189 248 / 0.15);
+    color: #38bdf8; /* sky-400 — visually distinct from state-change badges */
+}
+
 .topic-badge-unknown {
     @apply bg-zinc-700/50 text-zinc-400;
 }
