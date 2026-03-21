@@ -137,6 +137,21 @@ try {
 }
 ```
 
+To disable the timeout entirely, set `timeout` to `0`. The request will wait
+indefinitely until a handler responds or the channel is disposed:
+
+```ts
+// No timeout — waits as long as it takes
+const result = await ch.request("user.confirm", payload, {
+    timeout: 0,
+});
+```
+
+<Aside type="caution">
+    When `timeout` is `0`, **you** own cleanup responsibility. If no handler ever responds, the
+    promise stays pending until `dispose()` or `resetChannels()` is called.
+</Aside>
+
 ### Error propagation
 
 If a handler throws, the error is caught and relayed to the requester as `PostalRpcError`:
