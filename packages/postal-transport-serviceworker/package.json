@@ -1,6 +1,6 @@
 {
     "name": "postal-transport-serviceworker",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "description": "ServiceWorker transport for postal — bridges pub/sub between tabs and a Service Worker",
     "author": "Jim Cowart (http://ifandelse.com)",
     "license": "MIT",
@@ -66,7 +66,7 @@
         "postal-transport-messageport": "workspace:*"
     },
     "peerDependencies": {
-        "postal": "^3.1.0"
+        "postal": "^3.2.0"
     },
     "devDependencies": {
         "postal": "workspace:*",

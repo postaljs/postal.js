@@ -1,5 +1,14 @@
 # @postal-examples/tab-sync
 
+## 0.0.5
+
+### Patch Changes
+
+- Updated dependencies [678bc9c]
+    - postal@3.2.0
+    - postal-transport-broadcastchannel@2.0.0
+    - postal-transport-serviceworker@1.0.0
+
 ## 0.0.4
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
     "name": "postal-transport-childprocess",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "description": "child_process and cluster IPC transport for postal — bridges pub/sub across Node.js processes.",
     "author": "Jim Cowart (http://ifandelse.com)",
     "license": "MIT",
@@ -65,7 +65,7 @@
         "lint": "eslint 'src/**/*.{ts,tsx}'"
     },
     "peerDependencies": {
-        "postal": "^3.1.0"
+        "postal": "^3.2.0"
     },
     "devDependencies": {
         "postal": "workspace:*",

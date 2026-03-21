@@ -1,5 +1,12 @@
 # @postal-examples/notification-dashboard
 
+## 0.0.4
+
+### Patch Changes
+
+- Updated dependencies [678bc9c]
+    - postal@3.2.0
+
 ## 0.0.3
 
 ### Patch Changes

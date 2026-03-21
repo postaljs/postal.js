@@ -1,5 +1,12 @@
 # postal-transport-broadcastchannel
 
+## 2.0.0
+
+### Patch Changes
+
+- Updated dependencies [678bc9c]
+    - postal@3.2.0
+
 ## 1.0.0
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
     "name": "@postal-examples/tab-sync",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "private": true,
     "description": "Tab Sync Dashboard — cross-tab state sync demo using postal's BroadcastChannel transport",
     "scripts": {

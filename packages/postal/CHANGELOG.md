@@ -1,5 +1,11 @@
 # postal
 
+## 3.2.0
+
+### Minor Changes
+
+- 678bc9c: Enable the ability to skip timeout on requests
+
 ## 3.1.0
 
 ### Minor Changes
