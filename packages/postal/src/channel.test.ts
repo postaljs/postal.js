@@ -679,6 +679,68 @@ describe("channel", () => {
                 jest.useRealTimers();
             });
         });
+
+        describe("when timeout is 0 and a handler responds after a delay", () => {
+            let result: unknown;
+
+            beforeEach(async () => {
+                const channel = createChannel(CHANNEL_NAME);
+                channel.handle("pricing.calculate", () => {
+                    return new Promise(resolve => {
+                        setTimeout(() => resolve({ total: 8675309 }), 200);
+                    });
+                });
+                result = await channel.request(
+                    "pricing.calculate",
+                    { sku: "ENCHANTMENT-UNDER-THE-SEA" },
+                    { timeout: 0 }
+                );
+            });
+
+            it("should resolve with the handler's response", () => {
+                expect(result).toEqual({ total: 8675309 });
+            });
+        });
+
+        describe("when timeout is 0 and the channel is disposed before a response", () => {
+            let requestPromise: Promise<unknown>;
+
+            beforeEach(() => {
+                const channel = createChannel(CHANNEL_NAME);
+                // No handler registered — request will hang until dispose
+                requestPromise = channel.request(
+                    "pricing.calculate",
+                    { sku: "CLOCK-TOWER-LIGHTNING" },
+                    { timeout: 0 }
+                );
+                channel.dispose();
+            });
+
+            it("should reject with PostalDisposedError", async () => {
+                await expect(requestPromise).rejects.toBeInstanceOf(PostalDisposedError);
+            });
+        });
+
+        describe("when timeout is 0 and resetChannels is called before a response", () => {
+            let requestPromise: Promise<unknown>;
+
+            beforeEach(() => {
+                const channel = createChannel(CHANNEL_NAME);
+                // No handler registered — request will hang until reset
+                requestPromise = channel.request(
+                    "pricing.calculate",
+                    { sku: "SAVE-THE-CLOCK-TOWER" },
+                    { timeout: 0 }
+                );
+                resetChannels();
+            });
+
+            it("should reject the pending request", async () => {
+                await expect(requestPromise).rejects.toThrow(
+                    "Channel registry reset while RPC request was pending"
+                );
+            });
+        });
     });
 
     describe("PostalTimeoutError", () => {
@@ -1316,6 +1378,127 @@ describe("channel", () => {
 
             it("should also clear wiretaps", () => {
                 expect(tap).not.toHaveBeenCalled();
+            });
+        });
+    });
+
+    describe("request with negative timeout", () => {
+        describe("when timeout is a negative value", () => {
+            let result: unknown;
+
+            beforeEach(async () => {
+                const channel = createChannel(CHANNEL_NAME);
+                channel.handle("pricing.calculate", () => {
+                    return new Promise(resolve => {
+                        setTimeout(() => resolve({ total: 1985 }), 150);
+                    });
+                });
+                result = await channel.request(
+                    "pricing.calculate",
+                    { sku: "ENCHANTMENT-UNDER-THE-SEA-DANCE" },
+                    { timeout: -1 }
+                );
+            });
+
+            it("should resolve instead of timing out immediately", () => {
+                expect(result).toEqual({ total: 1985 });
+            });
+        });
+    });
+
+    describe("handle error path with non-Error throw", () => {
+        describe("when a handler throws a string instead of an Error", () => {
+            let requestPromise: Promise<unknown>;
+
+            beforeEach(() => {
+                const channel = createChannel(CHANNEL_NAME);
+                channel.handle("pricing.calculate", () => {
+                    // eslint-disable-next-line no-throw-literal
+                    throw "E_BIFF_STOLE_THE_ALMANAC";
+                });
+                requestPromise = channel.request("pricing.calculate", {
+                    sku: "SPORTS-ALMANAC-1950-2000",
+                });
+            });
+
+            it("should reject with PostalRpcError", async () => {
+                await expect(requestPromise).rejects.toBeInstanceOf(PostalRpcError);
+            });
+
+            it("should stringify the thrown value as the error message", async () => {
+                await expect(requestPromise).rejects.toThrow("E_BIFF_STOLE_THE_ALMANAC");
+            });
+        });
+    });
+
+    describe("dispatchInbound", () => {
+        describe("when a publish envelope targets a non-existent channel", () => {
+            let tap: jest.Mock;
+
+            beforeEach(() => {
+                tap = jest.fn();
+                addWiretap(tap);
+
+                dispatchInbound({
+                    id: "ghost-456",
+                    type: "publish",
+                    channel: "non-existent-channel",
+                    topic: "item.placed",
+                    payload: { sku: "PHANTOM-WIDGET" },
+                    timestamp: Date.now(),
+                    source: "remote-instance",
+                });
+            });
+
+            it("should still invoke wiretaps", () => {
+                expect(tap).toHaveBeenCalledTimes(1);
+                expect(tap.mock.calls[0][0]).toMatchObject({
+                    type: "publish",
+                    channel: "non-existent-channel",
+                    topic: "item.placed",
+                    payload: { sku: "PHANTOM-WIDGET" },
+                });
+            });
+        });
+
+        describe("when a reply envelope is dispatched inbound for an RPC flow", () => {
+            let result: unknown;
+
+            beforeEach(async () => {
+                const channel = createChannel(CHANNEL_NAME);
+                let capturedCorrelationId: string;
+                let capturedReplyTo: string;
+
+                channel.subscribe("pricing.calculate", (env: Envelope) => {
+                    capturedCorrelationId = env.correlationId!;
+                    capturedReplyTo = env.replyTo!;
+                });
+
+                const promise = channel.request(
+                    "pricing.calculate",
+                    { sku: "REMOTE-DELOREAN" },
+                    { timeout: 0 }
+                );
+
+                // Allow the request dispatch to complete
+                await new Promise(r => setTimeout(r, 0));
+
+                // Simulate a remote handler reply arriving via transport
+                dispatchInbound({
+                    id: "remote-reply-789",
+                    type: "reply",
+                    channel: "__postal__.system",
+                    topic: capturedReplyTo!,
+                    payload: { success: true, payload: { total: 88 } },
+                    timestamp: Date.now(),
+                    correlationId: capturedCorrelationId!,
+                });
+
+                result = await promise;
+            });
+
+            it("should resolve the pending request via the inbound reply", () => {
+                expect(result).toEqual({ total: 88 });
             });
         });
     });

@@ -90,7 +90,7 @@ type RpcResponse<T = unknown> =
 type PendingRequest = {
     resolve: (value: unknown) => void;
     reject: (reason: unknown) => void;
-    timer: ReturnType<typeof setTimeout>;
+    timer: ReturnType<typeof setTimeout> | undefined;
     onSettled?: () => void;
 };
 
@@ -152,7 +152,11 @@ export class PostalDisposedError extends Error {
 
 /** Options for `channel.request()`. */
 export type RequestOptions = {
-    /** Timeout in milliseconds. Defaults to 5000. */
+    /**
+     * Timeout in milliseconds. Defaults to 5000. Set to 0 to disable the timeout
+     * entirely (the request will wait indefinitely until a handler responds or the
+     * channel is disposed).
+     */
     timeout?: number;
 };
 
@@ -600,11 +604,14 @@ export const createChannel = <TMap extends Record<string, unknown> = Record<stri
         });
 
         return new Promise<ResponsePayload<TMap[TTopic]>>((resolve, reject) => {
-            const timer = setTimeout(() => {
-                pendingCorrelationIds.delete(correlationId);
-                pendingRequests.delete(correlationId);
-                reject(new PostalTimeoutError(name, topic, timeout));
-            }, timeout);
+            const timer =
+                timeout > 0
+                    ? setTimeout(() => {
+                          pendingCorrelationIds.delete(correlationId);
+                          pendingRequests.delete(correlationId);
+                          reject(new PostalTimeoutError(name, topic, timeout));
+                      }, timeout)
+                    : undefined;
 
             pendingRequests.set(correlationId, {
                 resolve: resolve as (value: unknown) => void,
