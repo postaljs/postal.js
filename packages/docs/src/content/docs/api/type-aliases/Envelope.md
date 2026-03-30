@@ -7,7 +7,7 @@ title: "Envelope"
 
 > **Envelope**\<`TPayload`\> = `object`
 
-Defined in: [packages/postal/src/envelope.ts:19](https://github.com/postaljs/postal.js/blob/4876bab634a36bab204331c97a6ba8fc6d7e22a4/packages/postal/src/envelope.ts#L19)
+Defined in: [packages/postal/src/envelope.ts:19](https://github.com/postaljs/postal.js/blob/8f1628831582994e271d514bcf60125bd6a53fa1/packages/postal/src/envelope.ts#L19)
 
 Standard message wrapper used internally and exposed to subscribers.
 
@@ -27,7 +27,7 @@ bridging across execution boundaries.
 
 > **channel**: `string`
 
-Defined in: [packages/postal/src/envelope.ts:25](https://github.com/postaljs/postal.js/blob/4876bab634a36bab204331c97a6ba8fc6d7e22a4/packages/postal/src/envelope.ts#L25)
+Defined in: [packages/postal/src/envelope.ts:25](https://github.com/postaljs/postal.js/blob/8f1628831582994e271d514bcf60125bd6a53fa1/packages/postal/src/envelope.ts#L25)
 
 The channel this message was published on
 
@@ -37,7 +37,7 @@ The channel this message was published on
 
 > `optional` **correlationId**: `string`
 
-Defined in: [packages/postal/src/envelope.ts:37](https://github.com/postaljs/postal.js/blob/4876bab634a36bab204331c97a6ba8fc6d7e22a4/packages/postal/src/envelope.ts#L37)
+Defined in: [packages/postal/src/envelope.ts:37](https://github.com/postaljs/postal.js/blob/8f1628831582994e271d514bcf60125bd6a53fa1/packages/postal/src/envelope.ts#L37)
 
 Present on 'reply' envelopes — correlates back to the original request
 
@@ -47,7 +47,7 @@ Present on 'reply' envelopes — correlates back to the original request
 
 > **id**: `string`
 
-Defined in: [packages/postal/src/envelope.ts:21](https://github.com/postaljs/postal.js/blob/4876bab634a36bab204331c97a6ba8fc6d7e22a4/packages/postal/src/envelope.ts#L21)
+Defined in: [packages/postal/src/envelope.ts:21](https://github.com/postaljs/postal.js/blob/8f1628831582994e271d514bcf60125bd6a53fa1/packages/postal/src/envelope.ts#L21)
 
 Unique message identifier (UUID v4)
 
@@ -57,7 +57,7 @@ Unique message identifier (UUID v4)
 
 > **payload**: `TPayload`
 
-Defined in: [packages/postal/src/envelope.ts:29](https://github.com/postaljs/postal.js/blob/4876bab634a36bab204331c97a6ba8fc6d7e22a4/packages/postal/src/envelope.ts#L29)
+Defined in: [packages/postal/src/envelope.ts:29](https://github.com/postaljs/postal.js/blob/8f1628831582994e271d514bcf60125bd6a53fa1/packages/postal/src/envelope.ts#L29)
 
 The message payload
 
@@ -67,7 +67,7 @@ The message payload
 
 > `optional` **replyTo**: `string`
 
-Defined in: [packages/postal/src/envelope.ts:35](https://github.com/postaljs/postal.js/blob/4876bab634a36bab204331c97a6ba8fc6d7e22a4/packages/postal/src/envelope.ts#L35)
+Defined in: [packages/postal/src/envelope.ts:35](https://github.com/postaljs/postal.js/blob/8f1628831582994e271d514bcf60125bd6a53fa1/packages/postal/src/envelope.ts#L35)
 
 Present on 'request' envelopes — the topic to send the reply to
 
@@ -77,7 +77,7 @@ Present on 'request' envelopes — the topic to send the reply to
 
 > `optional` **source**: `string`
 
-Defined in: [packages/postal/src/envelope.ts:33](https://github.com/postaljs/postal.js/blob/4876bab634a36bab204331c97a6ba8fc6d7e22a4/packages/postal/src/envelope.ts#L33)
+Defined in: [packages/postal/src/envelope.ts:33](https://github.com/postaljs/postal.js/blob/8f1628831582994e271d514bcf60125bd6a53fa1/packages/postal/src/envelope.ts#L33)
 
 Originating context identifier, set by transports to track message origin
 
@@ -87,7 +87,7 @@ Originating context identifier, set by transports to track message origin
 
 > **timestamp**: `number`
 
-Defined in: [packages/postal/src/envelope.ts:31](https://github.com/postaljs/postal.js/blob/4876bab634a36bab204331c97a6ba8fc6d7e22a4/packages/postal/src/envelope.ts#L31)
+Defined in: [packages/postal/src/envelope.ts:31](https://github.com/postaljs/postal.js/blob/8f1628831582994e271d514bcf60125bd6a53fa1/packages/postal/src/envelope.ts#L31)
 
 When the envelope was created — Date.now() for serialization safety
 
@@ -97,7 +97,7 @@ When the envelope was created — Date.now() for serialization safety
 
 > **topic**: `string`
 
-Defined in: [packages/postal/src/envelope.ts:27](https://github.com/postaljs/postal.js/blob/4876bab634a36bab204331c97a6ba8fc6d7e22a4/packages/postal/src/envelope.ts#L27)
+Defined in: [packages/postal/src/envelope.ts:27](https://github.com/postaljs/postal.js/blob/8f1628831582994e271d514bcf60125bd6a53fa1/packages/postal/src/envelope.ts#L27)
 
 The dot-delimited topic string
 
@@ -107,6 +107,6 @@ The dot-delimited topic string
 
 > **type**: [`EnvelopeType`](/api/type-aliases/envelopetype/)
 
-Defined in: [packages/postal/src/envelope.ts:23](https://github.com/postaljs/postal.js/blob/4876bab634a36bab204331c97a6ba8fc6d7e22a4/packages/postal/src/envelope.ts#L23)
+Defined in: [packages/postal/src/envelope.ts:23](https://github.com/postaljs/postal.js/blob/8f1628831582994e271d514bcf60125bd6a53fa1/packages/postal/src/envelope.ts#L23)
 
 The kind of message
