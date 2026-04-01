@@ -14,6 +14,7 @@ postal/
     postal-transport-broadcastchannel/ # BroadcastChannel transport. npm: "postal-transport-broadcastchannel"
     postal-transport-serviceworker/    # ServiceWorker transport. npm: "postal-transport-serviceworker"
     postal-transport-childprocess/     # child_process/cluster IPC transport. npm: "postal-transport-childprocess"
+    postal-transport-uds/             # Unix domain socket transport. npm: "postal-transport-uds"
     docs/                              # Starlight docs site. private, not published.
   archive/                             # Legacy v2.x code. Read-only reference.
   pnpm-workspace.yaml                  # Workspace config
@@ -33,7 +34,9 @@ postal-transport-broadcastchannel ──┤
                                     ├──▶  postal (peer dep)
 postal-transport-serviceworker    ──┤
                                     │
-postal-transport-childprocess     ──┘
+postal-transport-childprocess     ──┤
+                                    │
+postal-transport-uds              ──┘
 
 @postal/docs ──▶ (standalone Astro/Starlight site, no runtime dep on postal)
 ```
@@ -101,6 +104,19 @@ Transports are always installed alongside `postal`. They import types and intern
 | `protocol.ts`       | Message shapes, type guards, factories. SYN/ACK types for IPC handshake            |
 | `errors.ts`         | `PostalHandshakeTimeoutError`                                                      |
 | `types.ts`          | `ConnectOptions`                                                                   |
+
+### postal-transport-uds/src/
+
+| File                 | Purpose                                                                                 |
+| -------------------- | --------------------------------------------------------------------------------------- |
+| `index.ts`           | Public exports — `listenOnSocket`, `connectToSocket`, `createSocketTransport`, errors   |
+| `server.ts`          | `listenOnSocket(path, options?)` — accepts N clients, SYN/ACK per client, hub-and-spoke |
+| `client.ts`          | `connectToSocket(path, options?)` — connects to server, handshakes, returns remove fn   |
+| `socketTransport.ts` | `createSocketTransport(socket)` — low-level Transport with NDJSON stream parsing        |
+| `protocol.ts`        | Message shapes, type guards, factories. `postal:uds-` namespace for handshake           |
+| `serialization.ts`   | `Serializer` interface + `ndjsonSerializer` default + `createLineParser` utility        |
+| `errors.ts`          | `PostalUdsHandshakeTimeoutError`                                                        |
+| `types.ts`           | `UdsServerOptions`, `UdsConnectOptions`                                                 |
 
 ---
 
@@ -459,6 +475,33 @@ import { connectToClusterPrimary } from "postal-transport-childprocess/cluster";
 
 const transport = await connectToClusterPrimary();
 addTransport(transport);
+```
+
+### Bridge independent processes via Unix domain socket
+
+```ts
+// Server process:
+import { getChannel } from "postal";
+import { listenOnSocket } from "postal-transport-uds";
+
+const { dispose } = await listenOnSocket("/tmp/postal.sock");
+
+getChannel("jobs").publish("task.start", { id: 1 });
+// dispose() to tear down
+```
+
+```ts
+// Client process (any number of these):
+import { getChannel } from "postal";
+import { connectToSocket } from "postal-transport-uds";
+
+const removeTransport = await connectToSocket("/tmp/postal.sock", {
+    onDisconnect: () => console.log("Server went away"),
+});
+
+getChannel("jobs").subscribe("task.start", env => {
+    console.log("Got task:", env.payload);
+});
 ```
 
 ### Add a wiretap (global bus logger)

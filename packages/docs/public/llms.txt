@@ -12,6 +12,9 @@ PACKAGES COVERED BY THIS DOCUMENTATION
 postal                         Core library (npm)
 postal-transport-messageport   MessagePort bridge transport (npm)
 postal-transport-broadcastchannel  BroadcastChannel bridge transport (npm)
+postal-transport-serviceworker ServiceWorker bridge transport (npm)
+postal-transport-childprocess  child_process/cluster IPC transport (npm)
+postal-transport-uds           Unix domain socket transport (npm)
 
 ---
 
@@ -74,6 +77,24 @@ postal-transport-broadcastchannel
   Use for: same-origin tabs and windows
   No handshake required
   Exports: createBroadcastChannelTransport(name?)
+
+postal-transport-serviceworker
+  Use for: tab ↔ ServiceWorker communication
+  Dedicated MessagePort per tab, SYN/ACK handshake
+  Client entry: connectToServiceWorker(registration, options?)
+  SW entry (postal-transport-serviceworker/sw): listenForClients(options?)
+
+postal-transport-childprocess
+  Use for: child_process.fork() and cluster IPC
+  SYN/ACK handshake over Node.js IPC channel
+  Exports: connectToChild, connectToParent, createIPCTransport
+  Cluster entry (postal-transport-childprocess/cluster): connectToClusterWorker, connectToClusterPrimary
+
+postal-transport-uds
+  Use for: independent Node.js processes on the same machine (no parent/child required)
+  Hub-and-spoke via Unix domain socket + NDJSON framing
+  Exports: listenOnSocket(path, options?), connectToSocket(path, options?), createSocketTransport
+  Node.js only, requires Node >= 22
 
 ---
 

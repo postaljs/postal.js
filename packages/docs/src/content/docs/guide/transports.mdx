@@ -335,6 +335,67 @@ addTransport(transport);
     re-establish if needed.
 </Aside>
 
+### `postal-transport-uds`
+
+Unix domain socket transport for independent Node.js processes. Unlike the `childprocess` transport, processes don't need a parent/child relationship — any process can connect to a known socket path. The topology is hub-and-spoke: one server, N clients.
+
+```bash
+npm install postal postal-transport-uds
+```
+
+**Server (hub):**
+
+```ts
+import { getChannel } from "postal";
+import { listenOnSocket } from "postal-transport-uds";
+
+const { dispose } = await listenOnSocket("/tmp/postal.sock");
+
+// All connected clients receive this
+getChannel("jobs").publish("task.start", { id: 1 });
+
+// Tear down: close server, disconnect all clients
+dispose();
+```
+
+**Client (spoke):**
+
+```ts
+import { getChannel } from "postal";
+import { connectToSocket } from "postal-transport-uds";
+
+const removeTransport = await connectToSocket("/tmp/postal.sock", {
+    onDisconnect: () => {
+        console.log("Server went away");
+    },
+});
+
+getChannel("jobs").subscribe("task.start", env => {
+    console.log("Got task:", env.payload);
+});
+
+// Explicit disconnect
+removeTransport();
+```
+
+<Aside type="note">
+    The server unlinks stale socket files by default — if a previous process crashed without
+    cleaning up, the leftover socket file is removed before `listen()`. Set `unlinkStale: false` to
+    disable this behavior.
+</Aside>
+
+<Aside type="note">
+    `connectToSocket` throws `PostalUdsHandshakeTimeoutError` if the server doesn't acknowledge
+    within the timeout (default 5 seconds). `onDisconnect` only fires on unexpected disconnection —
+    calling the returned remove function does NOT trigger it.
+</Aside>
+
+<Aside type="caution">
+    This transport uses NDJSON (JSON over newlines). `Buffer` and `ArrayBuffer` values need
+    base64-encoding before sending. Auto-reconnection is not provided — implement retry logic in the
+    `onDisconnect` callback. Node.js only (`node:net`), requires Node &ge; 22.
+</Aside>
+
 ## Writing a custom transport
 
 If you need a different channel (WebSocket, SharedWorker, `postMessage` with a custom protocol), implement the `Transport` interface directly:
