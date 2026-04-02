@@ -7,7 +7,7 @@ title: "TransportFilter"
 
 > **TransportFilter** = `object`
 
-Defined in: [packages/postal/src/transport.ts:55](https://github.com/postaljs/postal.js/blob/3a48d1507e895e76d727fc66b665bbd287a62582/packages/postal/src/transport.ts#L55)
+Defined in: [packages/postal/src/transport.ts:55](https://github.com/postaljs/postal.js/blob/4d190f17ca00a7479e2eb67edf7dc9d3556f05e1/packages/postal/src/transport.ts#L55)
 
 Restricts which envelopes a transport forwards.
 
@@ -17,7 +17,7 @@ Restricts which envelopes a transport forwards.
 
 > `optional` **channels**: `string`[]
 
-Defined in: [packages/postal/src/transport.ts:57](https://github.com/postaljs/postal.js/blob/3a48d1507e895e76d727fc66b665bbd287a62582/packages/postal/src/transport.ts#L57)
+Defined in: [packages/postal/src/transport.ts:57](https://github.com/postaljs/postal.js/blob/4d190f17ca00a7479e2eb67edf7dc9d3556f05e1/packages/postal/src/transport.ts#L57)
 
 Only forward envelopes on these channels. Exact match.
 
@@ -27,6 +27,6 @@ Only forward envelopes on these channels. Exact match.
 
 > `optional` **topics**: `string`[]
 
-Defined in: [packages/postal/src/transport.ts:59](https://github.com/postaljs/postal.js/blob/3a48d1507e895e76d727fc66b665bbd287a62582/packages/postal/src/transport.ts#L59)
+Defined in: [packages/postal/src/transport.ts:59](https://github.com/postaljs/postal.js/blob/4d190f17ca00a7479e2eb67edf7dc9d3556f05e1/packages/postal/src/transport.ts#L59)
 
 Only forward envelopes matching these topic patterns. Uses AMQP wildcard matching.

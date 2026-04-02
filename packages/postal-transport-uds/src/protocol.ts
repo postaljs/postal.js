@@ -64,19 +64,44 @@ const isPostalMessage = (data: unknown): data is UdsProtocolMessage => {
 
 /** Narrows unknown data to a SYN message. Safe to call on any input. */
 export const isUdsSyn = (data: unknown): data is UdsSynMessage => {
-    return isPostalMessage(data) && (data as UdsSynMessage).type === "postal:uds-syn";
+    return (
+        isPostalMessage(data) &&
+        (data as UdsSynMessage).type === "postal:uds-syn" &&
+        (data as UdsSynMessage).version === PROTOCOL_VERSION
+    );
 };
 
 /** Narrows unknown data to an ACK message. Safe to call on any input. */
 export const isUdsAck = (data: unknown): data is UdsAckMessage => {
+    return (
+        isPostalMessage(data) &&
+        (data as UdsAckMessage).type === "postal:uds-ack" &&
+        (data as UdsAckMessage).version === PROTOCOL_VERSION
+    );
+};
+
+/**
+ * Loose check — matches the SYN type string without version validation.
+ * Used to distinguish "wrong version" from "not a SYN at all".
+ */
+export const looksLikeSyn = (data: unknown): data is UdsSynMessage => {
+    return isPostalMessage(data) && (data as UdsSynMessage).type === "postal:uds-syn";
+};
+
+/**
+ * Loose check — matches the ACK type string without version validation.
+ * Used to distinguish "wrong version" from "not an ACK at all".
+ */
+export const looksLikeAck = (data: unknown): data is UdsAckMessage => {
     return isPostalMessage(data) && (data as UdsAckMessage).type === "postal:uds-ack";
 };
 
-/** Narrows unknown data to an envelope wrapper. Validates the envelope field is a non-null object. */
+/** Narrows unknown data to an envelope wrapper. Validates type, version, and that envelope is a non-null object. */
 export const isUdsEnvelopeMessage = (data: unknown): data is UdsEnvelopeMessage => {
     return (
         isPostalMessage(data) &&
         (data as UdsEnvelopeMessage).type === "postal:envelope" &&
+        (data as UdsEnvelopeMessage).version === PROTOCOL_VERSION &&
         "envelope" in data &&
         typeof (data as UdsEnvelopeMessage).envelope === "object" &&
         (data as UdsEnvelopeMessage).envelope !== null

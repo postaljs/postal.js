@@ -4,8 +4,8 @@ export default {};
 import { EventEmitter } from "events";
 // net is mocked below — import kept for type reference only
 import { ndjsonSerializer } from "./serialization";
-import { createUdsSyn, createUdsAck } from "./protocol";
-import { PostalUdsHandshakeTimeoutError } from "./errors";
+import { createUdsSyn, createUdsAck, PROTOCOL_VERSION } from "./protocol";
+import { PostalUdsHandshakeTimeoutError, PostalUdsVersionMismatchError } from "./errors";
 
 // Mock postal's addTransport
 const mockRemoveTransport = jest.fn();
@@ -145,6 +145,27 @@ describe("connectToSocket", () => {
         });
     });
 
+    describe("version mismatch", () => {
+        it("should reject with PostalUdsVersionMismatchError if ACK has wrong version", async () => {
+            const promise = connectToSocket("/tmp/postal-test.sock");
+
+            mockSocket.emit("connect");
+
+            // Server sends ACK with wrong version
+            mockSocket.emit(
+                "data",
+                ndjsonSerializer.encode({ type: "postal:uds-ack", version: 999 })
+            );
+
+            const err = await promise.catch((e: unknown) => e);
+            expect(err).toBeInstanceOf(PostalUdsVersionMismatchError);
+            expect((err as PostalUdsVersionMismatchError).received).toBe(999);
+            expect((err as PostalUdsVersionMismatchError).expected).toBe(PROTOCOL_VERSION);
+            expect(mockSocket.destroy).toHaveBeenCalledTimes(1);
+            expect(addTransport).not.toHaveBeenCalled();
+        });
+    });
+
     describe("non-ACK messages during handshake", () => {
         it("should ignore non-ACK messages and still resolve on ACK", async () => {
             const promise = connectToSocket("/tmp/postal-test.sock");
@@ -179,6 +200,69 @@ describe("connectToSocket", () => {
             mockSocket.emit("error", new Error("late error"));
 
             jest.useRealTimers();
+        });
+
+        it("should not double-resolve if ACK arrives after ACK already handled", async () => {
+            const promise = connectToSocket("/tmp/postal-test.sock");
+            mockSocket.emit("connect");
+
+            // First ACK — resolves
+            mockSocket.emit("data", ndjsonSerializer.encode(createUdsAck()));
+            const cleanup = await promise;
+
+            // Second ACK — should be ignored (data listener removed, settled=true)
+            mockSocket.emit("data", ndjsonSerializer.encode(createUdsAck()));
+
+            // Should still only have one transport registered
+            expect(addTransport).toHaveBeenCalledTimes(1);
+
+            cleanup();
+        });
+    });
+
+    describe("connection error before connect event", () => {
+        it("should reject with the socket error (e.g. ENOENT)", async () => {
+            const promise = connectToSocket("/tmp/postal-test.sock");
+
+            const err: any = new Error("connect ENOENT /tmp/postal-test.sock");
+            err.code = "ENOENT";
+            mockSocket.emit("error", err);
+
+            await expect(promise).rejects.toThrow("ENOENT");
+            expect(mockSocket.destroy).toHaveBeenCalledTimes(1);
+            expect(addTransport).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("no onDisconnect callback", () => {
+        it("should not attach a close listener if onDisconnect is not provided", async () => {
+            const promise = connectToSocket("/tmp/postal-test.sock");
+            mockSocket.emit("connect");
+            mockSocket.emit("data", ndjsonSerializer.encode(createUdsAck()));
+
+            const cleanup = await promise;
+
+            // Emitting close should not throw even without onDisconnect
+            mockSocket.emit("close");
+
+            cleanup();
+        });
+    });
+
+    describe("SYN not sent if settled before connect", () => {
+        it("should not send SYN if error occurs before connect event", async () => {
+            const promise = connectToSocket("/tmp/postal-test.sock");
+
+            // Error fires before connect
+            mockSocket.emit("error", new Error("ECONNREFUSED"));
+
+            await expect(promise).rejects.toThrow("ECONNREFUSED");
+
+            // Now the connect event fires late
+            mockSocket.emit("connect");
+
+            // SYN should NOT have been written because settled=true
+            expect(mockSocket.write).not.toHaveBeenCalled();
         });
     });
 });

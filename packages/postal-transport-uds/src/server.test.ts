@@ -284,6 +284,24 @@ describe("listenOnSocket", () => {
         });
     });
 
+    describe("version mismatch", () => {
+        it("should destroy the socket when SYN has wrong version", async () => {
+            const { dispose } = await listenOnSocket("/tmp/postal-test.sock");
+            const { socket: client, mockDestroy, mockWrite } = createMockClientSocket();
+
+            serverEmitter.emit("connection", client);
+
+            // Send SYN with wrong version
+            client.emit("data", ndjsonSerializer.encode({ type: "postal:uds-syn", version: 999 }));
+
+            expect(mockDestroy).toHaveBeenCalledTimes(1);
+            expect(mockWrite).not.toHaveBeenCalled();
+            expect(addTransport).not.toHaveBeenCalled();
+
+            dispose();
+        });
+    });
+
     describe("handshake timeout", () => {
         beforeEach(() => {
             jest.useFakeTimers();
@@ -304,6 +322,77 @@ describe("listenOnSocket", () => {
 
             expect(mockDestroy).toHaveBeenCalledTimes(1);
             expect(addTransport).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("duplicate SYN after handshake", () => {
+        it("should ignore a second SYN once handshake is complete", async () => {
+            const { dispose } = await listenOnSocket("/tmp/postal-test.sock");
+            const { socket: client, mockWrite } = createMockClientSocket();
+
+            serverEmitter.emit("connection", client);
+
+            // First SYN — completes handshake
+            client.emit("data", ndjsonSerializer.encode(createUdsSyn()));
+            expect(mockWrite).toHaveBeenCalledTimes(1);
+            expect(addTransport).toHaveBeenCalledTimes(1);
+
+            // Second SYN — should be ignored (data listener is removed)
+            client.emit("data", ndjsonSerializer.encode(createUdsSyn()));
+            expect(mockWrite).toHaveBeenCalledTimes(1);
+            expect(addTransport).toHaveBeenCalledTimes(1);
+
+            dispose();
+        });
+    });
+
+    describe("filter pass-through", () => {
+        it("should pass the filter option to addTransport", async () => {
+            const filter = { channels: ["jobs"], topics: ["task.#"] };
+            const { dispose } = await listenOnSocket("/tmp/postal-test.sock", { filter });
+            const { socket: client } = createMockClientSocket();
+
+            serverEmitter.emit("connection", client);
+            client.emit("data", ndjsonSerializer.encode(createUdsSyn()));
+
+            expect(addTransport).toHaveBeenCalledWith(expect.any(Object), { filter });
+
+            dispose();
+        });
+
+        it("should pass undefined filter when none is provided", async () => {
+            const { dispose } = await listenOnSocket("/tmp/postal-test.sock");
+            const { socket: client } = createMockClientSocket();
+
+            serverEmitter.emit("connection", client);
+            client.emit("data", ndjsonSerializer.encode(createUdsSyn()));
+
+            expect(addTransport).toHaveBeenCalledWith(expect.any(Object), { filter: undefined });
+
+            dispose();
+        });
+    });
+
+    describe("startup error", () => {
+        it("should reject the promise if the server emits an error before listening", async () => {
+            // Reconfigure the mock so listen() doesn't auto-call the callback
+            (net.createServer as jest.Mock).mockImplementationOnce(() => {
+                serverEmitter = new EventEmitter();
+                mockServerClose = jest.fn();
+                mockServerListen = jest.fn(); // does NOT invoke callback
+                return Object.assign(serverEmitter, {
+                    close: mockServerClose,
+                    listen: mockServerListen,
+                });
+            });
+
+            const startupError = new Error("EADDRINUSE");
+            const promise = listenOnSocket("/tmp/postal-test.sock");
+
+            // Emit error before listen callback fires
+            serverEmitter.emit("error", startupError);
+
+            await expect(promise).rejects.toBe(startupError);
         });
     });
 });

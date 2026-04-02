@@ -17,3 +17,22 @@ export class PostalUdsHandshakeTimeoutError extends Error {
         this.timeout = timeout;
     }
 }
+
+/**
+ * Thrown when a SYN or ACK arrives with a protocol version that doesn't
+ * match the local PROTOCOL_VERSION. This is a clear signal that the
+ * remote side needs to be updated — not a transient network issue.
+ */
+export class PostalUdsVersionMismatchError extends Error {
+    /** The version received from the remote side. */
+    readonly received: number;
+    /** The version this side expected (i.e. PROTOCOL_VERSION). */
+    readonly expected: number;
+
+    constructor(received: number, expected: number) {
+        super(`Postal UDS protocol version mismatch: received ${received}, expected ${expected}`);
+        this.name = "PostalUdsVersionMismatchError";
+        this.received = received;
+        this.expected = expected;
+    }
+}

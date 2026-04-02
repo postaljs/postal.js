@@ -51,6 +51,7 @@
         "dev": "tsdown --watch",
         "build": "tsdown",
         "test": "jest --passWithNoTests",
+        "test:integration": "jest --config jest.integration.config.cjs",
         "test:watch": "jest --watch",
         "lint": "eslint 'src/**/*.{ts,tsx}'"
     },

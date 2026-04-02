@@ -7,7 +7,7 @@ title: "addWiretap"
 
 > **addWiretap**(`callback`): () => `void`
 
-Defined in: [packages/postal/src/channel.ts:356](https://github.com/postaljs/postal.js/blob/3a48d1507e895e76d727fc66b665bbd287a62582/packages/postal/src/channel.ts#L356)
+Defined in: [packages/postal/src/channel.ts:356](https://github.com/postaljs/postal.js/blob/4d190f17ca00a7479e2eb67edf7dc9d3556f05e1/packages/postal/src/channel.ts#L356)
 
 Registers a global observer that sees every envelope flowing through the bus.
 

@@ -10,9 +10,15 @@
 import * as net from "node:net";
 import { addTransport } from "postal";
 import { createSocketTransport } from "./socketTransport";
-import { createUdsSyn, isUdsAck, DEFAULT_TIMEOUT } from "./protocol";
+import {
+    createUdsSyn,
+    isUdsAck,
+    looksLikeAck,
+    PROTOCOL_VERSION,
+    DEFAULT_TIMEOUT,
+} from "./protocol";
 import { createLineParser, ndjsonSerializer } from "./serialization";
-import { PostalUdsHandshakeTimeoutError } from "./errors";
+import { PostalUdsHandshakeTimeoutError, PostalUdsVersionMismatchError } from "./errors";
 import type { UdsConnectOptions } from "./types";
 
 /**
@@ -60,6 +66,17 @@ export const connectToSocket = (
 
         const onData = createLineParser(parsed => {
             if (settled) {
+                return;
+            }
+
+            // Detect version mismatch before it times out with an unhelpful error
+            if (!isUdsAck(parsed) && looksLikeAck(parsed)) {
+                settled = true;
+                clearTimeout(timer);
+                socket.removeListener("data", onData);
+                socket.removeListener("error", onError);
+                socket.destroy();
+                reject(new PostalUdsVersionMismatchError(parsed.version, PROTOCOL_VERSION));
                 return;
             }
 

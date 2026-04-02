@@ -8,4 +8,5 @@ module.exports = {
         "^@/(.*)$": "<rootDir>/src/$1",
     },
     transformIgnorePatterns: ["/node_modules/"],
+    testPathIgnorePatterns: ["\\.integration\\.test\\.ts$"],
 };
