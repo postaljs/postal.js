@@ -132,6 +132,43 @@ importers:
         specifier: ^6.3.5
         version: 6.4.1(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
 
+  examples/postal-monitor:
+    dependencies:
+      chalk:
+        specifier: ^5.4.1
+        version: 5.6.2
+      ink:
+        specifier: ^5.2.1
+        version: 5.2.1(@types/react@18.3.28)(react@18.3.1)
+      postal:
+        specifier: workspace:*
+        version: link:../../packages/postal
+      postal-transport-uds:
+        specifier: workspace:*
+        version: link:../../packages/postal-transport-uds
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+    devDependencies:
+      '@types/react':
+        specifier: ^18.3.23
+        version: 18.3.28
+      ink-testing-library:
+        specifier: ^4.0.0
+        version: 4.0.0(@types/react@18.3.28)
+      jest:
+        specifier: ^30.2.0
+        version: 30.3.0(@types/node@22.19.13)
+      ts-jest:
+        specifier: ^29.4.6
+        version: 29.4.6(@babel/core@7.29.0)(@jest/transform@30.3.0)(@jest/types@30.3.0)(babel-jest@30.3.0(@babel/core@7.29.0))(jest-util@30.3.0)(jest@30.3.0(@types/node@22.19.13))(typescript@5.9.3)
+      tsx:
+        specifier: ^4.19.4
+        version: 4.21.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   examples/radio-spectrum-tui:
     dependencies:
       chalk:
