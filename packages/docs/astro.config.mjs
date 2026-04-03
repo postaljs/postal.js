@@ -94,6 +94,7 @@ export default defineConfig({
                         { slug: "examples/tab-sync" },
                         { slug: "examples/train-dispatch" },
                         { slug: "examples/ascii-camera" },
+                        { slug: "examples/postal-monitor" },
                     ],
                 },
                 {

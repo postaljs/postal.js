@@ -1,0 +1,96 @@
+---
+title: Postal Monitor
+description: A two-terminal TUI demo showing real-time task events flowing between independent Node processes over postal's Unix domain socket transport.
+---
+
+import { LinkCard, CardGrid, Card } from "@astrojs/starlight/components";
+
+**Postal Monitor** is a read-only Ink dashboard that displays real-time task events published by independent Node processes over a Unix domain socket. The monitor runs as the UDS server; a launcher process spawns real monorepo commands and reports start/finish events as the UDS client.
+
+:::note
+This is a **terminal-only** example requiring two terminals — one for the monitor, one for the launcher. It uses Unix domain sockets, so **macOS or Linux** only.
+:::
+
+---
+
+## What it demonstrates
+
+<CardGrid>
+    <Card title="UDS transport (server side)" icon="puzzle">
+        The monitor calls `listenOnSocket()` to create a UDS server. Each connecting reporter
+        automatically registers a postal transport via the SYN/ACK handshake — envelopes flow across
+        the socket boundary without any manual wiring.
+    </Card>
+    <Card title="UDS transport (client side)" icon="right-arrow">
+        The reporter calls `connectToSocket()` and then `getChannel("monitor").publish()`. Three
+        lines of postal API — that's the entire client integration. The reporter module is
+        intentionally thin to showcase this.
+    </Card>
+    <Card title="Wildcard subscriptions" icon="magnifier">
+        The monitor subscribes to `"task.#"` — a single subscription that receives both
+        `task.started` and `task.finished` events. AMQP-style wildcards mean new event types work
+        without changing the subscriber.
+    </Card>
+    <Card title="Multi-process pub/sub" icon="rocket">
+        The launcher spawns real `pnpm --filter` commands concurrently with staggered starts. Events
+        flow from ephemeral task processes through the launcher's reporter to the monitor's TUI —
+        all via postal envelopes over a Unix socket.
+    </Card>
+</CardGrid>
+
+---
+
+## Architecture
+
+```
+Monitor (UDS server, Ink TUI)              Launcher (UDS client)
+─────────────────────────────              ─────────────────────
+listenOnSocket(sock)                       connectToSocket(sock)
+getChannel("monitor")                      getChannel("monitor")
+      │                                          │
+      │  ◄── task.started ───────────────────  │  spawn("pnpm", [...])
+      │  ◄── task.finished ──────────────────  │  wait for exit
+      │                                          │
+      │  subscribe("task.#")                     │  publish("task.started", ...)
+      │  → state reducer                         │  publish("task.finished", ...)
+      │  → React setState                        │
+      │  → Ink re-render                         │
+
+┌───────────────┬─────────────────────┐
+│ Active Tasks  │ Event Stream        │
+│ (by PID)      │ (scrolling log)     │
+└───────────────┴─────────────────────┘
+```
+
+The monitor is the long-running process (server). Reporters are ephemeral (clients). This maps naturally — the thing that waits listens; the things that come and go connect.
+
+---
+
+## Running locally
+
+```bash
+# Terminal 1 — start the monitor
+pnpm install
+pnpm --filter @postal-examples/postal-monitor start:monitor
+
+# Terminal 2 — launch tasks
+pnpm --filter @postal-examples/postal-monitor start:launcher
+```
+
+Requires **Node.js 22+** and a completed `pnpm install` at the monorepo root (the launcher spawns real `pnpm --filter` commands). Press **Ctrl+C** in either terminal for clean shutdown.
+
+---
+
+## Source code
+
+The full source is in [`examples/postal-monitor/`](https://github.com/postaljs/postal.js/tree/master/examples/postal-monitor) in the postal.js repository.
+
+Key files:
+
+- `src/reporter.ts` — UDS client wrapper: `connectToSocket` → `getChannel` → `publish` (start here)
+- `src/launcher.ts` — spawns real pnpm tasks at staggered intervals, reports events via the reporter
+- `src/task-runner.ts` — `child_process.spawn` logic with settled-guard for clean error handling
+- `src/monitor.tsx` — UDS server entry point, postal subscriptions, state → React → Ink bridge
+- `src/monitor-state.ts` — pure state reducer for task events (the testable core)
+- `src/components/App.tsx` — two-column bordered layout sized to terminal height
+- `src/types.ts` — `TaskStartedPayload`, `TaskFinishedPayload`, and `ChannelRegistry` augmentation
