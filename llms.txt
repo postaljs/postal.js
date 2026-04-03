@@ -24,6 +24,11 @@ postal-transport-broadcastchannel (npm: "postal-transport-broadcastchannel")
   Bridges postal across same-origin tabs/windows via BroadcastChannel.
   packages/postal-transport-broadcastchannel/
 
+postal-transport-uds (npm: "postal-transport-uds")
+  Bridges postal across independent Node.js processes via Unix domain sockets + NDJSON.
+  packages/postal-transport-uds/
+  Hub-and-spoke topology: one server, N clients. No parent/child relationship required.
+
 @postal/docs (private)
   Starlight documentation site. Not published to npm.
   packages/docs/
@@ -154,6 +159,29 @@ worker.postMessage() and connectFromWorkerThread listens on parentPort.
 
 ---
 
+UDS TRANSPORT — package: postal-transport-uds
+
+Exports:
+  listenOnSocket(socketPath, options?)          Server: listen, accept N clients → Promise<{ dispose }>
+  connectToSocket(socketPath, options?)         Client: connect, handshake → Promise<() => void>
+  createSocketTransport(socket, serializer?)    Low-level: wraps a net.Socket in a Transport
+  PostalUdsHandshakeTimeoutError                Handshake timed out
+  PROTOCOL_VERSION                              Number (currently 1)
+  UdsServerOptions                              { filter?, unlinkStale?, timeout? }
+  UdsConnectOptions                             { timeout?, onDisconnect? }
+  UdsSocket                                     Minimal socket interface type
+  Serializer                                    { encode, decode } — pluggable wire format
+
+Handshake: client sends postal:uds-syn, server responds postal:uds-ack over NDJSON.
+Wire format: NDJSON (JSON.stringify + "\n"). Serializer interface allows swapping to MessagePack.
+Topology: hub-and-spoke. Server registers each client as a separate transport via addTransport().
+Fan-out and echo prevention handled by postal core, not the server.
+No auto-reconnection. onDisconnect callback is the seam for consumer retry logic.
+Server unlinks stale socket files before listen() by default (unlinkStale: true).
+Node.js only (node:net, node:fs). Requires Node >= 22.
+
+---
+
 BROADCASTCHANNEL TRANSPORT — package: postal-transport-broadcastchannel
 
 Exports:
@@ -186,6 +214,7 @@ pnpm run checks                                       lint + test + build (CI ga
 pnpm --filter postal test                             Core library tests only
 pnpm --filter postal-transport-messageport test       MessagePort transport tests
 pnpm --filter postal-transport-broadcastchannel test  BroadcastChannel transport tests
+pnpm --filter postal-transport-uds test               UDS transport tests
 pnpm --filter postal test -- --watch                  Watch mode
 
 Toolchain: tsdown (CJS + ESM + .d.ts), Jest + ts-jest, ESLint 9, TypeScript 5.9+, strict mode.

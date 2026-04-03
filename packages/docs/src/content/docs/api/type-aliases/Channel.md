@@ -7,7 +7,7 @@ title: "Channel"
 
 > **Channel**\<`TMap`\> = `object`
 
-Defined in: [packages/postal/src/channel.ts:184](https://github.com/postaljs/postal.js/blob/8f1628831582994e271d514bcf60125bd6a53fa1/packages/postal/src/channel.ts#L184)
+Defined in: [packages/postal/src/channel.ts:184](https://github.com/postaljs/postal.js/blob/3a48d1507e895e76d727fc66b665bbd287a62582/packages/postal/src/channel.ts#L184)
 
 A named, typed message channel.
 
@@ -32,7 +32,7 @@ Without a `TMap`, all payloads fall back to `unknown` and all methods accept any
 
 > **dispose**: () => `void`
 
-Defined in: [packages/postal/src/channel.ts:199](https://github.com/postaljs/postal.js/blob/8f1628831582994e271d514bcf60125bd6a53fa1/packages/postal/src/channel.ts#L199)
+Defined in: [packages/postal/src/channel.ts:199](https://github.com/postaljs/postal.js/blob/3a48d1507e895e76d727fc66b665bbd287a62582/packages/postal/src/channel.ts#L199)
 
 Tear down this channel.
 
@@ -54,7 +54,7 @@ Unsubscribe/unhandle functions returned before disposal become silent no-ops.
 
 > **handle**: \<`TTopic`\>(`topic`, `callback`) => () => `void`
 
-Defined in: [packages/postal/src/channel.ts:277](https://github.com/postaljs/postal.js/blob/8f1628831582994e271d514bcf60125bd6a53fa1/packages/postal/src/channel.ts#L277)
+Defined in: [packages/postal/src/channel.ts:277](https://github.com/postaljs/postal.js/blob/3a48d1507e895e76d727fc66b665bbd287a62582/packages/postal/src/channel.ts#L277)
 
 Register a responder for a request topic.
 
@@ -108,7 +108,7 @@ PostalDisposedError if the channel has been disposed
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/postal/src/channel.ts:186](https://github.com/postaljs/postal.js/blob/8f1628831582994e271d514bcf60125bd6a53fa1/packages/postal/src/channel.ts#L186)
+Defined in: [packages/postal/src/channel.ts:186](https://github.com/postaljs/postal.js/blob/3a48d1507e895e76d727fc66b665bbd287a62582/packages/postal/src/channel.ts#L186)
 
 The channel's name, as provided at creation time. Readable after dispose.
 
@@ -118,7 +118,7 @@ The channel's name, as provided at creation time. Readable after dispose.
 
 > **publish**: \<`TTopic`\>(`topic`, `payload`) => `void`
 
-Defined in: [packages/postal/src/channel.ts:231](https://github.com/postaljs/postal.js/blob/8f1628831582994e271d514bcf60125bd6a53fa1/packages/postal/src/channel.ts#L231)
+Defined in: [packages/postal/src/channel.ts:231](https://github.com/postaljs/postal.js/blob/3a48d1507e895e76d727fc66b665bbd287a62582/packages/postal/src/channel.ts#L231)
 
 Publish a message to all subscribers whose patterns match the topic.
 
@@ -163,7 +163,7 @@ PostalDisposedError if the channel has been disposed
 
 > **request**: \<`TTopic`\>(`topic`, `payload`, `options?`) => `Promise`\<`ResponsePayload`\<`TMap`\[`TTopic`\]\>\>
 
-Defined in: [packages/postal/src/channel.ts:253](https://github.com/postaljs/postal.js/blob/8f1628831582994e271d514bcf60125bd6a53fa1/packages/postal/src/channel.ts#L253)
+Defined in: [packages/postal/src/channel.ts:253](https://github.com/postaljs/postal.js/blob/3a48d1507e895e76d727fc66b665bbd287a62582/packages/postal/src/channel.ts#L253)
 
 Send a request and await a response from a registered handler.
 
@@ -217,7 +217,7 @@ PostalDisposedError if the channel has been disposed
 
 > **subscribe**: \<`TPattern`\>(`pattern`, `callback`) => () => `void`
 
-Defined in: [packages/postal/src/channel.ts:212](https://github.com/postaljs/postal.js/blob/8f1628831582994e271d514bcf60125bd6a53fa1/packages/postal/src/channel.ts#L212)
+Defined in: [packages/postal/src/channel.ts:212](https://github.com/postaljs/postal.js/blob/3a48d1507e895e76d727fc66b665bbd287a62582/packages/postal/src/channel.ts#L212)
 
 Subscribe to messages matching a topic pattern.
 

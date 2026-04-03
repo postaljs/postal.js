@@ -47,6 +47,7 @@ For the full API — wildcards, RPC, wire taps, transports — see the [docs](ht
 | [postal-transport-broadcastchannel](packages/postal-transport-broadcastchannel/) | `postal-transport-broadcastchannel` | BroadcastChannel transport for cross-tab messaging                                                |
 | [postal-transport-serviceworker](packages/postal-transport-serviceworker/)       | `postal-transport-serviceworker`    | ServiceWorker transport — dedicated MessagePort per tab, presence tracking, SW restart resilience |
 | [postal-transport-childprocess](packages/postal-transport-childprocess/)         | `postal-transport-childprocess`     | child_process/cluster IPC transport for Node.js                                                   |
+| [postal-transport-uds](packages/postal-transport-uds/)                           | `postal-transport-uds`              | Unix domain socket transport for independent Node.js processes                                    |
 
 ## Development
 
