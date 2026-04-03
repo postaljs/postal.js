@@ -1,6 +1,6 @@
 {
     "name": "@postal-examples/postal-monitor",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "private": true,
     "type": "module",
     "description": "Real-time TUI dashboard showing postal-transport-uds in action across independent Node processes",
