@@ -7,7 +7,7 @@ title: "SubscriberCallback"
 
 > **SubscriberCallback**\<`TPayload`\> = (`envelope`) => `void`
 
-Defined in: [packages/postal/src/channel.ts:164](https://github.com/postaljs/postal.js/blob/3a48d1507e895e76d727fc66b665bbd287a62582/packages/postal/src/channel.ts#L164)
+Defined in: [packages/postal/src/channel.ts:164](https://github.com/postaljs/postal.js/blob/e0b3285e0a41b28c5ce8193f9298ed4af990bfa1/packages/postal/src/channel.ts#L164)
 
 Callback signature for message subscribers. Receives the full envelope.
 

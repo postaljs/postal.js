@@ -6,6 +6,8 @@ import {
     isUdsSyn,
     isUdsAck,
     isUdsEnvelopeMessage,
+    looksLikeSyn,
+    looksLikeAck,
     createUdsSyn,
     createUdsAck,
     createUdsEnvelopeMessage,
@@ -99,6 +101,16 @@ describe("protocol", () => {
         });
     });
 
+    describe("isUdsSyn — version mismatch", () => {
+        it("should reject a SYN with the wrong version", () => {
+            expect(isUdsSyn({ type: "postal:uds-syn", version: 999 })).toBe(false);
+        });
+
+        it("should reject a SYN with version 0", () => {
+            expect(isUdsSyn({ type: "postal:uds-syn", version: 0 })).toBe(false);
+        });
+    });
+
     describe("isUdsSyn — additional rejections", () => {
         it("should reject undefined", () => {
             expect(isUdsSyn(undefined)).toBe(false);
@@ -118,6 +130,16 @@ describe("protocol", () => {
 
         it("should reject the ACK type (wrong postal:uds- suffix)", () => {
             expect(isUdsSyn({ type: "postal:uds-ack", version: 1 })).toBe(false);
+        });
+    });
+
+    describe("isUdsAck — version mismatch", () => {
+        it("should reject an ACK with the wrong version", () => {
+            expect(isUdsAck({ type: "postal:uds-ack", version: 999 })).toBe(false);
+        });
+
+        it("should reject an ACK with version 0", () => {
+            expect(isUdsAck({ type: "postal:uds-ack", version: 0 })).toBe(false);
         });
     });
 
@@ -175,6 +197,58 @@ describe("protocol", () => {
             expect(
                 isUdsEnvelopeMessage({ type: "postal:envelope", version: 1, envelope: "not-obj" })
             ).toBe(false);
+        });
+
+        it("should reject an envelope message with wrong version", () => {
+            expect(
+                isUdsEnvelopeMessage({
+                    type: "postal:envelope",
+                    version: 999,
+                    envelope: makeEnvelope(),
+                })
+            ).toBe(false);
+        });
+
+        it("should reject an envelope message with version 0", () => {
+            expect(
+                isUdsEnvelopeMessage({
+                    type: "postal:envelope",
+                    version: 0,
+                    envelope: makeEnvelope(),
+                })
+            ).toBe(false);
+        });
+    });
+
+    describe("looksLikeSyn", () => {
+        it("should return true for a SYN with the correct version", () => {
+            expect(looksLikeSyn(createUdsSyn())).toBe(true);
+        });
+
+        it("should return true for a SYN with a wrong version", () => {
+            expect(looksLikeSyn({ type: "postal:uds-syn", version: 999 })).toBe(true);
+        });
+
+        it("should reject non-SYN messages", () => {
+            expect(looksLikeSyn(createUdsAck())).toBe(false);
+            expect(looksLikeSyn(null)).toBe(false);
+            expect(looksLikeSyn({ type: "other:syn" })).toBe(false);
+        });
+    });
+
+    describe("looksLikeAck", () => {
+        it("should return true for an ACK with the correct version", () => {
+            expect(looksLikeAck(createUdsAck())).toBe(true);
+        });
+
+        it("should return true for an ACK with a wrong version", () => {
+            expect(looksLikeAck({ type: "postal:uds-ack", version: 999 })).toBe(true);
+        });
+
+        it("should reject non-ACK messages", () => {
+            expect(looksLikeAck(createUdsSyn())).toBe(false);
+            expect(looksLikeAck(null)).toBe(false);
+            expect(looksLikeAck({ type: "other:ack" })).toBe(false);
         });
     });
 });

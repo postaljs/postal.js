@@ -186,6 +186,29 @@ describe("createSocketTransport", () => {
             });
         });
 
+        describe("when an envelope message with wrong version arrives", () => {
+            let callback: jest.Mock;
+
+            beforeEach(() => {
+                const { socket, emit } = createMockSocket();
+                const transport = createSocketTransport(socket);
+                callback = jest.fn();
+                transport.subscribe(callback);
+                // Manually craft a wrong-version envelope message
+                const badVersionEnvelope =
+                    JSON.stringify({
+                        type: "postal:envelope",
+                        version: 999,
+                        envelope: makeEnvelope(),
+                    }) + "\n";
+                emit("data", badVersionEnvelope);
+            });
+
+            it("should not invoke the subscriber", () => {
+                expect(callback).not.toHaveBeenCalled();
+            });
+        });
+
         describe("when a subscriber unsubscribes during delivery (snapshot iteration)", () => {
             let callbackA: jest.Mock, callbackC: jest.Mock;
 

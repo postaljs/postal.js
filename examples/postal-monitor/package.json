@@ -1,0 +1,28 @@
+{
+    "name": "@postal-examples/postal-monitor",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "description": "Real-time TUI dashboard showing postal-transport-uds in action across independent Node processes",
+    "scripts": {
+        "start:monitor": "tsx src/monitor.tsx",
+        "start:launcher": "tsx src/launcher.ts",
+        "dev:monitor": "tsx watch src/monitor.tsx",
+        "test": "jest --passWithNoTests"
+    },
+    "dependencies": {
+        "chalk": "^5.4.1",
+        "ink": "^5.2.1",
+        "postal": "workspace:*",
+        "postal-transport-uds": "workspace:*",
+        "react": "^18.3.1"
+    },
+    "devDependencies": {
+        "@types/react": "^18.3.23",
+        "ink-testing-library": "^4.0.0",
+        "jest": "^30.2.0",
+        "ts-jest": "^29.4.6",
+        "tsx": "^4.19.4",
+        "typescript": "^5.9.3"
+    }
+}

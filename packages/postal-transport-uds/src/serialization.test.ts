@@ -1,6 +1,6 @@
 export default {};
 
-import { ndjsonSerializer } from "./serialization";
+import { ndjsonSerializer, createLineParser } from "./serialization";
 
 describe("ndjsonSerializer", () => {
     describe("encode", () => {
@@ -85,5 +85,72 @@ describe("ndjsonSerializer", () => {
             const decoded = ndjsonSerializer.decode(encoded.trimEnd());
             expect(decoded).toEqual(original);
         });
+    });
+});
+
+describe("createLineParser", () => {
+    it("should parse a single complete line", () => {
+        const received: unknown[] = [];
+        const parser = createLineParser(msg => received.push(msg));
+        parser('{"a":1}\n');
+        expect(received).toEqual([{ a: 1 }]);
+    });
+
+    it("should buffer partial lines across multiple chunks", () => {
+        const received: unknown[] = [];
+        const parser = createLineParser(msg => received.push(msg));
+        parser('{"a":');
+        expect(received).toEqual([]);
+        parser("1}\n");
+        expect(received).toEqual([{ a: 1 }]);
+    });
+
+    it("should parse multiple lines in a single chunk", () => {
+        const received: unknown[] = [];
+        const parser = createLineParser(msg => received.push(msg));
+        parser('{"a":1}\n{"b":2}\n');
+        expect(received).toEqual([{ a: 1 }, { b: 2 }]);
+    });
+
+    it("should skip empty lines", () => {
+        const received: unknown[] = [];
+        const parser = createLineParser(msg => received.push(msg));
+        parser('{"a":1}\n\n\n{"b":2}\n');
+        expect(received).toEqual([{ a: 1 }, { b: 2 }]);
+    });
+
+    it("should silently drop malformed JSON lines", () => {
+        const received: unknown[] = [];
+        const parser = createLineParser(msg => received.push(msg));
+        parser('not-json\n{"a":1}\n{broken}\n');
+        expect(received).toEqual([{ a: 1 }]);
+    });
+
+    it("should handle Buffer input", () => {
+        const received: unknown[] = [];
+        const parser = createLineParser(msg => received.push(msg));
+        parser(Buffer.from('{"a":1}\n', "utf-8"));
+        expect(received).toEqual([{ a: 1 }]);
+    });
+
+    it("should handle a chunk with complete lines and a trailing partial", () => {
+        const received: unknown[] = [];
+        const parser = createLineParser(msg => received.push(msg));
+        parser('{"a":1}\n{"b":2}\n{"c":');
+        expect(received).toEqual([{ a: 1 }, { b: 2 }]);
+        // Complete the partial
+        parser("3}\n");
+        expect(received).toEqual([{ a: 1 }, { b: 2 }, { c: 3 }]);
+    });
+
+    it("should accept a custom serializer", () => {
+        const received: unknown[] = [];
+        const customSerializer = {
+            encode: (msg: unknown) => String(msg) + "\n",
+            decode: (line: string) => ({ custom: line }),
+        };
+        const parser = createLineParser(msg => received.push(msg), customSerializer);
+        parser("hello\n");
+        expect(received).toEqual([{ custom: "hello" }]);
     });
 });

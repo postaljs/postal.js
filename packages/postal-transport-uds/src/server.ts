@@ -12,7 +12,7 @@ import * as net from "node:net";
 import * as fs from "node:fs";
 import { addTransport } from "postal";
 import { createSocketTransport } from "./socketTransport";
-import { isUdsSyn, createUdsAck, DEFAULT_TIMEOUT } from "./protocol";
+import { isUdsSyn, looksLikeSyn, createUdsAck, DEFAULT_TIMEOUT } from "./protocol";
 import { createLineParser, ndjsonSerializer } from "./serialization";
 import type { UdsServerOptions } from "./types";
 
@@ -66,6 +66,15 @@ export const listenOnSocket = (
 
         const onData = createLineParser(parsed => {
             if (handshakeComplete) {
+                return;
+            }
+
+            // Detect version mismatch before it times out with an unhelpful error
+            if (!isUdsSyn(parsed) && looksLikeSyn(parsed)) {
+                handshakeComplete = true;
+                clearTimeout(timer);
+                clientSocket.removeListener("data", onData);
+                clientSocket.destroy();
                 return;
             }
 

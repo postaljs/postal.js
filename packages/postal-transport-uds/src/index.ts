@@ -19,7 +19,7 @@ export { listenOnSocket } from "./server";
 export { connectToSocket } from "./client";
 
 // Error classes
-export { PostalUdsHandshakeTimeoutError } from "./errors";
+export { PostalUdsHandshakeTimeoutError, PostalUdsVersionMismatchError } from "./errors";
 
 // Protocol
 export { PROTOCOL_VERSION } from "./protocol";
