@@ -10,7 +10,7 @@
     },
     "dependencies": {
         "@astrojs/starlight": "^0.37.0",
-        "astro": "^5.18.1",
+        "astro": "^6.1.6",
         "sharp": "^0.33.0",
         "starlight-theme-nova": "^0.11.5",
         "starlight-typedoc": "^0.21.5",
