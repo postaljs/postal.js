@@ -67,7 +67,7 @@
         "prettier": "^3.8.1",
         "ts-jest": "^29.4.6",
         "tsdown": "^0.20.3",
-        "turbo": "^2.8.9",
+        "turbo": "^2.9.14",
         "typescript": "^5.9.3"
     },
     "pnpm": {
